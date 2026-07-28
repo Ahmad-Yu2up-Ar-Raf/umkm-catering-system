@@ -1,9 +1,8 @@
-import React from 'react'
+import LoginBlock from "@/components/ui/core/block/auth/login-block"
+import React from "react"
 
 function LoginPage() {
-  return (
-    <div>LoginPage</div>
-  )
+  return <LoginBlock />
 }
 
 export default LoginPage
