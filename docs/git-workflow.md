@@ -1,3 +1,8 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Team Git Workflow · **Monorepo Root:** `../`
+>
+> [Global Business Context](./project-context.md) · [Monorepo Architecture](./architecture.md) · [Root Readme](../README.md) · [Backend API Specs](../backend/docs/api-collection.md) · [Frontend Architecture](../frontend/docs/architecture.md)
+
 # Team Git Workflow — Catering Nusantara
 
 > Every team member MUST read and follow this guide before writing code.

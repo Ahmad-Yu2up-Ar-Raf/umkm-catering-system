@@ -1,3 +1,8 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Backend Technical Spec · **Monorepo Root:** `../../`
+>
+> [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [API Specs](./api-collection.md) · [Frontend Consumer](../../frontend/README.md) · [Frontend Architecture](../../frontend/docs/architecture.md)
+
 # Architecture — Catering Nusantara Back-End
 
 > Structural standards, layering, and conventions. See DATABASE.md for schema/business rules, WORKFLOW.md for the pipeline.

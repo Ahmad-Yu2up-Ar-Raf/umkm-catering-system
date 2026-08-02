@@ -1,6 +1,13 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Backend Agent Rules · **Monorepo Root:** `../`
+>
+> [Global Context](../docs/project-context.md) · [Monorepo Architecture](../docs/architecture.md) · [API Specs](./docs/api-collection.md) · [Frontend Consumer](../frontend/README.md) · [Frontend Architecture](../frontend/docs/architecture.md)
+
 # Catering Nusantara Back-End — Agent Context (OpenCode)
 
 > Level-100 quick-start for AI agents working inside `backend/`. Read the modular docs (below) for deep context. This file is the fast-loading overview.
+
+> **Consumer awareness:** every endpoint here is consumed by the React/Vite SPA at `../frontend`. The API contract lives in **`docs/api-collection.md`** — keep it and the generated `openapi.json` in sync whenever routes, Form Requests, or Resources change.
 
 ## Project Identity
 

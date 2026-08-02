@@ -1,6 +1,20 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Backend App Overview · **Monorepo Root:** `../`
+>
+> [Global Context](../docs/project-context.md) · [Monorepo Architecture](../docs/architecture.md) · [API Specs](./docs/api-collection.md) · [Frontend Consumer](../frontend/README.md) · [Frontend Architecture](../frontend/docs/architecture.md) · [Backend Agent Rules](./AGENTS.md)
+
 # Catering Nusantara — Backend
 
 Laravel API for the Catering Nusantara platform. Serves the public catalog (`paket`, `galeri`) and the authenticated Admin CMS / Mini POS (`pesanan`) consumed by the React frontend.
+
+## Monorepo Awareness
+
+- This API is consumed by the **React/Vite single-page application at `../frontend`** (monorepo sibling) over **REST**.
+- **API contract:** all endpoints, payloads, and responses are defined in **`docs/api-collection.md`** — the frontend references it, this folder owns it.
+- **CORS:** `config/cors.php` allows `FRONTEND_URL` (default `http://localhost:3000`); for local Vite dev set `FRONTEND_URL=http://localhost:5173` in `.env`.
+- **Auth:** Sanctum **Bearer tokens** (`auth:sanctum`). The frontend logs in via `POST /api/v1/auth/login`, stores the token, and sends `Authorization: Bearer <token>` on every request (see `frontend/src/api/client.ts`).
+- **Local dev:** Laravel on `http://localhost:8000`, Vite on `http://localhost:5173`.
+- Business rationale: see `../docs/project-context.md`.
 
 ## Tech Stack
 

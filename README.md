@@ -5,16 +5,38 @@
 
 > Hybrid F&B platform: a public catalog optimized for WhatsApp conversion, paired with an internal Admin CMS + Mini POS — built on a single JSON-enriched database schema.
 
-Project documentation is split across several files so that both humans and AI coding agents can navigate it easily:
+Project documentation is split across several files so that both humans and AI coding agents can navigate it easily. **Starting from the root, follow the links down; from any nested file, climb back up via its "Context Anchor & Monorepo Topology" block.**
 
 | File | Contents |
 |---|---|
-| `README.md` (this file) | Project overview, tech stack, and setup guide |
-| [`docs/architecture.md`](./docs/architecture.md) | Sitemap, userflow, ERD, and database architecture rationale |
-| [`frontend/docs/design.md`](./frontend/docs/design.md) | "Down to Earth" design system: colors, fonts, UI components (single source of truth) |
+| `README.md` (this file) | Project overview, tech stack, setup guide, and master index |
+| [`docs/project-context.md`](./docs/project-context.md) | Business "brain": brand, audience, problem, model, metrics |
+| [`docs/architecture.md`](./docs/architecture.md) | Monorepo topology, sitemap, userflow, ERD |
 | [`AGENTS.md`](./AGENTS.md) | Mandatory ruleset for AI coding agents (OpenCode) before writing code |
 | [`docs/git-workflow.md`](./docs/git-workflow.md) | Team branch, PR, and commit conventions |
-| [`docs/api/bruno/`](./docs/api/bruno/) | API collection (Bruno) for endpoint testing |
+
+### Frontend (`/frontend`)
+
+| File | Contents |
+|---|---|
+| [`frontend/README.md`](./frontend/README.md) | Frontend overview, scripts, monorepo awareness |
+| [`frontend/AGENTS.md`](./frontend/AGENTS.md) | Frontend agent rules (React/Vite/shadcn) |
+| [`frontend/docs/architecture.md`](./frontend/docs/architecture.md) | Component tree, state management, data flow |
+| [`frontend/docs/design.md`](./frontend/docs/design.md) | Design tokens (Suasana palette) — single design spec |
+
+### Backend (`/backend`)
+
+| File | Contents |
+|---|---|
+| [`backend/README.md`](./backend/README.md) | Backend overview, setup, business rules |
+| [`backend/AGENTS.md`](./backend/AGENTS.md) | Backend agent rules (Laravel/Neon) |
+| [`backend/docs/api-collection.md`](./backend/docs/api-collection.md) | **API contract** — endpoints, payloads, auth (single source of truth) |
+| [`backend/docs/architecture.md`](./backend/docs/architecture.md) | Backend layering & conventions |
+| [`backend/docs/database.md`](./backend/docs/database.md) | Neon schema, JSON arrays, business rules |
+| [`backend/docs/database-seeders.md`](./backend/docs/database-seeders.md) | Seeder data & fixtures |
+| [`backend/docs/workflow.md`](./backend/docs/workflow.md) | Zero-Hallucination pipeline (Code → Pest → Bruno → Scramble) |
+| [`backend/openapi.json`](./backend/openapi.json) | Generated OpenAPI spec (Scramble) |
+| [`docs/api/bruno/`](./docs/api/bruno/) | Bruno collection for endpoint testing |
 
 ---
 
@@ -58,7 +80,7 @@ cd catering-nusantara/frontend
 npm install
 npx shadcn@latest init    # setup shadcn/ui + Tailwind
 cp .env.example .env
-# set VITE_API_BASE_URL to the Laravel backend URL
+# set VITE_API_URL to the Laravel backend API base URL (e.g. http://localhost:8000/api/v1/)
 npm run dev
 ```
 
@@ -68,7 +90,7 @@ npm run dev
 | `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Neon PostgreSQL connection |
 | `APP_KEY` | Laravel encryption key |
 | `WHATSAPP_NUMBER` | Target number for public checkout deep-link |
-| `VITE_API_BASE_URL` | API base URL for the front-end |
+| `VITE_API_URL` | API base URL for the front-end, e.g. `http://localhost:8000/api/v1/` |
 
 ---
 

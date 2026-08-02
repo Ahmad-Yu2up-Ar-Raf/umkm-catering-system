@@ -1,6 +1,25 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Frontend Technical Spec · **Monorepo Root:** `../../`
+>
+> [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [Backend API Specs](../../backend/docs/api-collection.md) · [Frontend Readme](../README.md) · [Frontend Agent Rules](../AGENTS.md)
+
 # Frontend Architecture — Catering Nusantara
 
 > Technical blueprint for the React + Vite app. Read `../AGENTS.md` (rules) and `design.md` (tokens) alongside this document.
+
+---
+
+## 0. Monorepo Awareness
+
+- This UI is a **single-page application** (React + Vite) living in `/frontend`.
+- The backend is a **Laravel application at `../backend`** (monorepo sibling) serving this app over a **REST API**.
+- **For all API endpoints, request payloads, and responses, refer strictly to the backend API collection at `../backend/docs/api-collection.md`** — never duplicate API documentation in this folder.
+- **Local development interaction:**
+  - Vite dev server: `http://localhost:5173` (`npm run dev` in `/frontend`).
+  - Laravel API: `http://localhost:8000` (`php artisan serve` in `/backend`).
+  - Set `VITE_API_URL=http://localhost:8000/api/v1/` in `frontend/.env` and `FRONTEND_URL=http://localhost:5173` in `backend/.env` (CORS).
+  - The frontend attaches the Sanctum Bearer token automatically (see `src/api/client.ts`); a 401 clears the session and redirects to `/login`.
+- **Shared visual assets** live at `../../assets/main` (monorepo root, `C:\Dev\Web\catering\assets\main`) — `banners/`, `lifestyle/`, `products/`, `textures/`, `ui/`. Do not copy them into `frontend/public/` unless explicitly instructed (see `AGENTS.md` §9).
 
 ---
 
@@ -12,14 +31,17 @@ frontend/src/
 ├── App.tsx                 # App shell: ThemeProvider, Toaster, TooltipProvider, RouterProvider
 ├── index.css               # Tailwind v4 tokens (Suasana palette) + fonts + base styles
 ├── router/
-│   └── index.tsx           # All routes + GuestGuard / AuthenticatedGuard
+│   ├── index.tsx           # All routes (createBrowserRouter)
+│   └── guards.tsx          # GuestGuard / AuthenticatedGuard
 ├── api/
-│   └── client.ts           # Ky instance (VITE_API_BASE_URL, auth header injection)
+│   └── client.ts           # Ky instance (VITE_API_URL, Bearer token injection, 401 handling)
 ├── services/               # (scaffolded) data-access / query hooks for the API
 ├── hooks/                  # (scaffolded) shared custom hooks
 ├── components/
 │   ├── theme-provider.tsx  # next-themes based dark/light provider
-│   ├── ui/                 # shadcn/ui fragments (button, tooltip, sonner…)
+│   ├── ui/                 # shadcn/ui fragments (19 primitives — button, card, dialog, sheet,
+│   │                       #   table, select, tabs, drawer, skeleton, badge, input, label,
+│   │                       #   textarea, checkbox, separator, dropdown-menu, popover, sonner, tooltip)
 │   └── ui/core/block/      # composed feature blocks (auth/login, contact, …)
 ├── pages/                  # route-level pages (home, auth/login, admin/dashboard, contact)
 ├── store/
@@ -29,6 +51,16 @@ frontend/src/
 └── types/
     └── auth-type.ts        # shared TypeScript types
 ```
+
+### 1.1 Tooling & Design System Files (outside `src/`)
+
+| Path | Purpose |
+|---|---|
+| `.opencode/skills/` | Project-local agent skills: `impeccable`, `catering-nusantara-design`, `motion-orchestration`, `shadcn-architecture` |
+| `docs/design.md` | Design source of truth (Stitch-9-compatible tokens, fonts, rules) |
+| `design-system/MASTER.md` + `design-system/pages/` | Persisted design system + page-level overrides (read before building a page) |
+| `playwright/` + `playwright.config.ts` | E2E/visual specs (`npm run test:e2e`) |
+| `opencode.json` | Local MCP config (Playwright MCP) |
 
 ## 2. Component Composition Map
 
@@ -58,16 +90,18 @@ Page/Block
 src/services/ (React Query hook)
    │  invokes
    ▼
-src/api/client.ts (Ky)  ── HTTP ──►  Laravel backend (backend/routes/api.php)
+src/api/client.ts (Ky)  ── HTTP (REST) ──►  Laravel backend (../backend, routes/api.php)
    ▲
    └── response typed via src/types/
 ```
 
+- Contract source: `../backend/docs/api-collection.md` (and the generated `../backend/openapi.json`).
 - Auth token is attached by the Ky instance (`api/client.ts`) via the zustand store.
 - Mutations invalidate the matching query keys to refetch.
 
 ## 5. Routing & Guards
 
+- Guards live in `src/router/guards.tsx` (extracted so `router/index.tsx` stays fast-refresh clean).
 - `GuestGuard` — redirects authenticated users to `/dashboard`.
 - `AuthenticatedGuard` — redirects anonymous users to `/login`.
 - Public surface (catalog, contact, FAQ…) lives outside the guards; admin routes sit behind `AuthenticatedGuard`.

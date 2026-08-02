@@ -1,3 +1,8 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Repo-wide Agent Rules · **Monorepo Root:** `.`
+>
+> [Global Business Context](./docs/project-context.md) · [Monorepo Architecture](./docs/architecture.md) · [Backend API Specs](./backend/docs/api-collection.md) · [Frontend Architecture](./frontend/docs/architecture.md)
+
 # Agent Ruleset — Catering Nusantara (for OpenCode)
 
 > This instruction is mandatory context for any AI coding agent before writing or modifying code in this repository. Also read `docs/architecture.md` and `frontend/docs/design.md` for full details — this document only contains execution rules.

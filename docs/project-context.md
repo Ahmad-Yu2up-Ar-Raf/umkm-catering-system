@@ -1,3 +1,8 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Business & Brand Context (project "brain") · **Monorepo Root:** `../`
+>
+> [Monorepo Architecture](./architecture.md) · [Root Readme](../README.md) · [Frontend Architecture](../frontend/docs/architecture.md) · [Backend API Specs](../backend/docs/api-collection.md) · [Frontend Design Spec](../frontend/docs/design.md)
+
 # Catering Nusantara — Brand & Business Context
 
 > The single source of business truth for the "Catering Nusantara" platform (Dapur Bunda Catering). Read this before any product, content, or architecture work — it explains **who** the business is, **what** problem the software solves, **who** it serves, and **how** money is made. Technical readers should combine this with `docs/architecture.md` (structure) and `frontend/docs/design.md` (look & feel).
@@ -79,3 +84,10 @@ One database, two surfaces:
 - **Architecture work**: pair with `docs/architecture.md` and `backend/docs/database.md`; respect the server-side computation rules in §5.
 - **UI work**: pair with `frontend/docs/design.md`; never introduce hardcoded colors, stock photos, or corporate-catering aesthetics.
 - **Scope discipline**: this is an UMKM system — every feature must justify its complexity against the WhatsApp-first model in §2.
+
+## 9. Where Things Live (Repo Map)
+
+- **Public catalog + Admin dashboard UI** → `/frontend` (React/Vite). Architecture: `frontend/docs/architecture.md`; look & feel: `frontend/docs/design.md`.
+- **Business logic, database, API provider** → `/backend` (Laravel, Neon PostgreSQL). Architecture: `backend/docs/architecture.md`; schema: `backend/docs/database.md`.
+- **API contract (endpoints/payloads/responses)** → `backend/docs/api-collection.md` (single source of truth; frontend references it).
+- **End-to-end directory tree & communication flow** → `docs/architecture.md` §0.

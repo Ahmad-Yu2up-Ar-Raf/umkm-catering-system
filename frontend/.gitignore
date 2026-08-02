@@ -1,3 +1,14 @@
+# Impeccable runtime state (ephemeral working files; shared artifacts stay tracked)
+.impeccable/config.local.json
+.impeccable/hook.cache.json
+.impeccable/*.png
+.impeccable/live/
+.impeccable/critique/
+
+# Playwright
+test-results
+playwright-report
+
 # Logs
 logs
 *.log

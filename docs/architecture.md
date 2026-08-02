@@ -1,6 +1,42 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Monorepo Architecture · **Monorepo Root:** `../`
+>
+> [Global Business Context](./project-context.md) · [Root Readme](../README.md) · [Frontend Architecture](../frontend/docs/architecture.md) · [Backend Architecture](../backend/docs/architecture.md) · [Backend API Specs](../backend/docs/api-collection.md)
+
 # Architecture — Catering Nusantara
 
 > This document explains the sitemap structure, userflow, and database schema for the Catering Nusantara project (Dapur Bunda Catering). It is written so that both developers and AI coding agents (OpenCode) have full context before writing code.
+
+---
+
+## 0. Monorepo Topology
+
+Single repository, two applications, one shared database contract:
+
+```
+umkm-catering-system/
+├── frontend/                       # User-facing SPA (React + Vite)
+│   ├── src/                        # components, pages, router, store, services, api, hooks
+│   ├── docs/architecture.md        # frontend component tree & state plan
+│   └── docs/design.md              # design tokens (Suasana palette) — single design spec
+├── backend/                        # Core business logic + API provider (Laravel)
+│   ├── app/                        # Controllers, Requests, Resources, Services, Models
+│   ├── routes/api.php              # REST routes (ground truth for the API)
+│   ├── docs/api-collection.md      # API contract — single source of truth for schemas
+│   └── docs/database.md            # Neon PostgreSQL schema & business rules
+├── docs/                           # Root documentation & business context
+│   ├── project-context.md          # Business "brain" — who, what, why, how
+│   └── architecture.md             # This file — sitemap, userflow, ERD
+└── assets/                         # Product photography (shared source of truth)
+```
+
+**How the two communicate:**
+
+- `frontend/` → **REST** → `backend/`: the SPA calls `http://localhost:8000/api/v1/*` (via Ky, `src/api/client.ts`).
+- **Auth:** Sanctum Bearer tokens — `POST /api/v1/auth/login` issues a token; the frontend sends `Authorization: Bearer <token>`; 401 clears the session.
+- **Contract:** all endpoints/payloads/responses are defined once in `../backend/docs/api-collection.md` (backed by `backend/openapi.json` + `docs/api/bruno/`). The frontend references it — nothing is duplicated.
+- **Local dev:** Vite `:5173` ↔ Laravel `:8000`; CORS allows `FRONTEND_URL` (set it to `http://localhost:5173` in `backend/.env`).
+- **Data ownership:** `backend/` owns the database (Neon PostgreSQL) and all business rules (`total_harga`, `nomor_struk`, snapshots). The frontend is a thin, stateless consumer.
 
 ---
 

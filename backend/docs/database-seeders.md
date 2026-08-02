@@ -1,3 +1,8 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Backend Seeders Spec · **Monorepo Root:** `../../`
+>
+> [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [API Specs](./api-collection.md) · [Database Spec](./database.md) · [Frontend Consumer](../../frontend/README.md)
+
 # Database Seeders — Initial Data (Dapur Bunda Catering)
 
 > Source of truth for the 5 initial product packages seeded into the `paket` table.

@@ -1,3 +1,8 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Backend Database Spec · **Monorepo Root:** `../../`
+>
+> [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [API Specs](./api-collection.md) · [Database Seeders](./database-seeders.md) · [Frontend Consumer](../../frontend/README.md)
+
 # Database — Catering Nusantara Back-End
 
 > Authoritative schema (from `../docs/architecture.md` §4, monorepo root) + JSON array rules + critical business rules.

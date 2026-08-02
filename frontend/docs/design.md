@@ -1,6 +1,11 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Frontend Design Spec (single design source of truth) · **Monorepo Root:** `../../`
+>
+> [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [Backend API Specs](../../backend/docs/api-collection.md) · [Frontend Architecture](../docs/architecture.md)
+
 # Frontend Design — Suasana-Inspired "Down to Earth"
 
-> The single design specification for the Catering Nusantara platform. UI/UX principles, the Suasana-ported token system, fonts, radius/shadow scale, and component rules. Read `../AGENTS.md` alongside this document.
+> The single design specification for the Catering Nusantara platform. UI/UX principles, the Suasana-ported token system, fonts, radius/shadow scale, and component rules. **Stitch-9-compatible — this document is the single design source of truth (supersedes the root `DESIGN.md`, which was merged into this file and removed).** Read `../AGENTS.md` alongside this document.
 
 ---
 
@@ -77,3 +82,85 @@ Used as **subtle accents**, not dominant elements — so the UI stays clean like
 - ❌ No hardcoded hex/OKLCH colors or font names in components.
 - ❌ Do not edit core `src/components/ui/` files — re-theme via `src/index.css`.
 - Dark mode uses the `.dark` token block via the `@custom-variant dark` (class-based) strategy with `next-themes`.
+
+### 6.1 Component Stylings Reference
+
+| Component | Token usage |
+|---|---|
+| Buttons | `bg-primary text-primary-foreground` primary; `secondary`/`muted`/`outline`/`destructive` variants via `cva`; focus ring via `ring` token |
+| Cards | `bg-card text-card-foreground border-border rounded-lg shadow-sm` — **no card-in-card nesting** |
+| Inputs / Selects | `border-input` hairlines; `focus-visible:ring-ring/50`; labels always visible (never placeholder-only) |
+| Tables (admin) | `border-border` hairlines; `text-muted-foreground` secondary cells; header row `bg-muted/50` |
+| Dialogs / Sheets (admin) | rounded, `shadow-xl`; motion via Framer `AnimatePresence` (code-split) |
+| Toasts | `sonner` |
+
+## 7. Do's and Don'ts
+
+| Do | Don't |
+|---|---|
+| Semantic tokens everywhere (`bg-background`, `text-primary`, …) | Hardcoded hex/OKLCH/font names in components |
+| Merriweather headings + Figtree body | Inter/Arial/system-font substitution |
+| Warm cream + earthy amber/brown family | Cold blue/grey dominance, purple-to-blue gradients, glassmorphism everywhere |
+| One signature detail per surface | Decoration for its own sake; card-in-card; emojis as icons (use HugeIcons) |
+| Nusantara texture (bamboo/batik) at ~5–10% opacity | Busy texture that hurts text contrast |
+| Motion: one moment per viewport, 150–300ms, `prefers-reduced-motion` respected | Bounce/elastic easing; infinite-loop micro-animations; animating width/height |
+| Natural photography (client assets in `../../assets/main/`) | Generic stock photos |
+
+## 8. Responsive Behavior
+
+- Mobile-first; breakpoints **375 / 768 / 1024 / 1440**.
+- Catalog cards stack to a single column; admin sidebar collapses to a drawer/sheet on mobile.
+- Touch targets ≥ 44×44px; no horizontal scroll; no zoom disable.
+
+## 9. Agent Prompt Guide
+
+> Build [page] for Catering Nusantara using `docs/design.md` + `design-system/MASTER.md`.
+> Tokens from `src/index.css` (OKLCH warm cream/amber). Merriweather headings, Figtree body.
+> Check `design-system/pages/<page>.md` overrides first, else Master rules.
+> After building: `npm run typecheck && npm run lint && npm run lint:design`.
+> Colors: bg=warm cream, primary=earthy amber/brown, text=warm dark brown. Fonts: Merriweather/Figtree.
+
+## 10. Premium Motion & Visual Benchmark (Tiska Catering Paradigm)
+
+> Scraped from **tiskacatering.com** (Next.js + Tailwind, warm dark-ink/gold/paper palette — the closest culinary-benchmark sibling to our warm cream/amber system). Evidence-based patterns observed in the shipped markup; effects map onto our GSAP stack (see `motion-orchestration` skill).
+
+### 10.1 The Benchmark's Motion Grammar
+
+1. **Masked word-reveal headlines.** Each word is `<span class="inline-block overflow-hidden">` wrapping an inner `<span style="transform: translateY(110%)">`, then tweened to `translateY(0)` with stagger. Signature scroll/entry reveal — every hero/about headline uses it.
+2. **Editorial italic serif accent.** One word in the headline is `font-accent italic` in a warm gold tone (e.g. "Celebrate *Love* with the finest *flavours*"). Single emphasized word per line — never more.
+3. **Fluid display type.** `font-display`, `font-light`, `leading-[1.05]`, `clamp(34px, 7vw, 84px)`, `font-variation-settings:'opsz' 144` (optical sizing maxed). Big, light, tight — editorial, never heavy.
+4. **Uppercase letter-spaced eyebrow.** `text-[11px] uppercase tracking-[0.5em]` in deep-gold, fade-in via opacity. Micro-label above every section ("Est. 1980 — Bogor").
+5. **Gradient hairline divider.** `h-px bg-[linear-gradient(90deg,transparent,var(--gold),transparent)]` with width animating `0 → 100%` — a center-out reveal used as section/hero separation.
+6. **Full-screen preloader curtain.** A fixed `bg-ink` overlay slides up on load: `transform: translateY(0)` → off-screen with `transition: transform 1s cubic-bezier(0.76, 0, 0.24, 1)` — the cinematic entry moment.
+7. **Floating pill header.** Fixed, centered, `rounded-full`, `transition-[top,padding,background-color,border-color] duration-500` — transparent over hero, shrinks & solidifies on scroll.
+8. **Infinite marquee rails.** Client-logo bands with `animation-play-state: paused` on hover; cards lift via `transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(…)]`.
+9. **Count-up stats.** Numbered `01–04` grid; values tween 0→N when scrolled into view.
+10. **Sticky in-section sub-nav.** Secondary nav `sticky lg:top-28 self-start` beside FAQ/timeline content.
+
+### 10.2 "Different worlds" bound by one narrative
+
+Each section is structurally distinct, yet cohesive:
+
+| Section | Rhythm |
+|---|---|
+| Hero | Full-bleed image overlay, word-reveal headline, pill nav above |
+| Featured service | Split image + copy + WhatsApp CTA |
+| About | Stacked multi-line headline + paired images |
+| Stats | Numbered 01–04 grid with count-ups |
+| Client logos | Hover-pause marquee band |
+| History | Vertical year timeline (1980 → 1990 → …) |
+
+**Cohesion glue:** one display serif + italic accent word, one token family (`bg-ink`, `ring-line`, `text-paper`, gold ramp), one rounded-card treatment, one motion grammar (masked reveals + transform/shadow transitions + curtain intro).
+
+### 10.3 Mapping to Catering Nusantara (GSAP, no bottleneck)
+
+| Benchmark pattern | Our implementation |
+|---|---|
+| Word-mask reveal | GSAP `ScrollTrigger` + masked word spans (stagger 0.05–0.08s) — hero & section headers only |
+| Preloader curtain | One-time `useGSAP` intro on `/` (respect `prefers-reduced-motion` → skip) |
+| Gold divider grow | ScrollTrigger scaleX 0→1 on `::after` gradient hairline |
+| Count-up stats | GSAP snap + counter object, triggered once in view |
+| Marquee | CSS `animation` + `animation-play-state` (no JS loop) |
+| Pill header | CSS scroll class toggle (no GSAP needed) |
+
+**Token mapping:** `text-paper`→`text-foreground`, `bg-ink`→`bg-background`/dark surface, gold ramp→`primary` amber, `ring-line`→`border-border`. **One signature moment per viewport** (per §7); the curtain is the only full-screen effect and only on the landing surface.

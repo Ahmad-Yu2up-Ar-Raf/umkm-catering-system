@@ -1,19 +1,9 @@
 import HomePage from "@/pages/home-page"
 import LoginPage from "@/pages/auth/login-page"
 
-import { useAuthStore } from "@/store/auth-store"
-import { createBrowserRouter, Outlet, Navigate } from "react-router"
+import { createBrowserRouter } from "react-router"
 import DashboardPage from "@/pages/admin/dashboard-page"
-
-const GuestGuard = () => {
-  const isAuthenticated = useAuthStore.getState().isAuthenticated
-  return isAuthenticated ? <Navigate to={"/dashboard"} /> : <Outlet />
-}
-
-const AuthenticatedGuard = () => {
-  const isAuthenticated = useAuthStore.getState().isAuthenticated
-  return !isAuthenticated ? <Navigate to={"/login"} /> : <Outlet />
-}
+import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
 
 export const router = createBrowserRouter([
   {

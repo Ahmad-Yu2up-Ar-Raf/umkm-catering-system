@@ -1,3 +1,8 @@
+<!-- Context Anchor & Monorepo Topology -->
+> **Scope:** Backend Workflow Spec · **Monorepo Root:** `../../`
+>
+> [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [API Specs](./api-collection.md) · [Frontend Consumer](../../frontend/README.md)
+
 # Zero-Hallucination Workflow — Catering Nusantara Back-End
 
 > The mandatory pipeline for EVERY feature. Do not skip steps, do not reorder. This is what "done" means.
