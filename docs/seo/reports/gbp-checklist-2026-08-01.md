@@ -18,10 +18,10 @@ Bunda can take the pack with zero reviews if hygiene is right.
 - [ ] **NAP consistency:** identical name/address/phone on GBP, site Kontak page, and
       every directory listing.
 - [ ] **Website URL** → cateringnusantara.id (placeholder until live — set once deployed).
-- [ ] **Description:** warm "masakan rumah" copy (design.md voice) + product keywords
+- [ ] **Description:** warm "masakan rumah" copy (frontend/docs/design.md voice) + product keywords
       (nasi box, prasmanan, snack box, tumpeng mini) + capacity 20–1000 porsi. Do NOT
       stuff keywords.
-- [ ] **Photos:** 20+ real photos (design.md §5 — no stock): food, packaging, delivery,
+- [ ] **Photos:** 20+ real photos (frontend/docs/design.md §5 — no stock): food, packaging, delivery,
       acara. Update monthly.
 - [ ] **Posts:** 1/week — menu updates, promo acara, foto pelanggan (dengan izin).
 - [ ] **Q&A:** seed 6–8 questions/answers mirroring the FAQ page (harga, min order,

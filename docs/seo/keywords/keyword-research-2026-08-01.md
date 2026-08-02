@@ -8,7 +8,7 @@
 
 ## Method & Caveat (read first)
 
-- Seed set built from the Notion SEO page gap table + client products (architecture.md §4) +
+- Seed set built from the Notion SEO page gap table + client products (docs/architecture.md §4) +
   spelling / location / price / trust variants.
 - **DataForSEO Labs keyword volume is UNAVAILABLE for the Indonesian market on this
   account.** `find_serp_competitors` was attempted for locations 2044 (country), 1004122
@@ -70,7 +70,7 @@
 
 ---
 
-## 4. Keyword → Page Map (official sitemap, architecture.md §2)
+## 4. Keyword → Page Map (official sitemap, docs/architecture.md §2)
 
 | Page | Keywords | Intent |
 |------|----------|--------|

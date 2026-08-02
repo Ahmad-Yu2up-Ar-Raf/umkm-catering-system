@@ -1,14 +1,17 @@
 # Frontend Design — Suasana-Inspired "Down to Earth"
 
-> UI/UX principles and the design tokens for the Catering Nusantara frontend. The palette is ported from the Suasana exploration app; the fonts remain the project defaults.
+> The single design specification for the Catering Nusantara platform. UI/UX principles, the Suasana-ported token system, fonts, radius/shadow scale, and component rules. Read `../AGENTS.md` alongside this document.
 
 ---
 
-## 1. Principles
+## 1. Design Philosophy
 
-- **Local, not generic** — warm Nusantara earth tones, natural photography, subtle local texture accents. No corporate-catering feel.
-- **Homey, not stiff** — rounded, friendly UI; high-key natural-light product photos (Dapur Solo style).
-- **Consistent, not chaotic** — every color and font comes from tokens in `src/index.css`. Nothing is hardcoded in components.
+The brand is called "Catering Nusantara" and sells the taste of "home cooking". These two principles must be visible, not just stated:
+
+- **Local, not generic** — visual elements reference Nusantara culture: woven bamboo textures, banana leaves, subtle batik motifs as background accents — not corporate geometric patterns.
+- **Homey, not stiff** — avoid the cold corporate-catering feel; rounded corners, natural photos (never stock), warm typography.
+
+Agreed visual reference: **suasana.vercel.app** — calm, aesthetic, in harmony with nature. Take its *calmness* (OKLCH-based color palette, smooth transitions) without copying its layout exactly.
 
 ## 2. Palette (ported from Suasana — OKLCH)
 
@@ -51,16 +54,25 @@ Full token set also includes `--chart-1..5`, `--sidebar-*`, and `--color-header`
 | Heading / Display | **Merriweather Variable** (`--font-heading`) | Page titles, package names, taglines |
 | Body / UI | **Figtree Variable** (`--font-sans`) | Descriptions, prices, admin/POS UI |
 
-Loaded via Fontsource in `src/index.css`. Headings (`h1`–`h6`) force `--font-heading` in the base layer.
+Loaded via Fontsource in `src/index.css`. Headings (`h1`–`h6`) force `--font-heading` in the base layer. These fonts are a deliberate project choice — never swap them.
 
 ## 4. Radius & Shadows (ported)
 
 - `--radius: 0.25rem` — base radius (Suasana); scale via `--radius-sm/md/lg/xl` (`calc(var(--radius) ± …)`).
 - Shadow system ported from Suasana: `--shadow-x/y/blur/spread/opacity/color` primitives plus `--shadow-2xs … --shadow-2xl`, all mapped into Tailwind's `shadow-*` utilities.
 
-## 5. Component & Styling Rules
+## 5. "Local" Visual Elements
+
+Used as **subtle accents**, not dominant elements — so the UI stays clean like the suasana.vercel.app reference, not busy:
+
+- **Woven bamboo texture** — optional as a background for specific sections, at low opacity (~5-10%).
+- **Banana leaf / thin batik motifs** — used sparingly as dividers or borders; must never interfere with text contrast.
+
+## 6. Components & Styling Rules
 
 - Build with **shadcn/ui** primitives (Radix) — reuse before creating.
+- **No `tailwind.config.js`** — Tailwind v4 is CSS-first. All design customization (colors, border radius, fonts) is controlled centrally in `src/index.css`.
+- Browser default outlines are replaced with shadcn's built-in `outline-ring/50` (see the base layer in `src/index.css`).
 - Use semantic tokens in every component: `bg-background`, `text-foreground`, `text-primary`, `bg-card`, `border-border`, `shadow-md`, `rounded-lg`, etc.
 - ❌ No hardcoded hex/OKLCH colors or font names in components.
 - ❌ Do not edit core `src/components/ui/` files — re-theme via `src/index.css`.

@@ -46,5 +46,5 @@ Laravel 13 / PHP 8.4 · Sanctum 4 (SPA tokens) · Breeze 2 · Pest 4 · Neon Dat
 ## Cross-Reference (repo root)
 
 - `../docs/architecture.md` — sitemap & monorepo-wide ERD
-- `../docs/design.md` — design tokens (frontend)
+- `../frontend/docs/design.md` — design tokens (frontend)
 - `../docs/git-workflow.md` — branch/PR/commit conventions

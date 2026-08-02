@@ -11,7 +11,7 @@ Project documentation is split across several files so that both humans and AI c
 |---|---|
 | `README.md` (this file) | Project overview, tech stack, and setup guide |
 | [`docs/architecture.md`](./docs/architecture.md) | Sitemap, userflow, ERD, and database architecture rationale |
-| [`docs/design.md`](./docs/design.md) | "Down to Earth" design system: colors, fonts, UI components |
+| [`frontend/docs/design.md`](./frontend/docs/design.md) | "Down to Earth" design system: colors, fonts, UI components (single source of truth) |
 | [`AGENTS.md`](./AGENTS.md) | Mandatory ruleset for AI coding agents (OpenCode) before writing code |
 | [`docs/git-workflow.md`](./docs/git-workflow.md) | Team branch, PR, and commit conventions |
 | [`docs/api/bruno/`](./docs/api/bruno/) | API collection (Bruno) for endpoint testing |

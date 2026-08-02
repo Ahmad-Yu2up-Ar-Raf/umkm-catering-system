@@ -1,58 +1,77 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Catering Nusantara — Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel API for the Catering Nusantara platform. Serves the public catalog (`paket`, `galeri`) and the authenticated Admin CMS / Mini POS (`pesanan`) consumed by the React frontend.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Concern | Choice |
+|---|---|
+| Framework | **Laravel 13** (PHP 8.4) |
+| Auth | **Breeze** (scaffolding) + **Sanctum** (SPA API tokens) |
+| Database | **Neon** — serverless PostgreSQL (`DB_CONNECTION=pgsql`) |
+| Testing | **Pest 4** |
+| Code style | **Pint** |
+| API docs | **Scramble** (`openapi.json`) + Bruno collection in `docs/api/bruno` |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Setup
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+# fill DB_* vars from your Neon connection string (DB_CONNECTION=pgsql, DB_SSLMODE=require)
+php artisan migrate --seed
+php artisan install:api   # Sanctum setup
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Tests
 
-## Contributing
+```bash
+php artisan test            # Pest suite (Feature API tests + Unit service tests)
+vendor/bin/pint --dirty     # format changed PHP files before finalizing
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Key Business Rules (server-enforced)
 
-## Code of Conduct
+- `total_harga` is **server-computed only**: `(jumlah_paket * harga_paket_satuan) + biaya_tambahan`. Never accepted from the client.
+- `harga_paket_satuan` is a **snapshot** copied from `paket.harga_per_porsi` at order creation.
+- `nomor_struk` is **server-generated** (`STR-YYYYMMDD-XXXX`, daily sequential counter).
+- JSON array fields (`menu_utama`, `menu_tambahan`, `fasilitas_termasuk`, `detail_tambahan`) are validated via **Form Requests**.
+- 4 core tables only (`users`, `paket`, `galeri`, `pesanan`). No new tables without approval.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Project Structure
 
-## Security Vulnerabilities
+```
+app/
+├── Enums/          # Backed enums for constrained string fields
+├── Http/Controllers/   # FLAT controllers (locked convention)
+├── Http/Requests/      # FormRequest validation per resource
+├── Http/Resources/     # API resource transformations
+├── Models/
+└── Services/       # HargaService, PesananService, StrukService (business logic)
+database/
+├── migrations/     # 4 core tables + Sanctum personal access tokens
+├── factories/      # Paket/Galeri/Pesanan factories
+└── seeders/        # PaketSeeder, DatabaseSeeder
+routes/
+├── api.php         # Public + authenticated API routes
+└── auth.php        # Breeze auth routes
+tests/
+├── Feature/        # GaleriApiTest, PaketApiTest, PesananApiTest, Auth/*
+└── Unit/           # HargaServiceTest, StrukServiceTest
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Documentation
 
-## License
+| File | Contents |
+|---|---|
+| `AGENTS.md` | Mandatory rules for AI agents working in this folder |
+| `docs/architecture.md` | Backend layering, conventions, response envelope |
+| `docs/database.md` | Neon schema, JSON array rules, business rules |
+| `docs/database-seeders.md` | Seeder data and fixtures |
+| `docs/workflow.md` | Zero-Hallucination pipeline (Code → Pest → Bruno → Scramble) |
+| `docs/boost-guidelines.md` | Laravel Boost MCP tooling guidelines |
+| `openapi.json` | Generated OpenAPI spec (Scramble) |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Cross-reference: repo root `../README.md`, `../docs/architecture.md`, `../docs/project-context.md`.

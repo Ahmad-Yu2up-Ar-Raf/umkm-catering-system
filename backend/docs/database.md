@@ -1,13 +1,13 @@
 # Database — Catering Nusantara Back-End
 
-> Authoritative schema (from `ARCHITECTURE.md` §4, monorepo root) + JSON array rules + critical business rules.
+> Authoritative schema (from `../docs/architecture.md` §4, monorepo root) + JSON array rules + critical business rules.
 
 ## Database Provider: Neon Database
 
 - **Provider:** [Neon Database](https://neon.tech) — Serverless PostgreSQL.
-- **Purpose:** Serves as the primary backend database for the project (catering API: `users`, `paket`, `galeri`, `pesanan`).
+- **Purpose:** Primary backend database for the project (catering API: `users`, `paket`, `galeri`, `pesanan`).
+- **Connection:** `.env.example` ships with `DB_CONNECTION=pgsql` and a Neon host; fill `DB_*` vars from your Neon connection string (`DB_SSLMODE=require`).
 - **Agent Context:** The OpenCode agent is globally equipped with the **Neon MCP** to manage this database, run SQL queries, and inspect schemas when needed.
-- **Status:** Documentation only — actual connection setup (`.env`, `config/database.php`) is handled in a future phase.
 
 ## Core Tables (4 only — NO additions without explicit approval)
 

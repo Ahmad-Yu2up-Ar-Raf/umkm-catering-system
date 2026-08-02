@@ -4,7 +4,7 @@
 **Target page:** Detail Paket — Snack Box (sitemap §2 no. 3.1, official route `/paket/:slug`)
 **Intent:** Transactional
 **Primary keywords:** snack box bogor, snack box murah bogor, snack kotak bogor, snack box kantor bogor, coffee break bogor
-**Authoritative source:** architecture.md §4 (Snack Box = lower end of price range, Rp18.000)
+**Authoritative source:** docs/architecture.md §4 (Snack Box = lower end of price range, Rp18.000)
 
 ---
 
@@ -24,7 +24,7 @@ kantor, arisan, ulang tahun. Secondary play: "coffee break bogor" for corporate.
 - **H1:** `Snack Box Bogor — Snack Kotak untuk Rapat & Acara`
 - **URL:** `/paket/snack-box`
 - **Schema:** Product (priceCurrency IDR) + FAQPage.
-- **Images:** 3+ real photos (box varian, isi, packaging). NO stock (design.md §5).
+- **Images:** 3+ real photos (box varian, isi, packaging). NO stock (frontend/docs/design.md §5).
 
 ## Content outline (H2 structure)
 1. **Hero + CTA** — foto snack box, badge "mulai Rp18rb", tombol WhatsApp (pre-filled:

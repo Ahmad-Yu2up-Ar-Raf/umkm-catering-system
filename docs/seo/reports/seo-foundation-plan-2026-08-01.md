@@ -5,7 +5,7 @@
 **Status:** Phase 1 CLOSED — approved 2026-08-01. Phase 2 content briefs in progress.
 **Authoritative inputs:** Notion "7. SEO Competitive Landscape — Catering Bogor"
 (3aedbe64-a50a-819b-9325-e7536d46c633) + sibling pages 1 & 6 (client facts) +
-`architecture.md` §2/§4 + `design.md`.
+`docs/architecture.md` §2/§4 + `frontend/docs/design.md`.
 
 ---
 
@@ -27,7 +27,7 @@
 - PIC: **Ratna Kusuma** (owner), active since **2019**, Bogor.
 - Prices: **Rp18.000** (Snack Box) → **Rp250.000 per paket 10 porsi** (Tumpeng Mini).
   Tumpeng Mini is priced per-paket; `harga_per_porsi` = Rp25.000, `min_order` = 10
-  (architecture.md §4.1). **Never display it as Rp250k per porsi.**
+  (docs/architecture.md §4.1). **Never display it as Rp250k per porsi.**
 - Categories: Nasi Box, Prasmanan, Snack, Tumpeng. Events: Pernikahan, Kantor, Ulang
   Tahun, Arisan, Umum. Production capacity: **20–1000 porsi per acara**.
 - Conversion: WhatsApp-first (wa.me deep links with pre-filled order message).
@@ -63,7 +63,7 @@ Keyword matrix, per-cluster competitors, and keyword→page map live in
 - Verify **Dapur Bunda Catering** profile. Primary category: Caterer; secondary: Catering
   food service.
 - Consistent NAP (name/address/phone) matching the site — **needs client data** (see §7).
-- Real local photos only (design.md §5 — no stock). Posts weekly. Q&A seeded with the FAQ
+- Real local photos only (frontend/docs/design.md §5 — no stock). Posts weekly. Q&A seeded with the FAQ
   answers.
 - Service-area: city-wide Bogor + sub-markets **only once client confirms delivery areas**.
 - **Key intel: Zahwa Katering wins the local pack with just 4 reviews** — optimization
@@ -86,7 +86,7 @@ Everything below blocks brief finalization or GBP. Do NOT fabricate these.
 |---|------|--------|
 | 1 | **Delivery areas** — Cibinong / Sentul / Cileungsi / Depok, or city-wide? Per-area minimums? | Location briefs (G cluster), GBP service area |
 | 2 | **WhatsApp number + NAP** (full address, phone, hours) for GBP + site Kontak | All briefs (CTA), GBP, Kontak page |
-| 3 | **Real product photos** — Tumpeng Mini, Snack Box, Nasi Box (+ galeri acara) | All detail-page briefs (design.md §5: no stock) |
+| 3 | **Real product photos** — Tumpeng Mini, Snack Box, Nasi Box (+ galeri acara) | All detail-page briefs (frontend/docs/design.md §5: no stock) |
 | 4 | **Go-ahead for blog/hero article section** | Hero brief (pending state) |
 | 5 | **Full menu + per-item prices** per paket (Data Produk sheet) — exact menu_utama/menu_tambahan/fasilitas | Detail Paket briefs (placeholder fields today) |
 | 6 | Instagram/social handles | Hashtag cross-pollination, Kontak page |

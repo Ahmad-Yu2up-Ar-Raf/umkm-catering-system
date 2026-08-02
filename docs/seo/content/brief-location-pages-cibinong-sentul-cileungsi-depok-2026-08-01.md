@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-01 · **Status:** ⛔ **PENDING client delivery-area confirmation**
 **⚠️ NOT a build/deploy item.** These are NEW pages outside the official sitemap
-(architecture.md §2). Per AGENTS.md §5 no new pages without confirmation. If the client
+(docs/architecture.md §2). Per AGENTS.md §5 no new pages without confirmation. If the client
 confirms delivery to these areas AND approves the pages, this brief activates.
 
 ---

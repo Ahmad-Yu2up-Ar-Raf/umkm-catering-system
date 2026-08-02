@@ -1,6 +1,6 @@
 # Agent Ruleset — Catering Nusantara (for OpenCode)
 
-> This instruction is mandatory context for any AI coding agent before writing or modifying code in this repository. Also read `docs/architecture.md` and `docs/design.md` for full details — this document only contains execution rules.
+> This instruction is mandatory context for any AI coding agent before writing or modifying code in this repository. Also read `docs/architecture.md` and `frontend/docs/design.md` for full details — this document only contains execution rules.
 
 ---
 
@@ -31,12 +31,12 @@ Hybrid catering application: public catalog (conversion to WhatsApp) + internal 
 
 ## 4. Front-End Code Rules (React + Vite)
 
-- **UI components:** use primitives from **shadcn/ui** (Radix-based) according to the component map in `docs/design.md` §6. Do not build custom components from scratch when a shadcn/ui equivalent already exists.
+- **UI components:** use primitives from **shadcn/ui** (Radix-based) according to the component map in `frontend/docs/design.md` §6. Do not build custom components from scratch when a shadcn/ui equivalent already exists.
 - **State management:** `zustand` ONLY for lightweight local/global UI state (e.g. dialog status, active filters) — NOT for server data (prices, package list, order history).
 - **Server data:** use **Tanstack React Query** for all data fetching from the backend (caching, invalidation), combined with **Ky** as the HTTP client (not raw `fetch` or axios).
 - **Routing:** use **React Router** according to the official sitemap in `docs/architecture.md` §2 — including the About Us, How to Order, Contact, and FAQ pages which are static in content but still need their own routes.
 - **Portion Calculator & Auto-Calculation System (Admin):** the real-time display in the frontend is UX ONLY (instant preview) — the final saved result must still go through server-side re-validation. Never trust frontend numbers as the financial source of truth.
-- **Styling:** use the color & font tokens from `docs/design.md` §2-3 via the Tailwind config. Do not hardcode hex colors directly in components.
+- **Styling:** use the color & font tokens from `frontend/docs/design.md` §2-3 via the Tailwind config. Do not hardcode hex colors directly in components.
 
 ---
 
@@ -44,15 +44,15 @@ Hybrid catering application: public catalog (conversion to WhatsApp) + internal 
 
 - ❌ Do not change the database schema (`docs/architecture.md` §4) without explicit team instructions.
 - ❌ Do not calculate/store `total_harga` client-side as a final value.
-- ❌ Do not hardcode colors/fonts outside the tokens defined in `docs/design.md`.
+- ❌ Do not hardcode colors/fonts outside the tokens defined in `frontend/docs/design.md`.
 - ❌ Do not directly override the core `components/ui/` (shadcn) files — re-theme via the Tailwind config.
 - ❌ Do not add pages/routes outside the official sitemap without confirmation.
-- ❌ Do not use generic stock photos for product content when the client's original photo assets are available (see `docs/design.md` §5).
+- ❌ Do not use generic stock photos for product content when the client's original photo assets are available (see `frontend/docs/design.md` §5).
 
 ---
 
 ## 6. Cross-References
 
 - Data structure & architectural rationale → `docs/architecture.md`
-- Colors, fonts, UI components → `docs/design.md`
+- Colors, fonts, UI components → `frontend/docs/design.md`
 - Project overview & local setup → `README.md`

@@ -39,4 +39,4 @@
 - Frontend architecture → `docs/architecture.md`
 - Design tokens & principles → `docs/design.md`
 - Repo root rules → `../AGENTS.md`
-- Design system rationale (root) → `../docs/design.md`
+- Brand & business context (root) → `../docs/project-context.md`

@@ -23,7 +23,7 @@
 |--------------------|----------|
 | Delivery areas (Cibinong/Sentul/Cileungsi/Depok?) | All briefs (Area section), location brief activation, GBP service area |
 | WhatsApp + NAP (address, phone, hours) | All CTAs, Kontak page, GBP verification |
-| Real product photos | All detail-page briefs (design.md §5: no stock) |
+| Real product photos | All detail-page briefs (frontend/docs/design.md §5: no stock) |
 | Go-ahead for blog/hero section | Hero brief activation |
 | Full menu + per-item prices (Data Produk sheet) | Detail Paket briefs finalization |
 | Instagram/social handles | Hashtag plan, Kontak page |

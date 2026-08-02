@@ -29,7 +29,7 @@ make it the hero — the market rewards a "best seller" anchor (pricing-intel.md
 - **Schema:** Product (priceCurrency IDR, offers) + FAQPage. Best-seller badge markup
   via `is_best_seller`.
 - **Images:** 4+ real photos (kotak terisi, lauk close-up, varian menu, packaging antar).
-  NO stock (design.md §5).
+  NO stock (frontend/docs/design.md §5).
 
 ## Content outline (H2 structure)
 1. **Hero + CTA** — foto nasi box, harga mulai `[HARGA]`, WhatsApp CTA (pre-filled:
