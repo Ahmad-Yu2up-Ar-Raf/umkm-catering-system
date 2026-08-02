@@ -1,38 +1,40 @@
 # Catering Nusantara — Web Platform
 
-**Klien:** Dapur Bunda Catering, Bogor — berdiri sejak 2019 (PIC: Ratna Kusuma)
-**Tim:** Ahmad Yusuf Ar-Rafi · Denniz Rizki Attila · Thoriq Azhar Raditya
+**Client:** Dapur Bunda Catering, Bogor — operating since 2019 (PIC: Ratna Kusuma)
+**Team:** Ahmad Yusuf Ar-Rafi · Denniz Rizki Attila · Thoriq Azhar Raditya
 
-> Platform F&B hybrid: katalog publik yang dioptimalkan untuk konversi ke WhatsApp, dipadukan dengan Admin CMS + Mini POS internal — di atas satu skema database yang diperkaya JSON.
+> Hybrid F&B platform: a public catalog optimized for WhatsApp conversion, paired with an internal Admin CMS + Mini POS — built on a single JSON-enriched database schema.
 
-Dokumentasi proyek ini dipecah menjadi beberapa file agar mudah dipahami manusia maupun AI coding agent:
+Project documentation is split across several files so that both humans and AI coding agents can navigate it easily:
 
-| File | Isi |
+| File | Contents |
 |---|---|
-| `README.md` (file ini) | Ringkasan proyek, tech stack, cara setup |
-| [`architecture.md`](./architecture.md) | Sitemap, userflow, ERD, dan justifikasi arsitektur database |
-| [`design.md`](./design.md) | Sistem desain "Down to Earth": warna, font, komponen UI |
-| [`agent.md`](./agent.md) | Ruleset wajib untuk AI coding agent (OpenCode) sebelum menulis kode |
+| `README.md` (this file) | Project overview, tech stack, and setup guide |
+| [`docs/architecture.md`](./docs/architecture.md) | Sitemap, userflow, ERD, and database architecture rationale |
+| [`docs/design.md`](./docs/design.md) | "Down to Earth" design system: colors, fonts, UI components |
+| [`AGENTS.md`](./AGENTS.md) | Mandatory ruleset for AI coding agents (OpenCode) before writing code |
+| [`docs/git-workflow.md`](./docs/git-workflow.md) | Team branch, PR, and commit conventions |
+| [`docs/api/bruno/`](./docs/api/bruno/) | API collection (Bruno) for endpoint testing |
 
 ---
 
-## 1. Ringkasan Proyek & Tech Stack
+## 1. Project Overview & Tech Stack
 
-Sistem ini punya dua peran yang berbeda dari satu data model yang sama: **menjual** ke pengunjung publik anonim, dan **mengoperasikan** pipeline pesanan/invoice untuk admin internal. Lihat `architecture.md` untuk detail penuh sitemap dan userflow.
+The system serves two distinct roles from the same data model: **selling** to anonymous public visitors, and **operating** the order/invoice pipeline for internal admins. See `docs/architecture.md` for the full sitemap and userflow.
 
-| Layer | Pilihan Teknologi |
+| Layer | Technology Choice |
 |---|---|
-| Back-End | **Laravel (PHP)**, **Breeze** (scaffolding auth), **Sanctum** (token API untuk SPA) |
-| Front-End | **React + Vite**, **Shadcn/UI** (berbasis Radix), **Tailwind CSS**, **Zustand** (UI state), **Ky** (HTTP client), **Tanstack React Query** (server state), **React Router** |
-| Database | **MySQL/MariaDB** — 4 tabel inti: `users`, `paket`, `galeri`, `pesanan` (lihat `architecture.md`) |
+| Back-End | **Laravel (PHP)**, **Breeze** (auth scaffolding), **Sanctum** (SPA API tokens) |
+| Front-End | **React + Vite**, **Shadcn/UI** (Radix-based), **Tailwind CSS**, **Zustand** (UI state), **Ky** (HTTP client), **Tanstack React Query** (server state), **React Router** |
+| Database | **MySQL/MariaDB** — 4 core tables: `users`, `paket`, `galeri`, `pesanan` (see `docs/architecture.md`) |
 
-> Tech stack front-end diperluas signifikan pada revisi ini dibanding draft awal (semula hanya React + Tailwind + Vite polos) — lihat `agent.md` §4 untuk aturan pemakaian tiap library.
+> The front-end stack expanded significantly in this revision compared to the initial draft (originally plain React + Tailwind + Vite) — see `AGENTS.md` §4 for the usage rules of each library.
 
 ---
 
-## 2. Cara Setup
+## 2. Setup Guide
 
-### Prasyarat
+### Prerequisites
 - PHP ≥ 8.2, Composer
 - Node.js ≥ 18, npm/yarn
 - MySQL/MariaDB ≥ 8.0
@@ -44,7 +46,7 @@ cd catering-nusantara/backend
 composer install
 cp .env.example .env
 php artisan key:generate
-# konfigurasi DB_* di .env
+# configure DB_* in .env
 php artisan migrate --seed
 php artisan install:api   # setup Sanctum
 php artisan serve
@@ -56,33 +58,33 @@ cd catering-nusantara/frontend
 npm install
 npx shadcn@latest init    # setup shadcn/ui + Tailwind
 cp .env.example .env
-# set VITE_API_BASE_URL ke URL backend Laravel
+# set VITE_API_BASE_URL to the Laravel backend URL
 npm run dev
 ```
 
-### Variabel Lingkungan (minimum)
-| Variabel | Kegunaan |
+### Environment Variables (minimum)
+| Variable | Purpose |
 |---|---|
-| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Koneksi MySQL |
-| `APP_KEY` | Kunci enkripsi Laravel |
-| `WHATSAPP_NUMBER` | Nomor tujuan deep-link checkout publik |
-| `VITE_API_BASE_URL` | Base URL API untuk front-end |
+| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | MySQL connection |
+| `APP_KEY` | Laravel encryption key |
+| `WHATSAPP_NUMBER` | Target number for public checkout deep-link |
+| `VITE_API_BASE_URL` | API base URL for the front-end |
 
 ---
 
-## 3. Tautan Referensi
+## 3. Reference Links
 
 - Sitemap: [Relume project](https://www.relume.ai/app/project/P3496312_NPf8rfzVlwseLRNnLnOpo4Z32_-BkP4-kQ4NIDoJ_uU#mode=sitemap)
 - ERD: [dbdiagram.io](https://dbdiagram.io/d/ERD-Sistem-Pendataan-Siswa-691d7e1e228c5bbc1a7f6b20)
-- Userflow: [Mermaid](https://mermaid.ai/d/4951d72c-6112-4428-ba6f-690fe664705b) (sumber: `UMKM_Userflow.mmd`)
+- Userflow: [Mermaid](https://mermaid.ai/d/4951d72c-6112-4428-ba6f-690fe664705b) (source: `UMKM_Userflow.mmd`)
 - Wireframe: [Figma Make](https://www.figma.com/make/ysaD60e2reJhGDHVtIKL8K/Website-Sitemap-and-Wireframe)
-- Referensi desain visual: [suasana.vercel.app](https://suasana.vercel.app)
+- Visual design reference: [suasana.vercel.app](https://suasana.vercel.app)
 
 ---
 
-## 4. Kontributor
+## 4. Contributors
 
-| Nama | Peran |
+| Name | Role |
 |---|---|
 | Ahmad Yusuf Ar-Rafi | Back-End, Front-End |
 | Denniz Rizki Attila | Back-End |

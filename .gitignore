@@ -1,0 +1,22 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Node
+node_modules/
+
+# PHP / Laravel
+vendor/
+
+# Environment — never commit secrets
+.env
+.env.*
+!.env.example
+
+# Build / cache artifacts
+dist/
+dist-ssr/
+.phpunit.cache/

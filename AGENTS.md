@@ -1,58 +1,58 @@
-# Agent Ruleset — Catering Nusantara (untuk OpenCode)
+# Agent Ruleset — Catering Nusantara (for OpenCode)
 
-> Instruksi ini adalah konteks wajib bagi AI coding agent sebelum menulis atau mengubah kode di repo ini. Baca juga `architecture.md` dan `design.md` untuk detail lengkap — dokumen ini hanya berisi aturan eksekusi.
-
----
-
-## 1. Konteks Proyek (Ringkas)
-
-Aplikasi katering hybrid: katalog publik (konversi ke WhatsApp) + Admin CMS/Mini POS internal. Monorepo dua bagian: `backend/` (Laravel) dan `frontend/` (React + Vite). Database: 4 tabel inti — `users`, `paket`, `galeri`, `pesanan` — lihat `architecture.md` untuk skema lengkap.
+> This instruction is mandatory context for any AI coding agent before writing or modifying code in this repository. Also read `docs/architecture.md` and `docs/design.md` for full details — this document only contains execution rules.
 
 ---
 
-## 2. Aturan Struktur Monorepo
+## 1. Project Context (Summary)
 
-- Jangan pindahkan atau restrukturisasi folder `backend/` maupun `frontend/` tanpa instruksi eksplisit.
-- Kode backend HANYA di `backend/`, kode frontend HANYA di `frontend/`. Jangan taruh logic bisnis di frontend yang seharusnya di backend (lihat aturan kalkulasi harga di bawah).
-- Setiap fitur baru mengacu ke sitemap resmi di `architecture.md` §2 — jangan menambah halaman yang tidak ada di sitemap tanpa konfirmasi.
+Hybrid catering application: public catalog (conversion to WhatsApp) + internal Admin CMS/Mini POS. Two-part monorepo: `backend/` (Laravel) and `frontend/` (React + Vite). Database: 4 core tables — `users`, `paket`, `galeri`, `pesanan` — see `docs/architecture.md` for the full schema.
 
 ---
 
-## 3. Aturan Kode Back-End (Laravel)
+## 2. Monorepo Structure Rules
 
-- **Autentikasi:** gunakan Laravel Breeze untuk scaffolding auth dasar, Sanctum untuk token API yang dikonsumsi frontend React (SPA auth pattern) — bukan session cookie lintas domain kecuali sudah dikonfirmasi arsitektur deploy-nya sama domain.
-- **Validasi JSON:** field `menu_utama`, `menu_tambahan`, `fasilitas_termasuk` di tabel `paket`, dan `detail_tambahan` di `pesanan`, WAJIB divalidasi lewat Laravel Form Request — jangan terima array mentah tanpa validasi shape/tipe.
-- **Kalkulasi `total_harga`:** WAJIB dihitung di server (service class atau model observer), TIDAK BOLEH menerima `total_harga` dari request body dan menyimpannya langsung. Formula: `(jumlah_paket * harga_paket_satuan) + biaya_tambahan`, dengan `harga_paket_satuan` disalin dari `paket.harga_per_porsi` pada saat pembuatan pesanan (bukan look-up ulang saat baca).
-- **`nomor_struk`:** generate di server dengan format `STR-YYYYMMDD-XXXX`, jangan terima dari client.
-- **Jangan membuat tabel/migrasi baru** di luar 4 tabel inti tanpa instruksi eksplisit — lihat `architecture.md` §4.3 untuk daftar tabel opsional yang BELUM disetujui untuk dibuat (`testimoni`, `faq`).
-- **Paket per-unit khusus (Tumpeng Mini):** perhatikan bahwa beberapa paket dihargai per-paket (bukan per-porsi individual) — jangan asumsikan `harga_per_porsi` selalu = harga yang ditampilkan ke user tanpa mengecek `min_order` (lihat `architecture.md` §4.1).
+- Do not move or restructure the `backend/` or `frontend/` folders without explicit instructions.
+- Backend code lives ONLY in `backend/`, frontend code ONLY in `frontend/`. Do not put business logic in the frontend that belongs in the backend (see the price-calculation rules below).
+- Every new feature must follow the official sitemap in `docs/architecture.md` §2 — do not add pages that are not on the sitemap without confirmation.
 
 ---
 
-## 4. Aturan Kode Front-End (React + Vite)
+## 3. Back-End Code Rules (Laravel)
 
-- **Komponen UI:** gunakan primitif dari **shadcn/ui** (berbasis Radix) sesuai peta komponen di `design.md` §6. Jangan bangun komponen custom dari nol jika padanannya sudah tersedia di shadcn/ui.
-- **State management:** `zustand` HANYA untuk UI state lokal/global ringan (mis. status dialog, filter aktif) — BUKAN untuk data server (harga, daftar paket, riwayat pesanan).
-- **Data server:** gunakan **Tanstack React Query** untuk semua fetch data dari backend (caching, invalidation), dikombinasikan dengan **Ky** sebagai HTTP client (bukan `fetch` mentah atau axios).
-- **Routing:** gunakan **React Router** sesuai sitemap resmi di `architecture.md` §2 — termasuk halaman Tentang Kami, Cara Pemesanan, Kontak, FAQ yang statis kontennya tapi tetap butuh route sendiri.
-- **Kalkulator Porsi & Sistem Hitung Otomatis (Admin):** tampilan real-time di frontend HANYA untuk UX (preview instan) — hasil akhir yang disimpan tetap harus melalui validasi ulang di server. Jangan pernah percaya angka dari frontend sebagai source of truth finansial.
-- **Styling:** pakai token warna & font dari `design.md` §2-3 lewat Tailwind config. Jangan hardcode hex warna langsung di komponen.
-
----
-
-## 5. Larangan Eksplisit
-
-- ❌ Jangan ubah skema database (`architecture.md` §4) tanpa instruksi eksplisit dari tim.
-- ❌ Jangan hitung/simpan `total_harga` di client-side sebagai nilai final.
-- ❌ Jangan hardcode warna/font di luar token yang ditentukan di `design.md`.
-- ❌ Jangan override file inti `components/ui/` (shadcn) secara langsung — re-theme lewat Tailwind config.
-- ❌ Jangan tambah halaman/route di luar sitemap resmi tanpa konfirmasi.
-- ❌ Jangan gunakan foto stok generik untuk konten produk jika aset foto asli klien tersedia (lihat `design.md` §5).
+- **Authentication:** use Laravel Breeze for basic auth scaffolding and Sanctum for the API tokens consumed by the React frontend (SPA auth pattern) — not cross-domain session cookies unless the deployment architecture is confirmed to be on the same domain.
+- **JSON validation:** the fields `menu_utama`, `menu_tambahan`, `fasilitas_termasuk` on the `paket` table, and `detail_tambahan` on `pesanan`, MUST be validated through Laravel Form Requests — never accept raw arrays without shape/type validation.
+- **`total_harga` calculation:** MUST be computed on the server (service class or model observer), and MUST NOT accept `total_harga` from the request body and store it directly. Formula: `(jumlah_paket * harga_paket_satuan) + biaya_tambahan`, where `harga_paket_satuan` is copied from `paket.harga_per_porsi` at the time the order is created (not re-looked-up on read).
+- **`nomor_struk`:** generate on the server in the format `STR-YYYYMMDD-XXXX`, never accept it from the client.
+- **Do not create new tables/migrations** beyond the 4 core tables without explicit instructions — see `docs/architecture.md` §4.3 for the list of optional tables that are NOT yet approved (`testimoni`, `faq`).
+- **Per-unit packages (Tumpeng Mini):** note that some packages are priced per-package (not per individual portion) — do not assume `harga_per_porsi` always equals the price shown to the user without checking `min_order` (see `docs/architecture.md` §4.1).
 
 ---
 
-## 6. Referensi Silang
+## 4. Front-End Code Rules (React + Vite)
 
-- Struktur data & alasan arsitektur → `architecture.md`
-- Warna, font, komponen UI → `design.md`
-- Ringkasan proyek & setup lokal → `README.md`
+- **UI components:** use primitives from **shadcn/ui** (Radix-based) according to the component map in `docs/design.md` §6. Do not build custom components from scratch when a shadcn/ui equivalent already exists.
+- **State management:** `zustand` ONLY for lightweight local/global UI state (e.g. dialog status, active filters) — NOT for server data (prices, package list, order history).
+- **Server data:** use **Tanstack React Query** for all data fetching from the backend (caching, invalidation), combined with **Ky** as the HTTP client (not raw `fetch` or axios).
+- **Routing:** use **React Router** according to the official sitemap in `docs/architecture.md` §2 — including the About Us, How to Order, Contact, and FAQ pages which are static in content but still need their own routes.
+- **Portion Calculator & Auto-Calculation System (Admin):** the real-time display in the frontend is UX ONLY (instant preview) — the final saved result must still go through server-side re-validation. Never trust frontend numbers as the financial source of truth.
+- **Styling:** use the color & font tokens from `docs/design.md` §2-3 via the Tailwind config. Do not hardcode hex colors directly in components.
+
+---
+
+## 5. Explicit Prohibitions
+
+- ❌ Do not change the database schema (`docs/architecture.md` §4) without explicit team instructions.
+- ❌ Do not calculate/store `total_harga` client-side as a final value.
+- ❌ Do not hardcode colors/fonts outside the tokens defined in `docs/design.md`.
+- ❌ Do not directly override the core `components/ui/` (shadcn) files — re-theme via the Tailwind config.
+- ❌ Do not add pages/routes outside the official sitemap without confirmation.
+- ❌ Do not use generic stock photos for product content when the client's original photo assets are available (see `docs/design.md` §5).
+
+---
+
+## 6. Cross-References
+
+- Data structure & architectural rationale → `docs/architecture.md`
+- Colors, fonts, UI components → `docs/design.md`
+- Project overview & local setup → `README.md`
