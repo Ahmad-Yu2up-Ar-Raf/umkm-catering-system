@@ -26,7 +26,7 @@ The system serves two distinct roles from the same data model: **selling** to an
 |---|---|
 | Back-End | **Laravel (PHP)**, **Breeze** (auth scaffolding), **Sanctum** (SPA API tokens) |
 | Front-End | **React + Vite**, **Shadcn/UI** (Radix-based), **Tailwind CSS**, **Zustand** (UI state), **Ky** (HTTP client), **Tanstack React Query** (server state), **React Router** |
-| Database | **MySQL/MariaDB** — 4 core tables: `users`, `paket`, `galeri`, `pesanan` (see `docs/architecture.md`) |
+| Database | **Neon (serverless PostgreSQL)** — 4 core tables: `users`, `paket`, `galeri`, `pesanan` (see `docs/architecture.md`) |
 
 > The front-end stack expanded significantly in this revision compared to the initial draft (originally plain React + Tailwind + Vite) — see `AGENTS.md` §4 for the usage rules of each library.
 
@@ -37,7 +37,7 @@ The system serves two distinct roles from the same data model: **selling** to an
 ### Prerequisites
 - PHP ≥ 8.2, Composer
 - Node.js ≥ 18, npm/yarn
-- MySQL/MariaDB ≥ 8.0
+- Neon PostgreSQL (serverless) — or a local PostgreSQL for development
 
 ### Back-End (Laravel)
 ```bash
@@ -46,7 +46,7 @@ cd catering-nusantara/backend
 composer install
 cp .env.example .env
 php artisan key:generate
-# configure DB_* in .env
+# fill the DB_* vars from your Neon connection string (DB_CONNECTION=pgsql)
 php artisan migrate --seed
 php artisan install:api   # setup Sanctum
 php artisan serve
@@ -65,7 +65,7 @@ npm run dev
 ### Environment Variables (minimum)
 | Variable | Purpose |
 |---|---|
-| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | MySQL connection |
+| `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` | Neon PostgreSQL connection |
 | `APP_KEY` | Laravel encryption key |
 | `WHATSAPP_NUMBER` | Target number for public checkout deep-link |
 | `VITE_API_BASE_URL` | API base URL for the front-end |

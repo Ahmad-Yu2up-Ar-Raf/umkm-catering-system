@@ -1,21 +1,41 @@
-# React + TypeScript + Vite + shadcn/ui
+# Catering Nusantara — Frontend
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+React + Vite single-page application for the Catering Nusantara platform: public catalog, WhatsApp-conversion pages, and the internal Admin CMS / Mini POS.
 
-## Adding components
+## Tech Stack
 
-To add components to your app, run the following command:
+| Concern | Choice |
+|---|---|
+| Framework | **React 19** + **Vite 8** |
+| Language | TypeScript |
+| Styling | **Tailwind CSS v4** + **shadcn/ui** (Radix), tokens in `src/index.css` |
+| Routing | **React Router** (see `src/router/index.tsx`) |
+| Server state | **TanStack React Query** |
+| HTTP client | **Ky** (`src/api/client.ts`) |
+| UI state | **Zustand** (`src/store/auth-store.ts`) |
+| Icons | HugeIcons (`@hugeicons/react`) |
+
+## Scripts
 
 ```bash
-npx shadcn@latest add button
+npm run dev        # Vite dev server
+npm run build      # tsc -b && vite build (production)
+npm run lint       # ESLint
+npm run typecheck  # tsc --noEmit
+npm run preview    # preview the production build
 ```
 
-This will place the ui components in the `src/components` directory.
+## Documentation
 
-## Using components
+| File | Contents |
+|---|---|
+| `README.md` (this file) | App overview and scripts |
+| `AGENTS.md` | Mandatory rules for AI agents working in this folder |
+| `docs/architecture.md` | Component tree, state management, data flow |
+| `docs/design.md` | UI/UX principles and the Suasana-based design tokens |
 
-To use the components in your app, import them as follows:
+## Environment
 
-```tsx
-import { Button } from "@/components/ui/button"
-```
+| Variable | Purpose |
+|---|---|
+| `VITE_API_BASE_URL` | Base URL of the Laravel backend API |

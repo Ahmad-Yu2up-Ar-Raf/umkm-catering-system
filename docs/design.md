@@ -17,13 +17,13 @@ Agreed visual reference: **suasana.vercel.app** — calm, aesthetic, in harmony 
 
 ## 2. Color Palette — "Earth Tones" (Tailwind v4 OKLCH)
 
-The project uses Tailwind CSS v4 with the **OKLCH** color system so color transitions are smoother and consistent with the "Suasana" vibe.
+The project uses Tailwind CSS v4 with the **OKLCH** color system so color transitions are smoother and consistent with the "Suasana" vibe. The concrete palette (light + dark), radius, and shadow variables are **ported from the Suasana exploration app** — see `frontend/docs/design.md` for the full token table.
 
 Colors are no longer configured with HEX in `tailwind.config.js`[cite: 6]; instead they are set directly through CSS variables in `index.css` using `@theme inline`.
 
 - **Background & Foreground:** a clean, high-contrast color combination for readability[cite: 7].
 - **Primary & Secondary:** warm *earth tones* for buttons and interactive elements[cite: 7].
-- **Radius:** rounded corners set at a base of `0.625rem` (10px) so the UI feels friendlier and less rigid[cite: 7].
+- **Radius:** rounded corners set at a base of `0.25rem` (ported from the Suasana app) so the UI feels friendlier and less rigid.
 
 ---
 
