@@ -1,0 +1,24 @@
+meta {
+  name: Create Galeri
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/v1/admin/galeri
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "nama_acara": "Pernikahan Rizky & Sari",
+    "deskripsi_acara": "Prasmanan 300 porsi di gedung Bogor.",
+    "gambar_acara": "https://example.com/acara.jpg",
+    "tanggal_acara": "2026-06-20"
+  }
+}

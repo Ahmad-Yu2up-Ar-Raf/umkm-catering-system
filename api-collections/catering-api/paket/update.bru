@@ -1,0 +1,22 @@
+meta {
+  name: Update Paket
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/v1/admin/paket/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "nama_paket": "Paket Nasi Box Kantor Premium",
+    "harga_per_porsi": 28000
+  }
+}

@@ -1,0 +1,27 @@
+meta {
+  name: Create Pesanan
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/api/v1/admin/pesanan
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "nama_pemesan": "Budi Santoso",
+    "no_telepon": "081234567890",
+    "paket_id": 1,
+    "jumlah_paket": 20,
+    "detail_tambahan": ["Extra sambal", "Sendok"],
+    "biaya_tambahan": 5000,
+    "catatan": "Antar jam 10 pagi."
+  }
+}

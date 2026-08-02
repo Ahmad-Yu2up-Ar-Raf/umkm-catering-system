@@ -1,0 +1,22 @@
+meta {
+  name: Update Pesanan Status
+  type: http
+  seq: 16
+}
+
+put {
+  url: {{baseUrl}}/api/v1/admin/pesanan/1
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "status_pesanan": "confirmed",
+    "catatan": "DP sudah diterima."
+  }
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Register
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/register
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Admin Baru",
+    "email": "admin2@example.com",
+    "password": "password",
+    "password_confirmation": "password"
+  }
+}
+
+assert {
+  res.status: eq 201
+}

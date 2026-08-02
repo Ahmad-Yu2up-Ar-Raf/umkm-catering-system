@@ -1,0 +1,34 @@
+meta {
+  name: Create Paket
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/admin/paket
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{authToken}}
+}
+
+body:json {
+  {
+    "nama_paket": "Paket Nasi Box Kantor",
+    "kategori_paket": "Nasi Box",
+    "kategori_acara": "Kantor",
+    "menu_utama": ["Ayam Geprek", "Nasi Putih", "Sambal"],
+    "menu_tambahan": ["Es Teh", "Kerupuk"],
+    "fasilitas_termasuk": ["Free ongkir", "Kemasan mika"],
+    "catatan_alergen": "Mengandung kacang",
+    "jenis_kemasan": "Mika",
+    "min_order": 5,
+    "harga_per_porsi": 25000,
+    "kapasitas_produksi": 500,
+    "deskripsi": "Paket hemat untuk acara kantor.",
+    "gambar": "https://example.com/paket.jpg",
+    "is_best_seller": true
+  }
+}

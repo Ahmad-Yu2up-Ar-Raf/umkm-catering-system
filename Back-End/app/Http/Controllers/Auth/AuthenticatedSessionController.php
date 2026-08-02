@@ -19,16 +19,17 @@ class AuthenticatedSessionController extends Controller
 
         $user = $request->user();
 
+        // Token-based response for the API surface (api/v1/auth/*).
+        if ($request->is('api/*')) {
+            $token = $user->createToken('auth-token')->plainTextToken;
 
-        $token = $user->createToken('auth-token')->plainTextToken;
+            return response()->json([
+                'token' => $token,
+                'user' => $user->toArray(),
+            ]);
+        }
 
-        return response()->json([
-            'token' => $token,
-            'user' => $user ? [
-                ...$user->toArray(),
-                'roles' => $user->getRoleNames()
-            ] : null,
-        ]);
+        return response()->noContent();
     }
 
     /**
@@ -36,13 +37,21 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request)
     {
+        // Token-based logout for the API surface (api/v1/auth/*).
+        if ($request->is('api/*')) {
+            $request->user()?->currentAccessToken()?->delete();
 
+            return response()->json([
+                'success' => true,
+                'message' => 'Successfully logged out',
+            ], 200);
+        }
 
-        $request->user()->currentAccessToken()->delete(); // Jika pakai Sanctum
+        Auth::guard('web')->logout();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Successfully logged out'
-        ], 200);
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->noContent();
     }
 }
