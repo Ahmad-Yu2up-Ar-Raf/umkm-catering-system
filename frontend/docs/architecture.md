@@ -19,7 +19,7 @@
   - Laravel API: `http://localhost:8000` (`php artisan serve` in `/backend`).
   - Set `VITE_API_URL=http://localhost:8000/api/v1/` in `frontend/.env` and `FRONTEND_URL=http://localhost:5173` in `backend/.env` (CORS).
   - The frontend attaches the Sanctum Bearer token automatically (see `src/api/client.ts`); a 401 clears the session and redirects to `/login`.
-- **Shared visual assets** live at `../../assets/main` (monorepo root, `C:\Dev\Web\catering\assets\main`) — `banners/`, `lifestyle/`, `products/`, `textures/`, `ui/`. Do not copy them into `frontend/public/` unless explicitly instructed (see `AGENTS.md` §9).
+- **Shared visual assets** live in `frontend/public/assets` (served at `/assets/...`) — `images/{banners,lifestyle,products,textures,patern}`, `ui/` (favicons/manifest/logo). This is the single canonical store; the old root `assets/` mirror was removed (see `AGENTS.md` §9).
 
 ---
 

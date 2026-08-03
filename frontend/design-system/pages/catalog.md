@@ -4,8 +4,8 @@ Overrides MASTER.md for the package catalog page only.
 
 ## Layout
 - Grid: `grid-cols-1` → `md:grid-cols-2` → `lg:grid-cols-3` package cards.
-- Hero: full-width, warm photography, one short heading (Merriweather) + WhatsApp CTA (`bg-primary`).
-- Package card: `bg-card border-border rounded-lg shadow-sm`; name in Merriweather, price in Figtree `font-semibold`; per-portion note respects `min_order` (per-unit paket like Tumpeng Mini).
+- Hero: full-width, warm photography, one short heading (Fraunces) + WhatsApp CTA (`bg-primary`).
+- Package card: `bg-card border-border rounded-lg shadow-sm`; name in Fraunces, price in Space Grotesk `font-semibold`; per-portion note respects `min_order` (per-unit paket like Tumpeng Mini).
 
 ## Data
 - Server data via React Query + Ky (`@/api/client.ts`) — never zustand, never raw fetch.

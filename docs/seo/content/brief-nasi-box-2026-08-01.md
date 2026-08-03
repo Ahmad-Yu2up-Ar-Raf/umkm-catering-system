@@ -21,7 +21,7 @@ make it the hero — the market rewards a "best seller" anchor (pricing-intel.md
   this brief covers the primary/default nasi box paket + the katalog category entry.
 
 ## On-page SEO requirements
-- **Title tag:** `Nasi Box Bogor | Harga Nasi Kotak per Porsi | Dapur Bunda Catering`
+- **Title tag:** `Nasi Box Bogor | Harga Nasi Kotak per Porsi | Catering Nusantara`
 - **Meta description:** `Nasi box masakan rumah di Bogor — [HARGA] per porsi. Cocok
   untuk kantor, pernikahan & acara keluarga. Kapasitas 20–1000 porsi. Pesan via WhatsApp.`
 - **H1:** `Nasi Box Bogor — Nasi Kotak Masakan Rumah`
@@ -33,7 +33,7 @@ make it the hero — the market rewards a "best seller" anchor (pricing-intel.md
 
 ## Content outline (H2 structure)
 1. **Hero + CTA** — foto nasi box, harga mulai `[HARGA]`, WhatsApp CTA (pre-filled:
-   "Halo Dapur Bunda, saya mau pesan nasi box [jumlah] untuk [acara] di [area].")
+   "Halo Catering Nusantara, saya mau pesan nasi box [jumlah] untuk [acara] di [area].")
 2. **Menu & Varian** — `[MENU_UTAMA + MENU_TAMBAHAN DARI DATA SHEET]`; tandai menu
    signature / best-seller `[PENDING data]`.
 3. **Harga & Porsi** — tabel harga per varian/paket; min order `[PENDING]`; capacity

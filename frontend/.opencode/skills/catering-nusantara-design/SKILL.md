@@ -23,7 +23,7 @@ calm and aesthetic; borrow its calmness, not its layout.
 
 - Use ONLY semantic Tailwind tokens from `src/index.css` (`bg-background`, `text-foreground`, `text-primary`, `bg-card`, `border-border`, `shadow-md`, `rounded-lg`, …). Light + `.dark` blocks exist.
 - ❌ NEVER hardcode hex/OKLCH/font names in components. ❌ Do not edit core `src/components/ui/` files.
-- Fonts are fixed: **Merriweather Variable** (headings) + **Figtree Variable** (body/UI). Do not swap.
+- Fonts are fixed: **Fraunces Variable** (headings) + **Space Grotesk Variable** (body/UI) + **Instrument Serif** (`--font-accent` italic accent word). Do not swap.
 - Warm-cream family (oklch 0.95 0.01 90) + earthy amber/brown primary (oklch 0.56 0.08 65). No cold blues/greys as dominant surfaces.
 
 ## Anti-Slop Guardrails (enforced by `npm run lint:design` = `impeccable detect`)
@@ -31,6 +31,16 @@ calm and aesthetic; borrow its calmness, not its layout.
 - ❌ Inter/Arial/system fonts, purple-to-blue gradients, glassmorphism everywhere, glowing particles, bounce/elastic easing.
 - ❌ Cards nested in cards; identical 3-equal-card feature grids; gray text on colored backgrounds; pure black/gray (always tint).
 - ❌ AI copywriting clichés ("Elevate", "Seamless", "Delve"); emojis as icons (use HugeIcons).
+
+## Unified Pipeline (run all three pillars — see `docs/design.md` §11)
+
+1. **Taste & Dials (this skill):** choose the direction — dials above, brand tokens, homey-not-stiff.
+2. **Hallmark (`.opencode/skills/hallmark`):** shape the structure — macrostructure selection,
+   57-gate slop test, pre-emit critique, honest copy (no fabricated metrics).
+3. **Impeccable (`npm run lint:design`):** verify the code — deterministic gate, stays `[]`.
+
+**Deliberate exception to Hallmark gate 38a:** ONE `font-accent` italic accent word per headline
+is a brand signature (Tiska paradigm, `docs/design.md` §10) — never more than one, never all-italic.
 
 ## Local "Nusantara" Elements
 

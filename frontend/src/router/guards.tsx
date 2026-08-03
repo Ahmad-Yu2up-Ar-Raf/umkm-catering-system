@@ -3,7 +3,7 @@ import { useAuthStore } from "@/store/auth-store"
 
 export const GuestGuard = () => {
   const isAuthenticated = useAuthStore.getState().isAuthenticated
-  return isAuthenticated ? <Navigate to={"/dashboard"} /> : <Outlet />
+  return isAuthenticated ? <Navigate to={"/"} /> : <Outlet />
 }
 
 export const AuthenticatedGuard = () => {

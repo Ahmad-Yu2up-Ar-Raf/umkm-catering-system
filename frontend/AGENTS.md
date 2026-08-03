@@ -32,7 +32,7 @@
 
 - Use semantic Tailwind tokens (`bg-background`, `text-foreground`, `text-primary`, `bg-card`, `border-border`, `shadow-*`, `rounded-*`) from the token map in `docs/design.md`.
 - ❌ NEVER hardcode hex/OKLCH colors or raw font names in components. Tokens only.
-- Fonts are fixed: **Figtree Variable** (body/UI) and **Merriweather Variable** (headings). Do not change or add font variables.
+- Fonts are fixed: **Space Grotesk Variable** (body/UI), **Fraunces Variable** (headings/display), and **Instrument Serif** (`--font-accent`, the single italic accent word per headline). Do not change or add font variables.
 - ❌ Do NOT directly override core `src/components/ui/` (shadcn) files — re-theme via `src/index.css` tokens.
 - **Design gate:** before finishing any UI work, run `npm run lint:design` (`impeccable detect src/`) — it must stay clean. Never ship output that trips its rules (Inter/system fonts, purple gradients, card-in-card, gray-on-colored, bounce easing).
 - **Forms are custom/user-owned:** do NOT use the shadcn `form` wrapper or react-hook-form/zod. Bespoke forms are built by the user under `src/components/ui/core/block/`.
@@ -60,6 +60,7 @@ Project-local skills live in `.opencode/skills/` (self-contained, do not move):
 | `motion-orchestration` | Animations (GSAP primary, Framer code-split for admin POS), `prefers-reduced-motion` |
 | `shadcn-architecture` | Creating/extending components; which primitives exist vs. needed; `cva`/`cn()` |
 | `impeccable` (installed) | `/impeccable shape/critique/polish/audit` design review commands |
+| `hallmark` (installed) | New pages/landing layouts — anti-slop macrostructure selection, 57-gate slop test, `audit`/`redesign`/`study` verbs, pre-emit critique |
 
 - **Design contract:** `docs/design.md` (Stitch-9-compatible) + `design-system/MASTER.md` (page overrides in `design-system/pages/`). Read before building a page; page overrides beat Master.
 - **Enforcement:** `npm run lint:design` (Impeccable detector, deterministic, no LLM) runs alongside `lint`/`typecheck`.
@@ -75,12 +76,17 @@ run this sequence. It is mandatory, not optional.
    - Load every applicable LOCAL skill from `.opencode/skills/`:
      `catering-nusantara-design` (brand/tokens/taste dials),
      `motion-orchestration` (GSAP/Framer, reduced-motion),
-     `shadcn-architecture` (primitives, cva/cn), `impeccable` (review commands).
+     `shadcn-architecture` (primitives, cva/cn), `impeccable` (review commands),
+     `hallmark` (macrostructure + anti-slop slop test).
    - Scan GLOBAL skills (`~/.config/opencode/skills/` + `~/.opencode/skills/`):
      `ui-ux-pro-max`, `design-taste-frontend`, `gsap-*`, `shadcn`,
      `design-preflight`, `frontend-design`, … and load any that match the task.
+   - **Taste precedence (mandatory):** load the local `catering-nusantara-design` skill
+     BEFORE the global `design-taste-frontend` skill. The project pins (VARIANCE 5 /
+     MOTION 4 / DENSITY 3) must strictly override the global taste baseline (8/6/4) to
+     preserve the homey, down-to-earth Nusantara brand aesthetic.
    - **Asset check (mandatory):** before designing any visual surface, confirm the needed
-     photography exists in `../../assets/main`. If it is missing, low-res, or irrelevant,
+     photography exists in `frontend/public/assets`. If it is missing, low-res, or irrelevant,
      invoke the `image-explorer` HD fallback (§9) and pick imagery matching our warm
      OKLCH tokens — never ship a weak substitute.
 
@@ -99,26 +105,38 @@ run this sequence. It is mandatory, not optional.
    - Respect the `npm run lint:design` gate (`impeccable detect`): no Inter/system
      fonts, no purple gradients, no card-in-card, no gray-on-colored, no bounce easing.
    - Semantic tokens only; never hardcode colors/fonts; never edit core `ui/` files.
+   - **Unified pipeline (`docs/design.md` §11):** run all three pillars on every UI surface —
+     Taste dials pick the direction → Hallmark shapes the structure (macrostructure,
+     57-gate slop test, pre-emit critique, honest copy — no fabricated metrics) → Impeccable
+     verifies the code. Stamped pre-emit critique scores on page artifacts. The single
+     `font-accent` italic accent word per headline is a deliberate brand exception.
 
-## 9. Visual Assets (shared, do not duplicate)
+## 9. Visual Assets (canonical: `public/assets`)
 
-ALL visual assets for this project (banners, product photos, lifestyle shots,
-textures, UI graphics) live in `../../assets/main` at the monorepo root
-(`C:\Dev\Web\catering\assets\main`). Subfolders: `banners/`, `lifestyle/`,
-`products/`, `textures/`, `ui/`.
+**Source of truth:** all visual assets (banners, product photos, lifestyle shots,
+textures, UI graphics) live in `frontend/public/assets/` — the app's served asset store
+(`/assets/...` at runtime). Subfolders: `images/{banners,lifestyle,products,textures,patern}`,
+`ui/` (favicons/manifest/logo), `logo/`. The root-level `assets/` mirror was removed —
+never recreate a second copy at the monorepo root.
 
-- Reference assets from that location — do NOT copy them into `frontend/public/`
-  unless the user explicitly instructs it.
-- Never use generic stock photos when client assets exist in `../../assets/main/products/`.
+**Runtime path:** the codebase references assets via absolute served URL — e.g.
+`/assets/images/banners/hero-banner-tumpeng.png`, `/assets/ui/logo.png` — never via
+`../../assets/...` paths in components. Vite serves `public/` at the root as-is.
+
+- `frontend/public/assets` is the single source of truth AND the runtime store (git-committed
+  so `npm run dev`/`build` serve it at the root). `npm run sync:assets` is now a no-op stub.
+- Reference-style benchmark photos live in `frontend/design-system/references/benchmark-photos/`
+  (not served).
+- Never use generic stock photos when client assets exist in `public/assets/`.
 
 ### HD Asset Fallback Pipeline (image-explorer)
 
-When a layout demands an asset that is missing, low-res, or irrelevant in `assets/main`,
+When a layout demands an asset that is missing, low-res, or irrelevant in `public/assets`,
 use the global `image-explorer` tool instead of shipping a weak substitute:
 
 - **Path (WSL):** `\\wsl.localhost\Ubuntu\home\yusuf\.opencode\tools\image-explorer`
   (`~/.opencode/tools/image-explorer/` — interface: `search.js`)
 - **Usage:** `node search.js --query="nasi tumpeng" [--platform=all|unsplash|pexels|pixabay] [--count=5] [--orientation=landscape] [--save --out=...]`
 - **Rule:** prefer HD results matching our warm OKLCH cream/amber palette and "homey,
-  down-to-earth" photography (see `docs/design.md` §10 benchmark). Use `--save` only when
-  the user wants the file downloaded locally.
+  down-to-earth" photography (see `docs/design.md` §10 benchmark). Save fallback images
+  into `frontend/public/assets/<subfolder>/` so the code references them at `/assets/...`.

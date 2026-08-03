@@ -11,7 +11,7 @@ official sitemap). **PENDING decision** — this brief targets the official page
 ---
 
 ## Why this segment
-No competitor owns corporate/catering-kantor in Bogor, and Dapur Bunda's capacity
+No competitor owns corporate/catering-kantor in Bogor, and Catering Nusantara's capacity
 (**20–1000 porsi per acara**) fits office lunches, seminars, and rapat. Corporate
 orders are higher-value and repeatable (daily/monthly) — the strongest LTV channel
 available.
@@ -46,7 +46,7 @@ available.
 5. **Kontak korporat** — link Kontak + CTA WhatsApp.
 
 ## Conversion requirements
-- WhatsApp CTA with corporate pre-filled message: "Halo Dapur Bunda, kami dari
+- WhatsApp CTA with corporate pre-filled message: "Halo Catering Nusantara, kami dari
   [perusahaan] ingin request katering untuk [rapat/event] [jumlah porsi]."
 - No phone number until client supplies it.
 

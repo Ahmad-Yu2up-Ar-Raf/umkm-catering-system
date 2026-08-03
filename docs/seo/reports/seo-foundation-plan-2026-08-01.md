@@ -1,7 +1,7 @@
-# SEO Foundation Plan — Catering Nusantara (Dapur Bunda Catering)
+# SEO Foundation Plan — Catering Nusantara
 
 **Date:** 2026-08-01
-**Project:** Catering Nusantara (Dapur Bunda Catering), domain cateringnusantara.id (under development)
+**Project:** Catering Nusantara, domain cateringnusantara.id (under development)
 **Status:** Phase 1 CLOSED — approved 2026-08-01. Phase 2 content briefs in progress.
 **Authoritative inputs:** Notion "7. SEO Competitive Landscape — Catering Bogor"
 (3aedbe64-a50a-819b-9325-e7536d46c633) + sibling pages 1 & 6 (client facts) +
@@ -24,7 +24,7 @@
 
 ## 2. Client Facts (from Notion, do not invent beyond these)
 
-- PIC: **Ratna Kusuma** (owner), active since **2019**, Bogor.
+- PIC: **Eva Rudianti** (owner), active since **2024**, Bogor.
 - Prices: **Rp18.000** (Snack Box) → **Rp250.000 per paket 10 porsi** (Tumpeng Mini).
   Tumpeng Mini is priced per-paket; `harga_per_porsi` = Rp25.000, `min_order` = 10
   (docs/architecture.md §4.1). **Never display it as Rp250k per porsi.**
@@ -60,14 +60,14 @@ Keyword matrix, per-cluster competitors, and keyword→page map live in
 
 ## 5. Google Business Profile Plan (summary)
 
-- Verify **Dapur Bunda Catering** profile. Primary category: Caterer; secondary: Catering
+- Verify **Catering Nusantara** profile. Primary category: Caterer; secondary: Catering
   food service.
 - Consistent NAP (name/address/phone) matching the site — **needs client data** (see §7).
 - Real local photos only (frontend/docs/design.md §5 — no stock). Posts weekly. Q&A seeded with the FAQ
   answers.
 - Service-area: city-wide Bogor + sub-markets **only once client confirms delivery areas**.
 - **Key intel: Zahwa Katering wins the local pack with just 4 reviews** — optimization
-  signals (categories, NAP, posts, Q&A, proximity) beat review count. Dapur Bunda can
+  signals (categories, NAP, posts, Q&A, proximity) beat review count. Catering Nusantara can
   win the pack with zero reviews if GBP hygiene is done right. Start review generation
   (WhatsApp QR ask) + Instagram hashtag cross-pollination (#cateringbogor,
   #cateringbogormurah, #paketpernikahanbogor).

@@ -5,13 +5,22 @@
 
 # Catering Nusantara — Brand & Business Context
 
-> The single source of business truth for the "Catering Nusantara" platform (Dapur Bunda Catering). Read this before any product, content, or architecture work — it explains **who** the business is, **what** problem the software solves, **who** it serves, and **how** money is made. Technical readers should combine this with `docs/architecture.md` (structure) and `frontend/docs/design.md` (look & feel).
+> The single source of business truth for the "Catering Nusantara" platform. Read this before any product, content, or architecture work — it explains **who** the business is, **what** problem the software solves, **who** it serves, and **how** money is made. Technical readers should combine this with `docs/architecture.md` (structure) and `frontend/docs/design.md` (look & feel).
 
 ---
 
 ## 1. The Business
 
-**Dapur Bunda Catering** — a home-based catering business in **Bogor, Indonesia**, operating since **2019** (PIC: **Ratna Kusuma**).
+**Catering Nusantara** — a home-based catering business in **Bogor, Indonesia**, operating since **2024** (PIC: **Eva Rudianti** / "Ibu Eva").
+
+**Business identity (authenticated client data):**
+
+- **Brand:** Catering Nusantara
+- **Owner / PIC:** Eva Rudianti (Ibu Eva)
+- **Established:** 2024
+- **Address:** Jln. Kapten Yusuf gang Purnama, Taman Sari, Bogor <!-- TODO: sub-district pending owner verification -->
+- **WhatsApp / Phone:** 08561155113
+- **Email:** Waroengpecelayam99@gmail.com
 
 - **What it sells:** Indonesian home-style catering for events and daily consumption — rice boxes, snack boxes, tumpeng (cone rice), and prasmanan (buffet) packages.
 - **Positioning:** "**Down to Earth**" — honest, home-cooked Nusantara flavors. Not fine-dining; not industrial catering. The brand promises the taste and feel of a good home kitchen.

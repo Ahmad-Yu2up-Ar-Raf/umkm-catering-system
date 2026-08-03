@@ -1,7 +1,7 @@
 # Competitive Landscape — Catering in Bogor
 
 **Date:** 2026-07-31
-**Project:** Catering Nusantara (Dapur Bunda Catering)
+**Project:** Catering Nusantara
 **Method:** Google Maps local SERP (Bogor center, -6.5971/106.8060) + organic competitor site scrape
 
 ---
@@ -39,7 +39,7 @@
 | Occasional | N'Catering | 5.0★ | 2 | |
 | Occasional | Dapur Solo (Botani Square) | 4.6★ | 253 | Restaurant chain, not pure catering |
 
-**Key insight:** Review count alone does NOT win the pack — Zahwa ranks #1 with 4 reviews. Optimization signals (relevant categories, consistent NAP, posts, Q&A, proximity) matter more. This is an OPEN gap Dapur Bunda can exploit.
+**Key insight:** Review count alone does NOT win the pack — Zahwa ranks #1 with 4 reviews. Optimization signals (relevant categories, consistent NAP, posts, Q&A, proximity) matter more. This is an OPEN gap Catering Nusantara can exploit.
 
 ---
 
@@ -53,13 +53,13 @@
 
 ---
 
-## Keyword / Theme Gaps (Opportunities for Dapur Bunda)
+## Keyword / Theme Gaps (Opportunities for Catering Nusantara)
 
 | Gap | Current coverage | Why winnable |
 |-----|-----------------|--------------|
-| **Tumpeng / Tumpeng Mini** | Weak — only Dapur Solo (restaurant) + Kuliner Mbak Par rank locally | Dapur Bunda sells Tumpeng Mini Rp250k — become THE "catering tumpeng bogor" page |
+| **Tumpeng / Tumpeng Mini** | Weak — only Dapur Solo (restaurant) + Kuliner Mbak Par rank locally | Catering Nusantara sells Tumpeng Mini Rp250k — become THE "catering tumpeng bogor" page |
 | **Snack box / coffee break** | Thin everywhere | Full menu page + package landing |
-| **Catering kantor / corporate** | No competitor owns it | Dapur Bunda capacity 20-1000 pax suits office lunches, seminars, rapat |
+| **Catering kantor / corporate** | No competitor owns it | Catering Nusantara capacity 20-1000 pax suits office lunches, seminars, rapat |
 | **Catering ulang tahun** | Weak | Birthday segment underserved |
 | **Area sub-markets** | Cibinong, Sentul, Cileungsi, Depok border underserved | City-wide delivery claim; Jagarasa/Niezar own Puncak/Cisarua but not these |
 | **"Katering" (K spelling)** | Competing pages use "catering" | Search both spellings — cover "katering bogor" variant |
@@ -79,7 +79,7 @@
 
 ## Recommended Next Workflows
 
-1. **Google Business Profile audit/setup** — verify Dapur Bunda GBP, complete categories (Catering food service / Caterer), add photos, posts, Q&A
+1. **Google Business Profile audit/setup** — verify Catering Nusantara GBP, complete categories (Catering food service / Caterer), add photos, posts, Q&A
 2. **Keyword research** (from gaps above) → cluster to pages
 3. **Content briefs** — Tumpeng, Snack Box, Corporate pages + 1 hero article ("catering bogor" / "catering pernikahan bogor")
 4. **Link prospecting** — Bogor wedding blogs, event organizer directories, local food blogs

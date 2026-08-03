@@ -1,4 +1,4 @@
-# SEO Workspace — Catering Nusantara (Dapur Bunda Catering)
+# SEO Workspace — Catering Nusantara
 
 > Local SEO research folder for the catering project. Agent context lives here so
 > future SEO workflows don't start from a blank conversation.
@@ -6,7 +6,7 @@
 ## OpenSEO Project
 
 - **Project ID:** 56e539f5-b144-40a9-afd4-1bdc4a6a0445
-- **Project name:** Catering Nusantara — Dapur Bunda Catering
+- **Project name:** Catering Nusantara
 - **Domain:** cateringnusantara.id (placeholder — site under development)
 - **Default market:** 2840/en (organization default; Indonesia market set per-call)
 
@@ -18,7 +18,7 @@
 
 ## Positioning (from project docs)
 
-- Brand: **Catering Nusantara** (Dapur Bunda Catering, Bogor — since 2019)
+- Brand: **Catering Nusantara** (Bogor — since 2024)
 - Sells: "masakan rumah" — home cooking, Nusantara flavors
 - Products: Nasi Box, Prasmanan, Snack, Tumpeng Mini
 - Events: Pernikahan, Kantor, Ulang Tahun, Arisan, Umum
@@ -29,7 +29,7 @@
 | Site | Type | Status |
 |------|------|--------|
 | cateringnusantara.id | Primary | Under development |
-| Google Business Profile (Dapur Bunda Catering, Bogor) | Local | To be verified |
+| Google Business Profile (Catering Nusantara, Bogor) | Local | To be verified |
 
 ## Folders
 

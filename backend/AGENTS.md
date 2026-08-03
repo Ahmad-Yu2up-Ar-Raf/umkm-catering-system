@@ -11,7 +11,7 @@
 
 ## Project Identity
 
-**Catering Nusantara** — hybrid F&B platform for **Dapur Bunda Catering** (Bogor, since 2019, PIC: Ratna Kusuma).
+**Catering Nusantara** — hybrid F&B platform (Bogor, since 2024, PIC: Eva Rudianti).
 One database, **two surfaces**:
 - **Public Site** — read-only catalog (`paket`, `galeri`), anonymous, converts visitors to **WhatsApp** deep-link checkout.
 - **Admin CMS + Mini POS** — Sanctum-authenticated; the ONLY surface writing to `pesanan`. Auto-calculates totals, generates `nomor_struk`, keeps order history.

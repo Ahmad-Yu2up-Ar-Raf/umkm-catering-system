@@ -1,7 +1,7 @@
-# Keyword Research — Catering Bogor (Dapur Bunda Catering)
+# Keyword Research — Catering Bogor (Catering Nusantara)
 
 **Date:** 2026-08-01
-**Project:** Catering Nusantara (Dapur Bunda Catering)
+**Project:** Catering Nusantara
 **Status:** Phase 1 deliverable — approved 2026-08-01
 
 ---
@@ -66,7 +66,7 @@
 | B. Nasi Box | Transactional | Price players | **MED** | Core revenue; compete on "masakan rumah" + transparency, not price war |
 | H. Price/trust | Decision | Partly owned | **MED** | Own the transparency/trust angle |
 | A. Core head | Commercial | Jagarasa | **LOW-MED** | Long-term; win via GBP + content depth, not head-to-head |
-| C. Prasmanan | Commercial | Jagarasa | **LOW-MED** | Jagarasa 200-pax minimum = small-event gap Dapur Bunda can own |
+| C. Prasmanan | Commercial | Jagarasa | **LOW-MED** | Jagarasa 200-pax minimum = small-event gap Catering Nusantara can own |
 
 ---
 

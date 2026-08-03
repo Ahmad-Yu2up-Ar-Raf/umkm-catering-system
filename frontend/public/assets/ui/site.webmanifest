@@ -1,0 +1,23 @@
+{
+  "name": "Catering Nusantara",
+  "short_name": "Nusantara",
+  "description": "Masakan rumahan untuk perayaan Anda — katering Bogor, Jakarta, dan sekitarnya.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#B0713F",
+  "background_color": "#FAF6EF",
+  "icons": [
+    {
+      "src": "/assets/ui/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/assets/ui/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

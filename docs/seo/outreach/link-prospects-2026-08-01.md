@@ -20,7 +20,7 @@ do the heavy lifting. Treat this as a supporting channel, not the primary lever.
    (cross-linking partner: they list our catering on their vendor page, we list their
    venue in our Galeri/Cara Pemesanan content).
 5. **Local community / chamber sites** — Bogor UMKM directories, komunitas UMKM Bogor
-   (relevant because Dapur Bunda is a UMKM with a real local story).
+   (relevant because Catering Nusantara is a UMKM with a real local story).
 6. **Instagram cross-pollination** (not links, but a ranking signal lever):
    hashtags #cateringbogor, #cateringbogormurah, #paketpernikahanbogor,
    #nasi box bogor, #cateringweddingbogor (landscape.md) — consistent handle + posts.

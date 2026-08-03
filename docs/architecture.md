@@ -5,7 +5,7 @@
 
 # Architecture — Catering Nusantara
 
-> This document explains the sitemap structure, userflow, and database schema for the Catering Nusantara project (Dapur Bunda Catering). It is written so that both developers and AI coding agents (OpenCode) have full context before writing code.
+> This document explains the sitemap structure, userflow, and database schema for the Catering Nusantara project. It is written so that both developers and AI coding agents (OpenCode) have full context before writing code.
 
 ---
 

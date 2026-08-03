@@ -1,0 +1,120 @@
+{
+  "base": {
+    "value": "4px",
+    "description": "Grid unit — all spacing must be multiples of this"
+  },
+  "unit": "px",
+  "scale": {
+    "xs": {
+      "value": "4px",
+      "px": 4
+    },
+    "sm": {
+      "value": "8px",
+      "px": 8
+    },
+    "md": {
+      "value": "12px",
+      "px": 12
+    },
+    "lg": {
+      "value": "16px",
+      "px": 16
+    },
+    "xl": {
+      "value": "20px",
+      "px": 20
+    },
+    "2xl": {
+      "value": "24px",
+      "px": 24
+    },
+    "3xl": {
+      "value": "28px",
+      "px": 28
+    },
+    "4xl": {
+      "value": "32px",
+      "px": 32
+    },
+    "5xl": {
+      "value": "36px",
+      "px": 36
+    },
+    "6xl": {
+      "value": "40px",
+      "px": 40
+    }
+  },
+  "multipliers": {
+    "1x": {
+      "value": "4px",
+      "raw": 4
+    },
+    "2x": {
+      "value": "8px",
+      "raw": 8
+    },
+    "3x": {
+      "value": "12px",
+      "raw": 12
+    },
+    "4x": {
+      "value": "16px",
+      "raw": 16
+    },
+    "5x": {
+      "value": "20px",
+      "raw": 20
+    },
+    "6x": {
+      "value": "24px",
+      "raw": 24
+    },
+    "7x": {
+      "value": "28px",
+      "raw": 28
+    },
+    "8x": {
+      "value": "32px",
+      "raw": 32
+    },
+    "9x": {
+      "value": "36px",
+      "raw": 36
+    },
+    "10x": {
+      "value": "40px",
+      "raw": 40
+    },
+    "11x": {
+      "value": "44px",
+      "raw": 44
+    },
+    "12x": {
+      "value": "48px",
+      "raw": 48
+    },
+    "13x": {
+      "value": "52px",
+      "raw": 52
+    },
+    "14x": {
+      "value": "56px",
+      "raw": 56
+    },
+    "15x": {
+      "value": "60px",
+      "raw": 60
+    },
+    "16x": {
+      "value": "64px",
+      "raw": 64
+    }
+  },
+  "meta": {
+    "totalValues": 15,
+    "min": 4,
+    "max": 60
+  }
+}

@@ -22,7 +22,7 @@ head-to-head domain authority. This is the long-term play — do not expect fast
   kantor & acara keluarga — nasi box, prasmanan, tumpeng mini. Harga transparan, antar
   ke Bogor.`
 - **Content outline:** Market context (apa yang dicari orang) → cara memilih katering
-  (checklist: halal, menu, kapasitas, ongkir) → perbandingan produk Dapur Bunda
+  (checklist: halal, menu, kapasitas, ongkir) → perbandingan produk Catering Nusantara
   (link ke semua Detail Paket) → per-acara guidance (pernikahan/kantor/ulang tahun/
   arisan) → FAQ (schema) → CTA.
 - **Tone:** genuinely useful, "Down to Earth", no AI-cliché filler (no "elevate",

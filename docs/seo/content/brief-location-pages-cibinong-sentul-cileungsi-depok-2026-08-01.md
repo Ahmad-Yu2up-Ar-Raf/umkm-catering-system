@@ -10,12 +10,12 @@ confirms delivery to these areas AND approves the pages, this brief activates.
 ## Hypothesis
 Sub-market location queries (catering cibinong, nasi box cibinong, catering sentul,
 catering cileungsi, catering depok) are underserved — Jagarasa/Niezar/azzahra/annasya
-all cluster around Puncak & Cisarua. Dapur Bunda claims city-wide delivery, so each
+all cluster around Puncak & Cisarua. Catering Nusantara claims city-wide delivery, so each
 area is a winnable long-tail cluster with weaker SERPs than "catering bogor".
 
 ## Template (per area)
 - **URL (proposed):** `/katering-bogor/cibinong` etc. — exact scheme TBD with dev team.
-- **Title tag:** `Catering [Area] — Nasi Box & Prasmanan | Dapur Bunda Catering Bogor`
+- **Title tag:** `Catering [Area] — Nasi Box & Prasmanan | Catering Nusantara Bogor`
 - **H1:** `Catering [Area] — Katering Masakan Rumah, Antar ke [Area]`
 - **Meta description:** `Pesan katering di [Area] — nasi box, snack box, prasmanan &
   tumpeng mini. Masakan rumah, harga transparan, antar ke [Area]. Pesan via WhatsApp.`

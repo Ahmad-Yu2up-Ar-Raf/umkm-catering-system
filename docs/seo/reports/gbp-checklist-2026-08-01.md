@@ -1,4 +1,4 @@
-# Google Business Profile — Optimization Checklist (Dapur Bunda Catering)
+# Google Business Profile — Optimization Checklist (Catering Nusantara)
 
 **Date:** 2026-08-01 · **Status:** not started — blocked on client NAP data
 **Key intel:** Zahwa Katering wins the Bogor local pack with **4 reviews** — optimization
@@ -8,7 +8,7 @@ Bunda can take the pack with zero reviews if hygiene is right.
 ---
 
 ## Phase A — Claim & Verify (blocked on client NAP)
-- [ ] Verify ownership of "Dapur Bunda Catering" GBP (owner PIC: Ratna Kusuma).
+- [ ] Verify ownership of "Catering Nusantara" GBP (owner PIC: Eva Rudianti).
 - [ ] Get from client: business name (exact, as on site), full address, phone/WhatsApp,
       hours, website URL (cateringnusantara.id when live).
 

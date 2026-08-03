@@ -3,7 +3,7 @@
 >
 > [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [API Specs](./api-collection.md) · [Database Spec](./database.md) · [Frontend Consumer](../../frontend/README.md)
 
-# Database Seeders — Initial Data (Dapur Bunda Catering)
+# Database Seeders — Initial Data (Catering Nusantara)
 
 > Source of truth for the 5 initial product packages seeded into the `paket` table.
 > Data verified from the client sheet — [Analisa Kebutuhan User](https://docs.google.com/spreadsheets/d/1UYbfbsZ_asf-wG8vFCRsTVzjUWqlxUxA5CXYM7_JsKM/edit?gid=716699607#gid=716699607).

@@ -41,13 +41,13 @@
 
 **Kebijakan:** min order **25 pax** (daily/monthly), **free delivery min 100 pax**, add-on menu/buah, kemasan eksklusif.
 
-## Gap Analysis (untuk Dapur Bunda Catering)
+## Gap Analysis (untuk Catering Nusantara)
 
 1. **Harga kompetitif:** Pasar Nasi Box Jakarta = Rp19.000–75.000. Ruang entry kompetitif Rp21.000–28.000 (bracket Bento Basic s.d. Bento Telur Merah).
-2. **Best-seller pola:** Semua pesaing andalkan **Nasi Kuning Solo** / **Ayam Goreng Basic** sebagai menu unggulan — Dapur Bunda perlu menu signature serupa (is_best_seller).
-3. **Gap premium:** Sedikit pemain di Rp45.000–75.000 tier "premium box" dengan kemasan estetik + sertifikat halal. Dapur Bunda bisa masuk di Rp35.000–45.000 dengan kemasan premium.
+2. **Best-seller pola:** Semua pesaing andalkan **Nasi Kuning Solo** / **Ayam Goreng Basic** sebagai menu unggulan — Catering Nusantara perlu menu signature serupa (is_best_seller).
+3. **Gap premium:** Sedikit pemain di Rp45.000–75.000 tier "premium box" dengan kemasan estetik + sertifikat halal. Catering Nusantara bisa masuk di Rp35.000–45.000 dengan kemasan premium.
 4. **Gap opsional:** Belum ada pemain yang menonjolkan "menu anak-anak (bento anak)" dalam SERP ini — sesuai proposal klien.
-5. **Min order & dadakan:** Min 10 porsi + layanan dadakan 2 jam adalah standar pasar; kapasitas produksi Dapur Bunda (20–1000 porsi) harus diekspos di situs.
+5. **Min order & dadakan:** Min 10 porsi + layanan dadakan 2 jam adalah standar pasar; kapasitas produksi Catering Nusantara (20–1000 porsi) harus diekspos di situs.
 
 ## Apply ke Codebase (via Codebase-Memory)
 

@@ -16,7 +16,7 @@ Food delivery / catering service — hybrid: public catalog (conversion to Whats
 - ❌ Never hardcode; use `bg-background`, `text-primary`, `border-border`, `shadow-md`, `rounded-lg`, …
 
 ## Typography
-- Headings: Merriweather Variable (`font-heading`) · Body/UI: Figtree Variable (`font-sans`). Fixed.
+- Headings: Fraunces Variable (`font-heading`) · Body/UI: Space Grotesk Variable (`font-sans`) · Accent italic: Instrument Serif (`font-accent`). Fixed.
 
 ## Effects & Motion
 - Transitions 150–300ms; hover states subtle; **one signature motion per viewport**; respect `prefers-reduced-motion`.

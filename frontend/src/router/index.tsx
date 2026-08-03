@@ -4,30 +4,36 @@ import LoginPage from "@/pages/auth/login-page"
 import { createBrowserRouter } from "react-router"
 import DashboardPage from "@/pages/admin/dashboard-page"
 import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
+import { LayoutWrapper } from "@/components/provider/layout-wrapper"
 
 export const router = createBrowserRouter([
   {
-    element: <GuestGuard />,
+    element: <LayoutWrapper />,
     children: [
       {
-        path: "/",
-        element: <HomePage />,
-      },
-      {
-        path: "/login",
-        element: <LoginPage />,
-      },
-    ],
-  },
-  {
-    element: <AuthenticatedGuard />,
-    children: [
-      {
-        path: "/dashboard",
+        element: <GuestGuard />,
         children: [
           {
-            index: true,
-            element: <DashboardPage />,
+            path: "/",
+            element: <HomePage />,
+          },
+          {
+            path: "/login",
+            element: <LoginPage />,
+          },
+        ],
+      },
+      {
+        element: <AuthenticatedGuard />,
+        children: [
+          {
+            path: "/dashboard",
+            children: [
+              {
+                index: true,
+                element: <DashboardPage />,
+              },
+            ],
           },
         ],
       },

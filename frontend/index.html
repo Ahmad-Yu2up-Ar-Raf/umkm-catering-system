@@ -1,13 +1,86 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>vite-app</title>
+    <meta name="theme-color" content="#B0713F" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/ui/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/assets/ui/favicon.svg" />
+    <link rel="shortcut icon" href="/assets/ui/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/ui/apple-touch-icon.png" />
+    <link rel="manifest" href="/assets/ui/site.webmanifest" />
+
+    <!-- SEO: Primary -->
+    <title>Katering Bogor — Nasi Box, Prasmanan & Tumpeng Mini | Catering Nusantara</title>
+    <meta
+      name="description"
+      content="Katering masakan rumahan di Bogor sejak 2024. Nasi box, prasmanan, snack box & tumpeng mini untuk pernikahan, kantor, dan acara keluarga. Pesan lewat WhatsApp."
+    />
+    <link rel="canonical" href="https://cateringnusantara.id/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:site_name" content="Catering Nusantara" />
+    <meta property="og:title" content="Katering Bogor — Masakan Rumahan | Catering Nusantara" />
+    <meta
+      property="og:description"
+      content="Katering masakan rumahan di Bogor. Nasi box, prasmanan, snack box & tumpeng mini — pesan via WhatsApp."
+    />
+    <meta property="og:url" content="https://cateringnusantara.id/" />
+    <meta property="og:image" content="https://cateringnusantara.id/assets/images/banners/hero-banner-tumpeng.png" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Katering Bogor — Masakan Rumahan | Catering Nusantara" />
+    <meta
+      name="twitter:description"
+      content="Katering masakan rumahan di Bogor. Nasi box, prasmanan, snack box & tumpeng mini — pesan via WhatsApp."
+    />
+    <meta name="twitter:image" content="https://cateringnusantara.id/assets/images/banners/hero-banner-tumpeng.png" />
+
+    <!-- Local Business JSON-LD (geo omitted pending client confirmation) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": ["LocalBusiness", "FoodEstablishment"],
+      "@id": "https://cateringnusantara.id/#business",
+      "name": "Catering Nusantara",
+      "description": "Katering masakan rumahan di Bogor — nasi box, prasmanan, snack box, dan tumpeng mini.",
+      "url": "https://cateringnusantara.id/",
+      "telephone": "+628561155113",
+      "email": "Waroengpecelayam99@gmail.com",
+      "image": "https://cateringnusantara.id/assets/ui/logo.png",
+      "priceRange": "Rp18.000 - Rp250.000",
+      "servesCuisine": "Indonesian",
+      "foundingDate": "2024",
+      "founder": { "@type": "Person", "name": "Eva Rudianti" },
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Jln. Kapten Yusuf Gang Purnama, Taman Sari",
+        "addressLocality": "Bogor",
+        "addressRegion": "Jawa Barat",
+        "addressCountry": "ID"
+      },
+      "areaServed": { "@type": "City", "name": "Bogor" },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Paket Katering",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Nasi Box" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Prasmanan" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Snack Box" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Tumpeng Mini" } }
+        ]
+      }
+    }
+    </script>
+
+    <script type="module" src="/src/main.tsx"></script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

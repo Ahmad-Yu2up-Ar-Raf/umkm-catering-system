@@ -1,6 +1,6 @@
 # Catering Nusantara — Web Platform
 
-**Client:** Dapur Bunda Catering, Bogor — operating since 2019 (PIC: Ratna Kusuma)
+**Client:** Catering Nusantara, Bogor — operating since 2024 (PIC: Eva Rudianti)
 **Team:** Ahmad Yusuf Ar-Rafi · Denniz Rizki Attila · Thoriq Azhar Raditya
 
 > Hybrid F&B platform: a public catalog optimized for WhatsApp conversion, paired with an internal Admin CMS + Mini POS — built on a single JSON-enriched database schema.

@@ -28,7 +28,7 @@ kantor, arisan, ulang tahun. Secondary play: "coffee break bogor" for corporate.
 
 ## Content outline (H2 structure)
 1. **Hero + CTA** — foto snack box, badge "mulai Rp18rb", tombol WhatsApp (pre-filled:
-   "Halo Dapur Bunda, saya mau pesan snack box [jumlah] untuk [acara] di [area].")
+   "Halo Catering Nusantara, saya mau pesan snack box [jumlah] untuk [acara] di [area].")
 2. **Pilihan Snack Box** — `[VARIASI ISI DARI SHEET DATA PRODUK — snack kotak roti/kue,
    gorengan, buah, dll]`; untuk rapat, arisan, ulang tahun, seminar.
 3. **Harga & Porsi** — tabel harga per varian; min order; capacity 20–1000 porsi.

@@ -56,8 +56,9 @@ Full token set also includes `--chart-1..5`, `--sidebar-*`, and `--color-header`
 
 | Role | Font | Usage |
 |---|---|---|
-| Heading / Display | **Merriweather Variable** (`--font-heading`) | Page titles, package names, taglines |
-| Body / UI | **Figtree Variable** (`--font-sans`) | Descriptions, prices, admin/POS UI |
+| Heading / Display | **Fraunces Variable** (`--font-heading`) | Page titles, package names, taglines |
+| Body / UI | **Space Grotesk Variable** (`--font-sans`) | Descriptions, prices, admin/POS UI |
+| Accent word (italic) | **Instrument Serif** (`--font-accent`) | The single italic accent word per headline (Tiska paradigm, §10) |
 
 Loaded via Fontsource in `src/index.css`. Headings (`h1`–`h6`) force `--font-heading` in the base layer. These fonts are a deliberate project choice — never swap them.
 
@@ -99,12 +100,12 @@ Used as **subtle accents**, not dominant elements — so the UI stays clean like
 | Do | Don't |
 |---|---|
 | Semantic tokens everywhere (`bg-background`, `text-primary`, …) | Hardcoded hex/OKLCH/font names in components |
-| Merriweather headings + Figtree body | Inter/Arial/system-font substitution |
+| Fraunces headings + Space Grotesk body | Inter/Arial/system-font substitution |
 | Warm cream + earthy amber/brown family | Cold blue/grey dominance, purple-to-blue gradients, glassmorphism everywhere |
 | One signature detail per surface | Decoration for its own sake; card-in-card; emojis as icons (use HugeIcons) |
 | Nusantara texture (bamboo/batik) at ~5–10% opacity | Busy texture that hurts text contrast |
 | Motion: one moment per viewport, 150–300ms, `prefers-reduced-motion` respected | Bounce/elastic easing; infinite-loop micro-animations; animating width/height |
-| Natural photography (client assets in `../../assets/main/`) | Generic stock photos |
+| Natural photography (client assets in `frontend/public/assets/`) | Generic stock photos |
 
 ## 8. Responsive Behavior
 
@@ -115,10 +116,10 @@ Used as **subtle accents**, not dominant elements — so the UI stays clean like
 ## 9. Agent Prompt Guide
 
 > Build [page] for Catering Nusantara using `docs/design.md` + `design-system/MASTER.md`.
-> Tokens from `src/index.css` (OKLCH warm cream/amber). Merriweather headings, Figtree body.
+> Tokens from `src/index.css` (OKLCH warm cream/amber). Fraunces headings, Space Grotesk body.
 > Check `design-system/pages/<page>.md` overrides first, else Master rules.
 > After building: `npm run typecheck && npm run lint && npm run lint:design`.
-> Colors: bg=warm cream, primary=earthy amber/brown, text=warm dark brown. Fonts: Merriweather/Figtree.
+> Colors: bg=warm cream, primary=earthy amber/brown, text=warm dark brown. Fonts: Fraunces/Space Grotesk + Instrument Serif accent.
 
 ## 10. Premium Motion & Visual Benchmark (Tiska Catering Paradigm)
 
@@ -164,3 +165,20 @@ Each section is structurally distinct, yet cohesive:
 | Pill header | CSS scroll class toggle (no GSAP needed) |
 
 **Token mapping:** `text-paper`→`text-foreground`, `bg-ink`→`bg-background`/dark surface, gold ramp→`primary` amber, `ring-line`→`border-border`. **One signature moment per viewport** (per §7); the curtain is the only full-screen effect and only on the landing surface.
+
+## 11. Unified Anti-Slop Enforcement Pipeline (Hallmark · Impeccable · Taste)
+
+Three pillars, one pipeline — every UI surface passes all three before shipping:
+
+| Pillar | Role | Enforcement |
+|---|---|---|
+| **1. Taste & Dials** | Choose the *direction* | `catering-nusantara-design` skill: VARIANCE 5 / MOTION 4 / DENSITY 3, warm OKLCH cream/amber tokens, Fraunces/Space Grotesk/Instrument Serif, "homey not stiff" |
+| **2. Hallmark** | Shape the *structure* | `.opencode/skills/hallmark` (v1.1.0): macrostructure selection (structural variety — different pages ≠ same template), 57-gate slop test, pre-emit self-critique (Philosophy/Hierarchy/Execution/Specificity/Restraint/Variety, all ≥3), honest copy (gate 46), locked tokens (gate 48), no re-drawn chrome (gate 47), responsive floor 320/375/414/768 (gates 34, 49–53) |
+| **3. Impeccable** | Verify the *code* | `npm run lint:design` (`impeccable detect src/`) — deterministic hard gate, must stay `[]`; `/impeccable critique|polish|audit` for review passes |
+
+**Workflow:** Hallmark picks the macrostructure + runs the slop test → Taste dials + brand tokens bind the result to the Catering Nusantara identity → Impeccable validates the shipped code. Load order: `catering-nusantara-design` → `hallmark` → `impeccable`.
+
+### Deliberate brand exceptions (documented overrides to Hallmark defaults)
+
+1. **Italic accent word (Hallmark gate 38a).** Hallmark bans italicised emphasis in headings as an AI tell. Catering Nusantara deliberately allows **one italic accent word per headline** via `--font-accent` (Instrument Serif; Tiska-paradigm per §10) — e.g. `Cita Rasa *Rumahan*`, `Setiap perayaan adalah *kisah* Anda.` Constraints: never more than one word, never all-italic display, never italic in sub-headings/body-adjacent labels.
+2. **Honest copy (Hallmark gate 46).** No fabricated metrics. The V2 homepage stats (S5: `100+ Acara terlayani`, `40+ Pilihan menu`) and testimonials (S6) are placeholders that MUST be replaced with real client numbers/names before launch — or rendered as `—` + "metric to confirm" per Hallmark. The registered client data in `docs/HOMEPAGE_BUILD.md` §0.1 (Eva Rudianti, 2024, contact) is real and stays verbatim.

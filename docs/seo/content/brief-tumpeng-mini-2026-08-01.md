@@ -19,7 +19,7 @@ Tumpeng is the highest-opportunity gap in the landscape: no competitor owns
   meaning lives in `min_order`, per docs/architecture.md §4.1). Keep the UI copy in sync.
 
 ## On-page SEO requirements
-- **Title tag** (~60 chars): `Tumpeng Mini Bogor Rp250rb/paket | Dapur Bunda Catering`
+- **Title tag** (~60 chars): `Tumpeng Mini Bogor Rp250rb/paket | Catering Nusantara`
 - **Meta description** (~155 chars): `Tumpeng Mini masakan rumah untuk ulang tahun,
   syukuran & arisan di Bogor. Mulai Rp250rb/paket (10 porsi). Antar ke [AREA].
   Pesan via WhatsApp.` *(confirm exact price before publish)*
@@ -32,7 +32,7 @@ Tumpeng is the highest-opportunity gap in the landscape: no competitor owns
 
 ## Content outline (H2 structure)
 1. **Hero + CTA** — tumpeng foto, price badge "Rp250rb / paket (10 porsi)", tombol
-   WhatsApp (pre-filled message: "Halo Dapur Bunda, saya mau pesan Tumpeng Mini untuk
+   WhatsApp (pre-filled message: "Halo Catering Nusantara, saya mau pesan Tumpeng Mini untuk
    [acara] tanggal [tanggal] di [area].")
 2. **Kenapa Tumpeng Mini** — cocok untuk ulang tahun, syukuran, arisan, aqiqah kecil;
    tidak harus katering besar; hangat dan "masakan rumah".
