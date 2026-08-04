@@ -1,35 +1,46 @@
 import { useEffect, useRef } from "react"
 import type { RefObject } from "react"
 
+/**
+ * Tracks the pointer position relative to the target container, normalized
+ * to the range [-1, 1] from the container's CENTER.
+ *
+ * Why center-normalized: the dominant use-case is mouse-parallax where the
+ * "rest" position must be the center (zero offset at load). Raw pixels from
+ * the top-left corner produced an unpredictable, cursor-position-dependent
+ * offset and a visible jump on first mousemove.
+ *
+ * Starts at (0, 0) — the center — so surfaces are neutral until the first real
+ * mouse/touch move.
+ */
 export const useMousePositionRef = (
   containerRef?: RefObject<HTMLElement | SVGElement>
 ) => {
   const positionRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
-    const updatePosition = (x: number, y: number) => {
-      if (containerRef && containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect()
-        const relativeX = x - rect.left
-        const relativeY = y - rect.top
+    // Neutral rest state = center = no parallax offset.
+    positionRef.current = { x: 0, y: 0 }
 
-        // Calculate relative position even when outside the container
-        positionRef.current = { x: relativeX, y: relativeY }
+    const updatePosition = (x: number, y: number) => {
+      const currentNode = containerRef?.current
+      if (currentNode) {
+        const r = currentNode.getBoundingClientRect()
+        positionRef.current = {
+          x: (x - r.left - r.width / 2) / (r.width / 2),
+          y: (y - r.top - r.height / 2) / (r.height / 2),
+        }
       } else {
-        positionRef.current = { x, y }
+        positionRef.current = { x: 0, y: 0 }
       }
     }
 
-    const handleMouseMove = (ev: MouseEvent) => {
-      updatePosition(ev.clientX, ev.clientY)
-    }
-
+    const handleMouseMove = (ev: MouseEvent) => updatePosition(ev.clientX, ev.clientY)
     const handleTouchMove = (ev: TouchEvent) => {
       const touch = ev.touches[0]
-      updatePosition(touch.clientX, touch.clientY)
+      if (touch) updatePosition(touch.clientX, touch.clientY)
     }
 
-    // Listen for both mouse and touch events
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("touchmove", handleTouchMove)
 

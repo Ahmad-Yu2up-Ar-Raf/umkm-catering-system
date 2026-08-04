@@ -20,14 +20,19 @@ type WordRevealProps = {
   delay?: number
   stagger?: number
   duration?: number
+  /** Gate: when false the words are pre-hidden (no flash behind the preloader);
+   *  flipping true runs the slide-up reveal. Default true. */
+  play?: boolean
 }
 
 /**
  * Masked word-reveal (design.md §10.1 #1). Renders an inline span of words,
  * each inside an `overflow-hidden` mask; GSAP lifts inner spans from
  * translateY(110%) → 0 with stagger. Accent words (`*word*`) get the
- * Instrument Serif italic accent treatment (design.md §10.1 #2). Wrap it in the
- * caller's semantic heading (h1/h2) — this component owns the reveal only.
+ * Merriweather italic accent treatment (design.md §10.1 #2).
+ *
+ * `play` lets the caller hold the words hidden until after the preloader has
+ * finished, so the reveal always happens on-screen — never behind the curtain.
  */
 export function WordReveal({
   text,
@@ -35,6 +40,7 @@ export function WordReveal({
   delay = 0,
   stagger = 0.06,
   duration = 0.9,
+  play = true,
 }: WordRevealProps) {
   const reduced = useReducedMotion()
   const rootRef = useRef<HTMLSpanElement>(null)
@@ -44,13 +50,18 @@ export function WordReveal({
     () => {
       if (reduced || !rootRef.current) return
       const targets = rootRef.current.querySelectorAll<HTMLElement>("[data-word]")
-      gsap.fromTo(
-        targets,
-        { yPercent: 110 },
-        { yPercent: 0, duration, ease: "power3.out", stagger, delay },
-      )
+      if (play) {
+        gsap.fromTo(
+          targets,
+          { yPercent: 110 },
+          { yPercent: 0, duration, ease: "power3.out", stagger, delay },
+        )
+      } else {
+        // Pre-hide behind the preloader — revealed the instant `play` flips.
+        gsap.set(targets, { yPercent: 110 })
+      }
     },
-    { scope: rootRef },
+    { scope: rootRef, dependencies: [play, delay, stagger, duration] },
   )
 
   return (
@@ -58,11 +69,11 @@ export function WordReveal({
       {words.map((word, index) => (
         <span
           key={index}
-          className="inline-block gap-11  px-2 overflow-hidden pb-[0.12em] -mb-[0.12em] align-bottom"
+          className="inline-block overflow-hidden px-2 pb-[0.12em] -mb-[0.12em] align-bottom"
         >
           <span
             data-word
-            className={cn("inline-block", word.accent && "font-accent   italic text-primary")}
+            className={cn("inline-block", word.accent && "font-accent italic text-primary")}
           >
             {word.text}
           </span>

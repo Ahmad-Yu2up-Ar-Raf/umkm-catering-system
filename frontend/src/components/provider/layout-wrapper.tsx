@@ -1,7 +1,7 @@
 import ReactLenis from "lenis/react"
 import SiteFooter from "../ui/core/layout/nav/site-footer"
 import SiteBorder from "../ui/core/layout/nav/site-border"
-
+import { SiteHeader } from "../ui/core/layout/nav/site-header"
 import { Outlet } from "react-router"
 
 import { cn } from "@/lib/utils"
@@ -13,12 +13,10 @@ export function LayoutWrapper() {
   return (
     <ReactLenis root>
       {!isMobile && <SiteBorder />}
-
+      {/* <SiteHeader /> */}
       {/* Add padding-bottom on mobile to account for fixed navbar */}
       <div
-        className={cn(
-          "relative w-full overflow-hidden md:overflow-visible"
-        )}
+        className={cn("relative w-full overflow-hidden md:overflow-visible")}
       >
         <div
           className={cn(

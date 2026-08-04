@@ -1,6 +1,6 @@
 function LoginBlock() {
   return (
-    <div>sda</div>
+    <div className=" min-h-[10000dvh]">sda</div>
   )
 }
 

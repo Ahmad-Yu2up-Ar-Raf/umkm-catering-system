@@ -1,7 +1,12 @@
 "use client"
 
-import { motion } from "framer-motion"
 import * as React from "react"
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  type SpringOptions,
+} from "framer-motion"
 
 import { cn } from "@/lib/utils"
 
@@ -10,6 +15,7 @@ const componentThemeClassName =
 
 const FILL_DURATION = 0.5
 const FILL_EASE = [0.16, 1, 0.3, 1] as const
+const SPRING_CONFIG = { stiffness: 26.7, damping: 4.1, mass: 0.2 } // Konfigurasi dari Magnetic
 
 type ButtonHTMLAttributesForMotion = Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -65,9 +71,14 @@ function hasTextContent(node: React.ReactNode): boolean {
   return false
 }
 
+// 1. Props gabungan Origin Button dan Magnet
 type OriginButtonProps = ButtonHTMLAttributesForMotion & {
   children?: React.ReactNode
   loading?: boolean
+  intensity?: number
+  range?: number
+  actionArea?: "self" | "parent" | "global"
+  springOptions?: SpringOptions
 }
 
 const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
@@ -78,6 +89,12 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
       disabled = false,
       loading = false,
       type = "button",
+      // Magnet Default Props
+      intensity = 0.6,
+      range = 100,
+      actionArea = "self",
+      springOptions = SPRING_CONFIG,
+      // Events
       onBlur,
       onClick,
       onFocus,
@@ -88,25 +105,32 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
       onPointerEnter,
       onPointerLeave,
       onPointerUp,
+      style,
       ...props
     },
     ref
   ) => {
     const buttonRef = React.useRef<HTMLButtonElement>(null)
     const isDisabled = Boolean(disabled || loading)
+
+    // State Origin Button
     const [hovered, setHovered] = React.useState(false)
     const [isPressed, setIsPressed] = React.useState(false)
     const [origin, setOrigin] = React.useState({ x: 0, y: 0 })
     const [coverSize, setCoverSize] = React.useState(0)
 
+    // State Magnet
+    const [isMagnetHovered, setIsMagnetHovered] = React.useState(false)
+    const x = useMotionValue(0)
+    const y = useMotionValue(0)
+    const springX = useSpring(x, springOptions)
+    const springY = useSpring(y, springOptions)
+
     const ariaLabel = props["aria-label"]
     const ariaLabelledBy = props["aria-labelledby"]
 
+    // Effect: Accessibility
     React.useEffect(() => {
-    //   if (process.env.NODE_ENV === "production") {
-    //     return
-    //   }
-
       if (
         hasTextContent(children) ||
         ariaLabel?.trim() ||
@@ -120,13 +144,64 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
       )
     }, [ariaLabel, ariaLabelledBy, children])
 
-    const updateOrigin = React.useCallback((x: number, y: number) => {
+    // Effect: Magnet Tracker
+    React.useEffect(() => {
+      const calculateDistance = (e: MouseEvent) => {
+        if (buttonRef.current) {
+          const rect = buttonRef.current.getBoundingClientRect()
+          const centerX = rect.left + rect.width / 2
+          const centerY = rect.top + rect.height / 2
+          const distanceX = e.clientX - centerX
+          const distanceY = e.clientY - centerY
+
+          const absoluteDistance = Math.sqrt(distanceX ** 2 + distanceY ** 2)
+
+          if (isMagnetHovered && absoluteDistance <= range) {
+            const scale = 1 - absoluteDistance / range
+            x.set(distanceX * intensity * scale)
+            y.set(distanceY * intensity * scale)
+          } else {
+            x.set(0)
+            y.set(0)
+          }
+        }
+      }
+
+      document.addEventListener("mousemove", calculateDistance)
+
+      return () => {
+        document.removeEventListener("mousemove", calculateDistance)
+      }
+    }, [isMagnetHovered, intensity, range, x, y]) // Removed ref from dependencies as it's a ref object
+
+    // Effect: Magnet Action Area
+    React.useEffect(() => {
+      if (actionArea === "parent" && buttonRef.current?.parentElement) {
+        const parent = buttonRef.current.parentElement
+
+        const handleParentEnter = () => setIsMagnetHovered(true)
+        const handleParentLeave = () => setIsMagnetHovered(false)
+
+        parent.addEventListener("mouseenter", handleParentEnter)
+        parent.addEventListener("mouseleave", handleParentLeave)
+
+        return () => {
+          parent.removeEventListener("mouseenter", handleParentEnter)
+          parent.removeEventListener("mouseleave", handleParentLeave)
+        }
+      } else if (actionArea === "global") {
+        setIsMagnetHovered(true)
+      }
+    }, [actionArea])
+
+    // Methods Origin Button
+    const updateOrigin = React.useCallback((newX: number, newY: number) => {
       const node = buttonRef.current
       if (!node) return
 
       const rect = node.getBoundingClientRect()
-      setOrigin({ x, y })
-      setCoverSize(getCoverDiameter(rect.width, rect.height, x, y))
+      setOrigin({ x: newX, y: newY })
+      setCoverSize(getCoverDiameter(rect.width, rect.height, newX, newY))
     }, [])
 
     const updateOriginFromPointer = React.useCallback(
@@ -147,6 +222,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
 
     const showFill = !isDisabled && (hovered || isPressed)
 
+    // Effect: Origin Resize
     React.useLayoutEffect(() => {
       const node = buttonRef.current
       if (!(node && showFill)) return
@@ -185,6 +261,12 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
       <motion.button
         {...props}
         aria-busy={loading || undefined}
+        // 2. Gabungkan animasi spring X dan Y ke dalam property style
+        style={{
+          x: springX,
+          y: springY,
+          ...style,
+        }}
         className={cn(
           componentThemeClassName,
           "relative inline-flex h-12 cursor-pointer touch-manipulation items-center justify-center overflow-hidden rounded-xl px-8 text-[15px] font-medium tracking-[-0.02em] select-none",
@@ -193,7 +275,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
           "transition-[color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
           "disabled:pointer-events-none disabled:opacity-50",
-          "group relative flex cursor-pointer items-center gap-1 overflow-hidden rounded-[100px] border-[1.5px] border-primary bg-transparent px-9 py-6 text-sm font-semibold text-primary transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)]  hover:border-transparent hover:text-white active:scale-[0.95]",
+          "group relative flex cursor-pointer items-center gap-1 overflow-hidden rounded-[100px] border-[1.5px] border-primary bg-transparent px-9 py-6 text-sm font-semibold text-primary transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-transparent hover:text-white active:scale-[0.95]",
           showFill && "text-background dark:text-neutral-950",
           className
         )}
@@ -263,13 +345,29 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
         onPointerEnter={(event) => {
           onPointerEnter?.(event)
           if (isDisabled || event.defaultPrevented) return
+
+          // Logic Origin
           updateOriginFromPointer(event)
           setHovered(true)
+
+          // Logic Magnet
+          if (actionArea === "self") {
+            setIsMagnetHovered(true)
+          }
         }}
         onPointerLeave={(event) => {
           onPointerLeave?.(event)
+
+          // Logic Origin
           setHovered(false)
           setIsPressed(false)
+
+          // Logic Magnet
+          if (actionArea === "self") {
+            setIsMagnetHovered(false)
+            x.set(0)
+            y.set(0)
+          }
         }}
         onPointerUp={(event) => {
           onPointerUp?.(event)

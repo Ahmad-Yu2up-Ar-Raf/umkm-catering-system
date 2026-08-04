@@ -201,6 +201,7 @@
     --shadow-lg: var(--shadow-lg);
     --shadow-xl: var(--shadow-xl);
     --shadow-2xl: var(--shadow-2xl);
+
 }
 
 /* Base Styling UI */
@@ -273,5 +274,5 @@
 }
 
 @utility container {
-  @apply px-2.5 sm:px-6 max-w-5xl m-auto;
+  @apply px-5 sm:px-10 max-w-5xl m-auto;
 }

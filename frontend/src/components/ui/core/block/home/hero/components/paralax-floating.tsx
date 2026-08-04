@@ -4,7 +4,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
+  useId,
+  useLayoutEffect,
   useRef,
 } from "react"
 import { useAnimationFrame } from "framer-motion"
@@ -13,6 +14,8 @@ import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { useMousePositionRef } from "@/hooks/use-mouse-position-ref"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { gsap, useGSAP } from "@/components/motion/gsap"
 
 interface FloatingContextType {
   registerElement: (id: string, element: HTMLDivElement, depth: number) => void
@@ -26,6 +29,9 @@ interface FloatingProps {
   className?: string
   sensitivity?: number
   easingFactor?: number
+  /** Parent hero master timeline — this child injects its entry reveal into it
+   *  (proper React connection, no string selectors from the parent). */
+  timeline?: gsap.core.Timeline | null
 }
 
 const Floating = ({
@@ -33,6 +39,7 @@ const Floating = ({
   className,
   sensitivity = 1,
   easingFactor = 0.05,
+  timeline,
   ...props
 }: FloatingProps) => {
   const containerRef = useRef<HTMLDivElement | null>(
@@ -50,12 +57,14 @@ const Floating = ({
   )
   const mousePositionRef = useMousePositionRef(containerRef)
   const isMobile = useIsMobile()
+  const reduced = useReducedMotion()
 
   const registerElement = useCallback(
     (id: string, element: HTMLDivElement, depth: number) => {
       elementsMap.current.set(id, {
         element,
         depth,
+        // Start at the center (neutral) so there is no load-time offset or jump.
         currentPosition: { x: 0, y: 0 },
       })
     },
@@ -66,28 +75,78 @@ const Floating = ({
     elementsMap.current.delete(id)
   }, [])
 
+  // Mouse/touch parallax — desktop only (no hover on touch devices). The ENTRY
+  // reveal is injected into the hero master timeline below.
   useAnimationFrame(() => {
-    // Skip animation on mobile for better performance
     if (!containerRef.current || isMobile) return
 
     elementsMap.current.forEach((data) => {
-      const strength = (data.depth * sensitivity) / 20
+      // Center-normalized pointer [-1, 1] × depth × sensitivity → small px range.
+      const strength = data.depth * sensitivity * 34
 
-      // Calculate new target position
       const newTargetX = mousePositionRef.current.x * strength
       const newTargetY = mousePositionRef.current.y * strength
 
-      // Check if we need to update
       const dx = newTargetX - data.currentPosition.x
       const dy = newTargetY - data.currentPosition.y
 
-      // Update position only if we're still moving
+      // Ease toward the target — never a hard jump, including the first move.
       data.currentPosition.x += dx * easingFactor
       data.currentPosition.y += dy * easingFactor
 
       data.element.style.transform = `translate3d(${data.currentPosition.x}px, ${data.currentPosition.y}px, 0)`
     })
   })
+
+  const collectCards = (): HTMLElement[] =>
+    Array.from(elementsMap.current.values())
+      .map((d) => d.element.firstElementChild as HTMLElement | null)
+      .filter((el): el is HTMLElement => Boolean(el))
+
+  // Hold the cards invisible (autoAlpha = opacity + visibility) until the hero
+  // master timeline releases them — no flash between preloader exit and reveal.
+  useGSAP(
+    () => {
+      if (reduced) return
+      const cards = collectCards()
+      if (cards.length) gsap.set(cards, { autoAlpha: 0 })
+    },
+    { scope: containerRef }
+  )
+
+  // Inject the entry reveal into the parent master timeline at position 4.5 —
+  // after the CTA finishes (~3.3s) plus the ~1.2s Step-C gap. Runs on every
+  // viewport — no matchMedia gate.
+  useGSAP(
+    () => {
+      if (!timeline || reduced || !containerRef.current) return
+      const cards = collectCards()
+      if (!cards.length) return
+
+      // Suspend the hover transition so GSAP's y-tween isn't rubber-banded.
+      cards.forEach((card) => {
+        card.style.transition = "none"
+      })
+
+      timeline.fromTo(
+        cards,
+        { autoAlpha: 0, y: 24 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "power3.out",
+          clearProps: "transform",
+          onComplete: () => {
+            cards.forEach((card) => card.style.removeProperty("transition"))
+          },
+        },
+        1
+      )
+    },
+    { scope: containerRef, dependencies: [timeline] }
+  )
 
   return (
     <FloatingContext.Provider value={{ registerElement, unregisterElement }}>
@@ -116,19 +175,22 @@ export const FloatingElement = ({
   depth = 1,
 }: FloatingElementProps) => {
   const elementRef = useRef<HTMLDivElement>(null)
-  const idRef = useRef(Math.random().toString(36).substring(7))
+  // useId is stable + unique per instance (pure — replaces Math.random, which
+  // trips react-hooks/purity and changes every render).
+  const idRef = useRef(useId())
   const context = useContext(FloatingContext)
-  const isMobile = useIsMobile()
 
-  useEffect(() => {
-    // Skip registration on mobile
-    if (!elementRef.current || !context || isMobile) return
+  // Layout effect (child layout effects run before the parent's), so the
+  // elements are registered deterministically — no dependency on effect order.
+  useLayoutEffect(() => {
+    if (!elementRef.current || !context) return
 
+    const id = idRef.current
     const nonNullDepth = depth ?? 0.01
 
-    context.registerElement(idRef.current, elementRef.current, nonNullDepth)
-    return () => context.unregisterElement(idRef.current)
-  }, [depth, context, isMobile])
+    context.registerElement(id, elementRef.current, nonNullDepth)
+    return () => context.unregisterElement(id)
+  }, [depth, context])
 
   return (
     <div
