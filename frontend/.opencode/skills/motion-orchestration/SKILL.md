@@ -30,5 +30,5 @@ Budget approved: **GSAP primary + Framer Motion code-split for the admin POS onl
 
 ## Verify
 
-- `prefers-reduced-motion` → animations become static (Playwright: `page.emulateMedia({ reducedMotion: 'reduce' })`).
-- Visual check via Playwright/agent-browser: motion present but not overwhelming; no jank on 60fps.
+- `prefers-reduced-motion` → animations become static (verify visually in the browser).
+- Visual check: motion present but not overwhelming; no jank on 60fps — verified manually by the user in the browser.

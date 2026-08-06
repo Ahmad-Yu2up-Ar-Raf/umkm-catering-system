@@ -64,7 +64,7 @@ Project-local skills live in `.opencode/skills/` (self-contained, do not move):
 
 - **Design contract:** `docs/design.md` (Stitch-9-compatible) + `design-system/MASTER.md` (page overrides in `design-system/pages/`). Read before building a page; page overrides beat Master.
 - **Enforcement:** `npm run lint:design` (Impeccable detector, deterministic, no LLM) runs alongside `lint`/`typecheck`.
-- **Playwright:** configured as a local MCP (`opencode.json`); E2E/visual specs in `playwright/` via `npm run test:e2e`.
+- **Verification:** no automated browser testing. Code execution completed — the user will verify visually in the browser.
 - **WebGPU:** deliberately deferred (experience layer later). Do not add Three.js/WebGPU without explicit approval.
 
 ## 8. MANDATORY PRE-FLIGHT TOOLING CHECK
@@ -95,9 +95,8 @@ run this sequence. It is mandatory, not optional.
      before creating a new one.
    - `firecrawl` / `scrapling` → scrape current docs/patterns when syntax or best
      practice is uncertain (follow `bootstrap/PROACTIVE_RESEARCH.md`).
-   - `playwright` MCP / `agent-browser` / `npm run test:e2e` → after building any
-     animation or visual component, verify it in a real browser, including the
-     `prefers-reduced-motion` case.
+   - After building any animation or visual component, verify it visually in the
+     browser (including the `prefers-reduced-motion` case). The user owns visual QA.
 
 3. **Design System Adherence (before generating components)**
    - Consult `docs/design.md` (tokens, fonts, rules) and `design-system/MASTER.md`

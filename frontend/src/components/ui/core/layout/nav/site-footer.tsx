@@ -11,20 +11,31 @@ const footerColumns = [
   {
     title: "Solusi",
     links: [
-      "Otomatisasi Bisnis",
-      "Layanan Cloud",
-      "Analitik",
-      "Integrasi",
-      "Dukungan",
+      { name: "Nasi Box Premium", to: "/paket" },
+      { name: "Prasmanan Pernikahan", to: "/paket" },
+      { name: "Tumpeng Mini Syukuran", to: "/paket" },
+      { name: "Coffee Break", to: "/paket" },
+      { name: "Snack Box", to: "/paket" },
     ],
   },
   {
-    title: "Sumber Daya",
-    links: ["Dokumentasi", "Studi Kasus", "Blog", "Webinar", "Komunitas"],
+    title: "Layanan",
+    links: [
+      { name: "Catering Bogor", to: "/paket" },
+      { name: "Area Sentul & Depok", to: "/paket" },
+      { name: "Jakarta & Bekasi", to: "/paket" },
+      { name: "Konsultasi Menu", to: "/kontak" },
+      { name: "Custom Order", to: "/kontak" },
+    ],
   },
   {
     title: "Perusahaan",
-    links: ["Tentang Kami", "Karier", "Kontak", "Mitra", "Pers"],
+    links: [
+      { name: "Tentang Kami", to: "/tentang-kami" },
+      { name: "FAQ & Ketentuan", to: "/faq" },
+      { name: "Cara Pemesanan", to: "/cara-pemesanan" },
+      { name: "Hubungi WhatsApp", to: "https://wa.me/628561155113" },
+    ],
   },
 ]
 
@@ -34,7 +45,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
   return (
     <footer
       className={cn(
-        "z-99999999999999999 relative min-h-svh w-full content-center bg-muted py-20",
+        "relative z-0 min-h-svh w-full content-center bg-muted py-20",
         className
       )}
       style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
@@ -72,12 +83,12 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
                 <h4 className="mb-4 font-semibold md:text-lg">{col.title}</h4>
                 <ul className="space-y-2 md:space-y-3">
                   {col.links.map((text) => (
-                    <li key={text}>
+                    <li key={text.name}>
                       <Link
-                        to="/"
+                        to={text.to}
                         className="text-xs text-foreground/60 transition hover:text-foreground"
                       >
-                        {text}
+                        {text.name}
                       </Link>
                     </li>
                   ))}
@@ -88,7 +99,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
 
           {/* Judul besar tengah */}
           <div className="flex h-fit w-full items-center justify-center">
-            <h1 className="relative h-25 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-80 lg:text-[16em]">
+            <h1 className="relative h-25 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-70 lg:text-[13.6em]">
               Nusantara
             </h1>
           </div>

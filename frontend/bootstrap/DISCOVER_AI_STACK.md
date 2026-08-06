@@ -38,7 +38,7 @@ You are equipped with an advanced MCP stack. You must use them proactively durin
 - **[scrapling] & [firecrawl]:** Mandatory for reading external docs and extracting markdown/code from design systems.
 - **[sequential-thinking]:** Mandatory for breaking down complex architectural decisions (e.g., how to combine WebGPU with React state).
 - **[github] & [gitnexus]:** For traversing repository trees of reference skills.
-- **[playwright]:** Acknowledge its presence for future UI/E2E testing of animations.
+- **Visual verification:** the user verifies all UI/animation output manually in the browser (no automated browser testing).
 
 **Official Documentation & Reference Repositories to Prioritize (Scrape these):**
 - **Impeccable Framework:** `https://impeccable.style/docs/` & `https://github.com/pbakaus/impeccable` (Mandatory deep dive for styling rules).

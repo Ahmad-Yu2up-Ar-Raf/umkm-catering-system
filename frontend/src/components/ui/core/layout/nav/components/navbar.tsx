@@ -2,7 +2,7 @@
 
 import { motion, useMotionValueEvent, useScroll } from "framer-motion"
 import { Link, useMatches } from "react-router"
-import React, { useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 
 import type { VariantProps } from "class-variance-authority"
 
@@ -31,10 +31,33 @@ interface NavItemsProps {
   onItemClick?: () => void
 }
 
+/**
+ * lg and up — the exact boundary this layout uses to switch the MobileBar
+ * (`lg:hidden`) and the desktop pill (`lg:flex`). Hide-on-scroll only applies
+ * at/above lg; below it the header must stay pinned at y:0. Mirrors
+ * `useIsMobile`'s shape but at the 1024px breakpoint.
+ */
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(min-width: 1024px)").matches
+  )
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 1024px)")
+    const onChange = () => setIsDesktop(mql.matches)
+    mql.addEventListener("change", onChange)
+    return () => mql.removeEventListener("change", onChange)
+  }, [])
+  return isDesktop
+}
+
 export const Navbar = ({ children, className }: NavbarProps) => {
-  const matches = useMatches()
-  const paths = matches[matches.length - 1]?.id
   const ref = useRef<HTMLDivElement>(null)
+  // `isDesktop` gates the hide-on-scroll translation: the mobile header never
+  // slides away, but the glass/shrink signal (`visible`) still flows to kids on
+  // every viewport.
+  const isDesktop = useIsDesktop()
   const { scrollY } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
@@ -77,15 +100,17 @@ export const Navbar = ({ children, className }: NavbarProps) => {
         y: -100,
       }}
       animate={{
-        y: visiblee ? 0 : -100,
-        opacity: visiblee ? 1 : 0,
+        // Below lg the header is always pinned (no hide-on-scroll). At lg+ it
+        // slides out on scroll-down (`visiblee=false`) and returns on scroll-up.
+        y: isDesktop ? (visiblee ? 0 : -100) : 0,
+        opacity: isDesktop ? (visiblee ? 1 : 0) : 1,
       }}
       transition={{
         duration: delay ? 0.6 : 0.2,
-        delay: delay ? 4 : 0,
+        delay: delay ? 3.5 : 0,
       }}
       className={cn(
-        "fixed top-7.5 z-40 w-full md:top-7",
+        "fixed top-7.5 z-40 w-full px-4.5 md:top-7 md:px-0",
         // paths != '/' && visible == false ? '   ' : ' sticky',
         className
       )}
@@ -124,6 +149,7 @@ export const NavBody = ({ children, className, visible }: NavBodyProps) => {
       }}
       style={{
         minWidth: "650px",
+        // padding: "0px"
       }}
       className={cn(
         "relative z-60 container mx-auto hidden w-full max-w-4xl flex-row items-center justify-between self-start rounded-full py-2 transition-all duration-300 ease-out lg:flex",

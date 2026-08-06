@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" style="background-color: #ece5d8">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -80,8 +80,11 @@
 
     <script type="module" src="/src/main.tsx"></script>
   </head>
-  <!-- Inline warm cream kills the pre-mount white flash — matches --background (oklch(0.9582 0.0152 90.2357)) in src/index.css -->
-  <body style="background-color: #FAF7F2">
+  <!-- Inline paint BEFORE any JS/CSS parses: the browser paints the muted
+       sand surface (matches `bg-muted` on the Preloader + oklch(0.9239 0.019 83.0636)
+       in src/index.css) the instant the page loads — no white flash. Applied to
+       `html` too so overscroll/body-height gaps inherit the same tone. -->
+  <body style="background-color: #ece5d8; margin: 0; overflow-x: hidden">
     <div id="root"></div>
   </body>
 </html>

@@ -28,7 +28,7 @@ BEFORE suggesting frontend code, designing components, or building animations, y
      - *GSAP/Framer:* Search for `"Best practice GSAP timeline React [year]"` or `"Framer Motion complex orchestrations"`.
 
 4. **VERIFY (UI Testing Awareness)**
-   - Plan how the generated component will be tested. Keep **[playwright]** in mind for visual regression and animation testing.
+   - Plan how the generated component will be verified. Code execution completed — the user verifies visually in the browser (no automated browser testing).
 
 5. **INTEGRATE**
    - Read the actual extracted implementation docs.

@@ -5,18 +5,27 @@ import { SiteHeader } from "../ui/core/layout/nav/site-header"
 import { Outlet } from "react-router"
 
 import { cn } from "@/lib/utils"
-import { useIsMobile } from "@/hooks/use-mobile"
+import { usePreloaderStore } from "@/store/preloader-store"
+import ContactBlock from "../ui/core/block/home/contact/contact-block"
 
 export function LayoutWrapper() {
-  const isMobile = useIsMobile()
+  // Chrome (header + footer) is NOT mounted until the preloader finishes, so
+  // the Hero — never the footer — is the first thing rendered after the curtain
+  // lifts.
+  const preloaderDone = usePreloaderStore((s) => s.done)
 
   return (
     <ReactLenis root>
-      {!isMobile && <SiteBorder />}
-      {/* <SiteHeader /> */}
+      <SiteBorder />
+      {/* {preloaderDone && <SiteHeader />} */}
       {/* Add padding-bottom on mobile to account for fixed navbar */}
+      {/* Main content sits ABOVE the sticky footer's fixed inner (z-stacking),
+          so the Hero — not the footer — is what the user sees after the
+          preloader lifts. */}
       <div
-        className={cn("relative w-full overflow-hidden md:overflow-visible")}
+        className={cn(
+          "relative z-10 w-full overflow-hidden bg-background md:overflow-visible"
+        )}
       >
         <div
           className={cn(
@@ -24,11 +33,17 @@ export function LayoutWrapper() {
           )}
         >
           <Outlet />
-          <div className="pointer-events-none fixed inset-0 top-0 h-50 bg-linear-to-t from-background/0 via-background/0 to-background" />
+          {preloaderDone && <ContactBlock />}
+          <div className="pointer-events-none absolute inset-0 top-0 h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:hidden md:h-50" />
+
+          <div className="pointer-events-none fixed inset-0 top-0 hidden h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:inline md:h-50" />
         </div>
       </div>
-      {/* Footer only shows when shouldShowFooter is true */}
-      <SiteFooter />
+      {preloaderDone && (
+        <>
+          <SiteFooter />
+        </>
+      )}
     </ReactLenis>
   )
 }

@@ -22,9 +22,9 @@ export const NavbarLogo = () => {
   return (
     <Link
       to="/"
-      className="relative z-20 flex items-center space-x-1.5 py-1 text-xs font-normal text-primary  lg:space-x-2"
+      className="relative ml-1 z-20 flex items-center space-x-1.5 py-1 text-xs font-normal text-primary  lg:space-x-2"
     >
-      <Logo className="size-6 lg:size-8.5" />
+      <Logo className="size-7 lg:size-8.5" />
 
       <p className="font-accent tracking-widest text-base  italic font-bold text-accent-foreground ">
         {appName}

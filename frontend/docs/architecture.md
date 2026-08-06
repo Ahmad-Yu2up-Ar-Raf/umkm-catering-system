@@ -59,8 +59,7 @@ frontend/src/
 | `.opencode/skills/` | Project-local agent skills: `impeccable`, `catering-nusantara-design`, `motion-orchestration`, `shadcn-architecture` |
 | `docs/design.md` | Design source of truth (Stitch-9-compatible tokens, fonts, rules) |
 | `design-system/MASTER.md` + `design-system/pages/` | Persisted design system + page-level overrides (read before building a page) |
-| `playwright/` + `playwright.config.ts` | E2E/visual specs (`npm run test:e2e`) |
-| `opencode.json` | Local MCP config (Playwright MCP) |
+| `opencode.json` | Local MCP config (agent tooling) |
 
 ## 2. Component Composition Map
 

@@ -1,232 +1,270 @@
 "use client"
-import React from "react"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/fragments/shadcn-ui/accordion"
-import { Button } from "@/components/ui/fragments/shadcn-ui/button"
-import { cn } from "@/lib/utils"
-import { motion } from "framer-motion"
-import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
-import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowRight } from "@hugeicons/core-free-icons"
-const categories = [
-  {
-    id: "pemesanan-pengiriman",
-    label: "Pemesanan & Pengiriman",
-    description: "Minimum, area, waktu, & cara pesan",
-  },
-  {
-    id: "layanan-acara",
-    label: "Layanan & Acara",
-    description: "Jenis acara & bentuk layanan",
-  },
-]
 
+import React, { useRef } from "react"
+
+import { MotionConfig } from "framer-motion"
+import { gsap, useGSAP } from "@/components/motion/gsap"
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
+
+import { FAQ_CATEGORIES, FAQ_ITEMS } from "./faq-data"
+import { CategoryCarousel } from "./components/category-carousel"
+import { CategoryTabs } from "./components/category-tabs"
+import { FaqAccordion } from "./components/faq-accordion"
+import { FaqCta } from "./components/faq-cta"
+import { BlurReveal } from "@/components/motion/blur-reveal"
+
+/** Luxury ease — premium Apple-like cubic-bezier. GSAP accepts bezier arrays
+ *  at runtime; its typings only enumerate named easings, so cast the tuple. */
+const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
+
+/**
+ * FAQ section — editorial block for Catering Nusantara.
+ *
+ * Motion grammar (GSAP primary):
+ *  - One scroll-triggered entrance for the whole section (header → categories
+ *    → accordion items → final separator), run once.
+ *  - Switching categories re-staggers the accordion items + bottom separator
+ *    sequentially instead of fading the whole list.
+ *  - Category & accordion active indicators glide via Framer `layoutId`.
+ *  - Mobile: category tabs become a horizontal carousel; the WhatsApp CTA is
+ *    reordered below the accordion (`order-last`).
+ */
 export function FaqsSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const firstRevealDone = useRef(false)
   const [activeCategory, setActiveCategory] = React.useState(
-    "pemesanan-pengiriman"
+    FAQ_CATEGORIES[0].id
+  )
+  const [openItem, setOpenItem] = React.useState<string | undefined>(undefined)
+  const reduced = useReducedMotion()
+
+  const filtered = FAQ_ITEMS.filter((faq) => faq.category === activeCategory)
+
+  const selectCategory = (id: string) => {
+    setActiveCategory(id)
+    setOpenItem(undefined)
+  }
+
+  // Scroll-triggered entrance — Hero-consistent easing, once, no reverse jitter.
+  // Hardware-accelerated props only (transform/opacity).
+  useGSAP(
+    () => {
+      if (!sectionRef.current) return
+
+      if (reduced) {
+        // Reduced motion → end state only: undo the base `opacity-0` classes
+        // so sections/buttons are visible without any tween.
+        gsap.set(
+          gsap.utils.selector(sectionRef.current)(
+            "[data-faq-cat], [data-faq-item], [data-faq-final-sep], [data-faq-sep]"
+          ),
+          { autoAlpha: 1, scaleX: 1 }
+        )
+        return
+      }
+
+      const q = gsap.utils.selector(sectionRef.current)
+      const cats = q("[data-faq-cat]")
+      const items = q("[data-faq-item]")
+      const sep = q("[data-faq-final-sep]")
+      const seps = q("[data-faq-sep]")
+
+      // Pre-hide so nothing flashes as the section scrolls in.
+      gsap.set([...cats, ...items, ...sep], { autoAlpha: 0 })
+      gsap.set(seps, { scaleX: 0 })
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          // The section is `min-h-lvh content-center` — its content is
+          // VERTICALLY CENTERED. A section-level `top 80%` fires while only
+          // the header grazes the bottom of the screen and the categories /
+          // accordion are still below the fold (the premature feel). Firing at
+          // `top 50%` puts the header mid-screen with the content entering —
+          // the cascade is actually SEEN.
+          start: "top 50%",
+          once: true,
+        },
+        onComplete: () => {
+          firstRevealDone.current = true
+        },
+      })
+
+      tl.fromTo(
+        cats,
+        { y: 24, autoAlpha: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            // Longer + wider cascade so the scroll reveal reads as a fluid
+            // sweep (0.85s, generous 0.18s stagger) instead of an instant pop.
+            duration: 0.85,
+            ease: LUXURY_EASE,
+            stagger: 0.18,
+          },
+          0
+        )
+        // TOP separator — grows from the left, in PARALLEL with the first
+        // accordion items (it sits above them), NEVER as the final element.
+        // (Previously it animated last — the jarring "separator appears after
+        // everything" anomaly.)
+        .fromTo(
+          seps,
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            transformOrigin: "left center",
+            duration: 0.8,
+            ease: "power2.out",
+          },
+          0.45
+        )
+        .fromTo(
+          items,
+          { y: 24, autoAlpha: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.8,
+            ease: LUXURY_EASE,
+            stagger: 0.14,
+          },
+          "-=0.15"
+        )
+        // BOTTOM separator — closes the list, last by design.
+        .fromTo(
+          sep,
+          { y: 24, autoAlpha: 0, scaleX: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            scaleX: 1,
+            transformOrigin: "left center",
+            duration: 0.8,
+            ease: "power2.out",
+          },
+          "-=0.15"
+        )
+    },
+    { scope: sectionRef }
   )
 
-  const filtered = faqs.filter((faq) => {
-    const matchesCategory =
-      activeCategory === "all" || faq.category === activeCategory
-    return matchesCategory
-  })
+  // Category switch — sequential reveal for EVERY accordion item, ending on
+  // the bottom separator. The list remounts (keyed), so we target the fresh
+  // nodes and stagger them in exactly like the first page load.
+  useGSAP(
+    () => {
+      if (reduced || !sectionRef.current || !firstRevealDone.current) return
 
-  const currentCategory = React.useMemo(
-    () => categories.find((cat) => cat.id === activeCategory),
-    [activeCategory]
+      const q = gsap.utils.selector(sectionRef.current)
+      const items = q("[data-faq-item]")
+      const sep = q("[data-faq-final-sep]")
+      if (!items.length) return
+
+      // Items stagger in one-by-one, luxury ease; the bottom separator follows
+      // with a center-left scaleX reveal so it re-renders with the list.
+      gsap.fromTo(
+        items,
+        { autoAlpha: 0, y: 20 },
+        {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.6,
+          ease: LUXURY_EASE,
+          stagger: 0.07,
+        }
+      )
+      gsap.fromTo(
+        sep,
+        { autoAlpha: 0, scaleX: 0 },
+        {
+          autoAlpha: 1,
+          scaleX: 1,
+          transformOrigin: "left center",
+          duration: 0.6,
+          ease: LUXURY_EASE,
+        }
+      )
+    },
+    { dependencies: [activeCategory], scope: sectionRef }
   )
 
   return (
-    <section className="container min-h-lvh content-center space-y-10 py-12 md:space-y-14 md:px-0">
-      <header className="flex w-full flex-1 flex-col items-end gap-y-6 sm:flex-row sm:justify-between md:gap-y-9">
-        <div className="flex w-full flex-col gap-y-1">
-          <div>
-            <p
-              data-faq-eyebrow
-              className="text-gold-deep mb-6 flex items-center gap-3.5 text-[11px] font-normal tracking-[0.28em] uppercase"
-            >
-              <div aria-hidden="true" className="h-px w-10 bg-primary" />
-              <span className="text-primary">Pertanyaan Umum</span>
-            </p>
-          </div>
-          <h2 className="w-full font-serif text-3xl md:text-4xl md:leading-14 lg:text-6xl">
-            <span data-faq-title className=" ">
-              Hal yang sering{" "}
-            </span>
-            <span
-              data-faq-title
-              className="clear-start block font-accent text-primary italic"
-            >
-              ditanyakan.
-            </span>
-          </h2>
-        </div>
-
-        <p
-          data-faq-desc
-          className="text-xs leading-relaxed text-muted-foreground sm:w-1/2 md:text-sm"
-        >
-          Semua yang perlu Anda tahu sebelum merayakan momen bersama kami — dari
-          layanan dan menu hingga ketentuan biaya. Pilih topik yang Anda
-          butuhkan.
-        </p>
-      </header>
-      {/* <div className="flex flex-col items-center justify-center gap-4 px-4 py-16">
-        <h2 className="font-mono text-4xl font-black text-balance md:text-5xl lg:font-black">
-          FaQs
-        </h2>
-        <p className="text-muted-foreground">Your questions answered here.</p>
-      </div> */}
-      <div className="relative grid min-h-full grid-cols-6 py-12 md:grid-cols-4">
-        <div className="sticky top-20 flex h-fit flex-col items-start gap-8 border-b pb-2 md:border-b-0">
-          <div className="relative flex w-full flex-col border-b pb-10">
-            {categories.map((cat, i) => (
-              <Button
-                className={cn(
-                  "group spac relative m-0 h-fit w-full items-start justify-start bg-none pl-0 text-left transition-all duration-300 ease-out hover:bg-transparent",
-                  activeCategory !== cat.id ? "mb-7" : "mb-8"
-                )}
-                key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
-                variant={"ghost"}
+    <MotionConfig reducedMotion="user">
+      <section
+        ref={sectionRef}
+        id="faq"
+        className="container min-h-lvh content-center space-y-10 px-0 py-30 md:space-y-10"
+      >
+        <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-5 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
+          <div className="flex w-full flex-col gap-y-1">
+            <div>
+              <p className="text-gold-deep mb-6 flex items-center gap-3.5 text-[11px] font-normal tracking-[0.28em] uppercase">
+                <div aria-hidden="true" className="h-px w-10 bg-primary" />
+                <BlurReveal as="span" className="text-primary" amount={0.3}>
+                  Pertanyaan Umum
+                </BlurReveal>
+              </p>
+            </div>
+            <h2 className="w-full font-serif text-3xl md:text-4xl md:leading-14 lg:text-5xl">
+              <BlurReveal
+                as="span"
+                className="block"
+                stagger={0.08}
+                amount={0.3}
               >
-                {activeCategory === cat.id && (
-                  <motion.div
-                    layoutId="active"
-                    className="absolute inset-0 h-full w-[1.5px] rounded-xl bg-primary"
-                  />
-                )}
-
-                {/* FIX: Hapus top-1/2 & -translate-y-1/2, ganti jadi self-center.
-      Gua naikin group-hover:h-3 jadi h-4 biar animasinya lebih tegas,
-      tapi kalau mau tetep h-3 juga aman! */}
-                <div
-                  id="hover-line"
-                  className="h-0 w-[1.5px] self-center rounded-xl bg-primary opacity-30 transition-all duration-300 ease-out group-hover:h-4"
-                />
-
-                <span
-                  className={cn(
-                    "mt-1 mr-2.5 ml-2 h-full font-heading text-[12px] text-muted-foreground transition-all duration-300 ease-out",
-                    activeCategory !== cat.id ? "opacity-40" : "text-primary"
-                  )}
-                >
-                  {`0${i + 1}`}
-                </span>
-
-                <p className="leading-5">
-                  <span
-                    className={cn(
-                      "text-sm text-foreground/80 transition-all duration-300 ease-out",
-                      activeCategory !== cat.id && "opacity-40"
-                    )}
-                  >
-                    {cat.label}
-                  </span>
-                  <span
-                    className={cn(
-                      "block text-[12px] font-light text-muted-foreground/80 transition-all duration-300 ease-out",
-                      activeCategory !== cat.id && "hidden"
-                    )}
-                  >
-                    {cat.description}
-                  </span>
-                </p>
-              </Button>
-            ))}
+                Hal yang sering
+              </BlurReveal>
+              <BlurReveal
+                as="span"
+                className="block font-accent text-primary italic"
+                stagger={0.08}
+                amount={0.3}
+              >
+                ditanyakan.
+              </BlurReveal>
+            </h2>
           </div>
-          <div className=" space-y-7">
-            <span
-              className={cn(
-                "block text-sm font-light text-muted-foreground/80 transition-all duration-300 ease-out"
-              )}
-            >
-              Masih ada yang ingin ditanyakan?
-            </span>
-            <OriginButton
-              intensity={0.8} // opsional, defaultnya 0.6
-              range={120} // opsional, defaultnya 100
 
-              className="group text-xs tracking-widest uppercase"
-            >
-              Tanya Via Whatsapp
-              <HugeiconsIcon
-                icon={ArrowRight}
-                className="stroke-primtext-primary z-[9] size-4 fill-none transition-all duration-[800ms] ease-out group-hover:left-4 group-hover:translate-x-1 group-hover:stroke-white"
-              />
-            </OriginButton>
-          </div>
-        </div>
-        <div className="col-span-3 h-fit pl-23">
-          <Separator className="m-0 bg-border/60" />
-          <Accordion
-            className="w-full border-0 bg-transparent p-0"
-            collapsible
-            type="single"
+          <BlurReveal
+            as="p"
+            className="text-xs leading-relaxed text-muted-foreground sm:w-1/2 md:text-sm"
+            amount={0.3}
           >
-            {filtered.map((item) => (
-              <AccordionItem
-                className="border-b-0 py-5.5"
-                key={item.id}
-                value={item.id.toString()}
-              >
-                <AccordionTrigger className="px-4 font-sans text-lg hover:no-underline">
-                  {item.title}
-                </AccordionTrigger>
+            Semua yang perlu Anda tahu sebelum merayakan momen bersama kami —
+            dari layanan dan menu hingga ketentuan biaya.
+          </BlurReveal>
+        </header>
 
-                <AccordionContent className="mt-6 h-fit pr-40 pb-3 font-sans text-sm leading-relaxed text-muted-foreground/70">
-                  {item.content}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-          <Separator className="m-0 bg-border/60" />
+        <div className="relative grid min-h-full grid-cols-1 py-0 md:grid-cols-4 md:py-12">
+          {/* Desktop: category sub-nav + CTA (left, sticky). */}
+          <div className="hidden h-fit flex-col items-start gap-8 border-b pb-2 md:sticky md:top-20 md:flex md:border-b-0">
+            <CategoryTabs
+              categories={FAQ_CATEGORIES}
+              activeCategory={activeCategory}
+              onSelect={selectCategory}
+            />
+            <FaqCta className="hidden md:flex" />
+          </div>
+
+          {/* Mobile: carousel → accordion → CTA reordered to the very bottom. */}
+          <div className="col-span-1 flex h-fit flex-col pl-0 md:col-span-3 md:pl-23">
+            <CategoryCarousel
+              categories={FAQ_CATEGORIES}
+              activeCategory={activeCategory}
+              onSelect={selectCategory}
+              className="mb-8 md:hidden"
+            />
+            <FaqAccordion
+              key={activeCategory}
+              items={filtered}
+              openItem={openItem}
+              onOpenChange={setOpenItem}
+            />
+            <FaqCta className="order-last mt-12 px-5 md:hidden md:px-0" />
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </MotionConfig>
   )
 }
-
-const faqs = [
-  {
-    id: 1,
-    category: "pemesanan-pengiriman",
-    title: "How do I create my first project?",
-    content:
-      'Click the "New Project" button in your dashboard, choose a template or start from scratch, customize your project name and settings, and you\'ll be ready to start building in seconds.',
-  },
-  {
-    id: 2,
-    category: "pemesanan-pengiriman",
-    title: "What are the system requirements?",
-    content:
-      "Efferd works on any modern web browser including Chrome, Firefox, Safari, and Edge. No special software installation is required—just visit our platform and log in.",
-  },
-  {
-    id: 3,
-    category: "layanan-acara",
-    title: "Can I use Efferd for team collaboration?",
-    content:
-      "Absolutely! Invite team members, set role-based permissions, leave comments on components, and track changes in real-time. Our collaboration layanan-acara are built for teams of all sizes.",
-  },
-  {
-    id: 4,
-    category: "layanan-acara",
-    title: "Is there a component library?",
-    content:
-      "Yes, Efferd includes a comprehensive library of pre-built, customizable components. You can also create your own reusable components and share them across your projects.",
-  },
-  {
-    id: 5,
-    category: "layanan-acara",
-    title: "Do you support custom integrations?",
-    content:
-      "We support integrations with GitHub, GitLab, Figma, Slack, and major cloud providers. For custom integrations, contact our support team to discuss your needs.",
-  },
-]
