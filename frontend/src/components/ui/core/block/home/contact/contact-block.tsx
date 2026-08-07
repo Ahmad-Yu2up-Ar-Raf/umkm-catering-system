@@ -81,7 +81,7 @@ function ContactBlock() {
 
   return (
     <section ref={sectionRef} id="kontak" className="relative size-full">
-      <main className="relative m-auto flex min-h-[80lvh] w-full flex-col items-center justify-center overflow-hidden">
+      <main className="relative m-auto flex min-h-[40lvh] md:min-h-[80lvh] w-full flex-col items-center justify-center overflow-hidden">
         {/* Reusable motion backdrop — parallax + scale zoom-out + scrims.
             NOTE: the image path MUST stay `.png` — a stray `.pmg` 404s the
             photo and the background silently "disappears" (only scrims + text

@@ -93,17 +93,17 @@ export function FaqsSection() {
       tl.fromTo(
         cats,
         { y: 24, autoAlpha: 0 },
-          {
-            y: 0,
-            autoAlpha: 1,
-            // Longer + wider cascade so the scroll reveal reads as a fluid
-            // sweep (0.85s, generous 0.18s stagger) instead of an instant pop.
-            duration: 0.85,
-            ease: LUXURY_EASE,
-            stagger: 0.18,
-          },
-          0
-        )
+        {
+          y: 0,
+          autoAlpha: 1,
+          // Longer + wider cascade so the scroll reveal reads as a fluid
+          // sweep (0.85s, generous 0.18s stagger) instead of an instant pop.
+          duration: 0.85,
+          ease: LUXURY_EASE,
+          stagger: 0.18,
+        },
+        0
+      )
         // TOP separator — grows from the left, in PARALLEL with the first
         // accordion items (it sits above them), NEVER as the final element.
         // (Previously it animated last — the jarring "separator appears after
@@ -129,7 +129,7 @@ export function FaqsSection() {
             ease: LUXURY_EASE,
             stagger: 0.14,
           },
-          "-=0.15"
+          0.55
         )
         // BOTTOM separator — closes the list, last by design.
         .fromTo(
@@ -194,7 +194,7 @@ export function FaqsSection() {
       <section
         ref={sectionRef}
         id="faq"
-        className="container min-h-lvh content-center space-y-10 px-0 py-30 md:space-y-10"
+        className="container min-h-lvh content-center space-y-10 px-0 pt-30  md:space-y-10"
       >
         <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-5 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
           <div className="flex w-full flex-col gap-y-1">

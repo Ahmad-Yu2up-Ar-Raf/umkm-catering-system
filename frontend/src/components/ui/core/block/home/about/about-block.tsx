@@ -1,78 +1,41 @@
-import { Image } from "@unpic/react"
 import { useRef } from "react"
-import { cn } from "@/lib/utils"
+
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { BlurReveal } from "@/components/motion/blur-reveal"
 
-type ImageCardProps = {
-  src: string
-  alt: string
-  className?: string
-}
-
-function ImageCard({ src, alt, className }: ImageCardProps) {
-  return (
-    <div className={cn("about-image-item relative rounded-lg", className)}>
-      <Image
-        src={src}
-        alt={alt}
-        width={300}
-        height={400}
-        className="h-full w-full object-contain"
-      />
-    </div>
-  )
-}
-
-// =============================================================================
-// Filosofi SECTION
-// =============================================================================
-
+/**
+ * #tentang-kami — the founder/philosophy block.
+ *
+ * Motion (GSAP ScrollTrigger, `prefers-reduced-motion` → static):
+ *  - The right-side hero object is a single top-down Tumpeng PNG that rotates
+ *    continuously, tied 1:1 to the user's scroll through the section
+ *    (`scrub: true`, rotate 0 → 45°) around its center — a slow, premium spin
+ *    that makes the hero object feel alive without any extra UI.
+ *  - Header + description reveal via the shared word-blur primitives.
+ */
 function AboutBlock() {
   const sectionRef = useRef<HTMLElement>(null)
-  const imagesRef = useRef<HTMLDivElement>(null)
+  const tumpengRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
 
-  // All THREE images — one zoom-out choreography. The DOM order is
-  // [left, center, right]; we resequence an EXPLICIT array as
-  // [center, left, right] so the reveal starts from the middle and ripples
-  // outward — never a left→right sweep.
-  //
-  // Trigger semantics (ScrollTrigger): `start: "top 55%"` fires only once the
-  // images' TOP EDGE reaches 55% of the viewport height — i.e. the images sit
-  // comfortably inside the viewport, NOT just peeking at the bottom. A value
-  // like "top 80%" would fire when only the images' top grazes the bottom
-  // fifth of the screen, playing the whole cascade before the user scrolls
-  // the images into the centre — the premature/fast feel reported.
   useGSAP(
     () => {
-      if (reduced || !imagesRef.current) return
+      if (reduced || !sectionRef.current || !tumpengRef.current) return
 
-      const imgs = gsap.utils.toArray<HTMLElement>(
-        ".about-image-item",
-        imagesRef.current
-      )
-      if (!imgs.length) return
-      const ordered =
-        imgs.length === 3 ? [imgs[1], imgs[0], imgs[2]] : Array.from(imgs)
-
+      // Continuous scroll-linked rotation — the tumpeng turns 45° across the
+      // section's full travel, scrubbed to the wheel (no snap, center origin).
       gsap.fromTo(
-        ordered,
-        { opacity: 0, scale: 1.2, filter: "blur(10px)" },
+        tumpengRef.current,
+        { rotate: 0 },
         {
-          opacity: 1,
-          scale: 1,
-          filter: "blur(0px)",
-          duration: 1.1,
-          ease: "power3.out",
-          // Center → left → right, breathing 0.2s between each.
-          stagger: 0.2,
-          clearProps: "filter",
+          rotate: 45,
+          ease: "none",
           scrollTrigger: {
-            trigger: imagesRef.current,
-            start: "top 55%",
-            once: true,
+            trigger: sectionRef.current,
+            start: "top bottom",
+            end: "bottom top",
+            scrub: true,
           },
         }
       )
@@ -84,7 +47,7 @@ function AboutBlock() {
     <section
       ref={sectionRef}
       id="tentang-kami"
-      className="container content-center py-12   sm:min-h-lvh"
+      className="container content-center py-20"
     >
       <div className="flex flex-col gap-13 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         {/* Teks Filosofi Us - Kiri */}
@@ -127,36 +90,23 @@ function AboutBlock() {
           >
             Sejak 2024, Catering Nusantara hadir dari dapur keluarga di Bogor,
             dimasak segar dengan sepenuh hati untuk Anda. Kami percaya hidangan
-            terbaik yang membuat tamu Anda merasa diistimewakan dan hangat.
+            terbaik yang itu penting.
           </BlurReveal>
         </header>
 
-        {/* Image Container - Kanan (Flex based, controlled size) */}
-        <div
-          ref={imagesRef}
-          className="flex w-full items-end justify-center transition-all duration-300 sm:pl-20 lg:w-[50%]"
-        >
-          <div className="z-[1] -mr-29 -translate-y-3.5 -rotate-10 transition-all duration-300">
-            <ImageCard
-              src="assets/images/about/about-1.png"
-              alt="Rendang - Kuliner Nusantara"
-              className="h-auto w-[190px] md:w-[180px] lg:w-[230px]"
-            />
-          </div>
-
-          <div className="z-[3] -translate-y-2 transition-all duration-300 md:-translate-y-4">
-            <ImageCard
-              src="assets/images/about/about-2.png"
-              alt="Rumah Gadang - Arsitektur Nusantara"
-              className="h-auto w-[190px] md:w-[220px] lg:w-[250px]"
-            />
-          </div>
-
-          <div className="z-[1] -ml-29 -translate-y-4.5 rotate-10 transition-all duration-300">
-            <ImageCard
-              src="assets/images/about/about-3.png"
-              alt="Batik - Warisan Nusantara"
-              className="h-auto w-[190px] md:w-[180px] lg:w-[230px]"
+        {/* Kanan — the rotating Tumpeng hero object. The wrapper spins around
+            its center as the user scrolls through the section. */}
+        <div className="flex w-full items-center justify-center lg:w-[50%]">
+          <div
+            ref={tumpengRef}
+            className="relative h-[260px] w-[260px] md:h-[360px] md:w-[360px] lg:h-[440px] lg:w-[440px]"
+            style={{ transformOrigin: "center" }}
+          >
+            <img
+              src="/assets/images/about/tumpeng-from-top.png"
+              alt="Tumpeng nasi kuning khas Nusantara dilihat dari atas"
+              loading="lazy"
+              className="h-full w-full object-contain drop-shadow-xl"
             />
           </div>
         </div>

@@ -8,7 +8,8 @@ import { HeroBlock } from "@/components/ui/core/block/home/hero/hero-block"
 import { Preloader } from "@/components/motion/preloader"
 import AboutBlock from "@/components/ui/core/block/home/about/about-block"
 import { FaqsSection } from "@/components/ui/core/block/home/faq/faq-block"
-import ContactBlock from "@/components/ui/core/block/home/contact/contact-block"
+import OrderingBlock from "@/components/ui/core/block/home/ordering/ordering-block"
+import TestimonialBlock from "@/components/ui/core/block/home/testimonial/testimonial-block"
 
 const PRELOADER_FLAG = "hasSeenPreloader"
 
@@ -90,8 +91,9 @@ function HomePage() {
         <main>
           <HeroBlock preloaderDone={preloaderDone} />
           <AboutBlock />
+          <OrderingBlock />
+          {/* <TestimonialBlock /> */}
           <FaqsSection />
-
         </main>
       </div>
     </>

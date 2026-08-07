@@ -106,7 +106,7 @@ function MobileBar({
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -12, filter: "blur(8px)" }}
             transition={{ duration: 0.35, ease: LUXURY_EASE }}
-            className="absolute top-full right-2 left-2 mt-3 rounded-2xl border border-border/80 bg-background p-4 shadow-sm backdrop-blur-md"
+            className="absolute top-full right-1 left-1 mt-3 rounded-2xl border border-border/80 bg-background p-4 shadow-sm backdrop-blur-md"
           >
             <ul className="flex flex-col gap-1">
               {NAV_ITEMS.map((item, i) => (

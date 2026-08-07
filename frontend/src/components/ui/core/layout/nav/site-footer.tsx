@@ -45,7 +45,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
   return (
     <footer
       className={cn(
-        "relative z-0 min-h-svh w-full content-center bg-muted py-20",
+        "relative z-50 min-h-svh w-full content-center bg-muted py-20",
         className
       )}
       style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}

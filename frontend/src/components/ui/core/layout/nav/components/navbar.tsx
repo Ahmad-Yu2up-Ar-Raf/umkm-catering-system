@@ -107,10 +107,10 @@ export const Navbar = ({ children, className }: NavbarProps) => {
       }}
       transition={{
         duration: delay ? 0.6 : 0.2,
-        delay: delay ? 3.5 : 0,
+        delay: delay ? 2 : 0,
       }}
       className={cn(
-        "fixed top-7.5 z-40 w-full px-4.5 md:top-7 md:px-0",
+        "fixed top-7.5 z-40 w-full  px-4  md:top-7 md:px-0",
         // paths != '/' && visible == false ? '   ' : ' sticky',
         className
       )}

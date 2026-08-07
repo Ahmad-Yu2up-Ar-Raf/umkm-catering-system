@@ -150,14 +150,14 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
         {/* Word-mask title — compact editorial scale, lightweight. */}
         <h2
           ref={titleRef}
-          className="min-w-0 eading-[1.15] font-light tracking-tight text-balance text-foreground text-3xl md:text-4xl lg:text-6xl"
+          className="min-w-0 leading-[1.15] font-light tracking-tight text-balance text-foreground text-3xl md:text-4xl lg:text-7xl"
         >
           {TITLE_LINES.map((line, lineIndex) => (
             <span key={lineIndex} className="block">
               {line.map((word, wordIndex) => (
                 <span
                   key={wordIndex}
-                  className="-mb-[0.12em] inline-block overflow-hidden px-2 pb-[0.12em] align-bottom"
+                  className="-mb-[0.12em] inline-block overflow-hidden px-2 pb-[0.12em] align-bottom "
                 >
                   <span
                     data-pw
