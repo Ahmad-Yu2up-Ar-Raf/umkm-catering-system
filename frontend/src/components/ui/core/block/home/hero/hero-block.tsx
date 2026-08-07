@@ -10,6 +10,7 @@ import Floating, { FloatingElement } from "./components/paralax-floating"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { WordReveal } from "@/components/motion/word-reveal"
 import { ParallaxMotionBackground } from "@/components/motion/parallax-motion-background"
+import { ScrollIndicator } from "./components/scroll-indicator"
 import { useIsMobile } from "@/hooks/use-mobile"
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 */
 
@@ -64,7 +65,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
   )
   const isMobile = useIsMobile()
   return (
-    <section ref={sectionRef} id="beranda" className="size-full">
+    <section ref={sectionRef} id="hero" className="size-full">
       <main className="relative m-auto mb-0.5 flex min-h-lvh w-full flex-col items-center justify-center overflow-hidden">
         <Floating sensitivity={-0.5} timeline={heroTl} className="h-full">
           <FloatingElement depth={1} className="top-[0%] left-[3%]">
@@ -88,7 +89,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             className="top-[85%] left-[3%] md:top-[80%] md:left-[8%]"
           >
             <div
-              className="relative h-40 w-40 -rotate-[4deg] overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-48 sm:w-48 md:h-60 md:w-60 lg:h-67 lg:w-55"
+              className="relative h-35 w-35 -rotate-[4deg] overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-48 sm:w-48 md:h-60 md:w-60 lg:h-67 lg:w-55"
               style={{ willChange: "transform, opacity" }}
             >
               <MediaItem
@@ -104,7 +105,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             className="top-[0%] left-[68%] md:top-[2%] md:left-[89%]"
           >
             <div
-              className="h-36 w-40 rotate-12 overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-44 sm:w-48 md:h-52 md:w-60 lg:h-67 lg:w-55"
+              className="h-36 w-35 rotate-12 overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-44 sm:w-48 md:h-52 md:w-60 lg:h-67 lg:w-55"
               style={{ willChange: "transform, opacity" }}
             >
               <MediaItem
@@ -119,7 +120,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
 
           <FloatingElement
             depth={1}
-            className="top-[80%] left-[70%] md:top-[68%] md:left-[85%]"
+            className="top-[85%] left-[72%] md:top-[68%] md:left-[85%]"
           >
             <div
               className="h-44 w-44 rotate-[4deg] overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-64 sm:w-64 md:h-72 md:w-72 lg:h-67 lg:w-55"
@@ -156,7 +157,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
               {/* Eyebrow — hairline — label — hairline, word-by-word blur. The
                   two hairlines scaleX 0 → 1 in perfect sync via GSAP (see the
                   master timeline above), mirroring outward from the label. */}
-              <div className="relative mb-7 flex w-full max-w-xs items-center gap-4 text-xs tracking-[0.34em] text-primary uppercase sm:max-w-md md:px-6">
+              <div className="relative mb-4 flex w-full max-w-xs items-center gap-4 text-xs tracking-[0.34em] text-primary uppercase sm:max-w-md md:mb-7 md:px-6">
                 <div
                   ref={eyebrowLineLRef}
                   aria-hidden="true"
@@ -204,7 +205,9 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
               <h1 className="min-w-0 text-[clamp(50px,7vw,120px)] leading-[1.05] font-light tracking-tighter text-balance text-foreground">
                 <span className="block">
                   <WordReveal
-                    text="Celebrate *love* with the"
+                    text={
+                      isMobile ? "Celebrate  the" : "Celebrate *love* with the"
+                    }
                     blur={12}
                     duration={1}
                     stagger={0.2}
@@ -230,10 +233,11 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 blur={6}
                 stagger={0.04}
                 delay={0.35 * 3}
-                className="mt-[38px] mb-10 max-w-[590px] text-[clamp(14px,1.6vw,18.3px)] leading-[1.7] text-foreground/80"
+                className="mt-5 mb-5 max-w-[590px] text-[clamp(14px,1.6vw,18.3px)] leading-[1.7] text-foreground/80 md:mt-[38px] md:mb-10"
               >
-                Tiga generasi menghadirkan rasa istimewa untuk perayaan Anda —
-                semua diantar hangat ke acara Anda di Bogor dan sekitarnya.
+                {!isMobile
+                  ? " Tiga generasi menghadirkan rasa istimewa untuk perayaan Anda —  semua diantar hangat ke acara Anda di Bogor dan sekitarnya."
+                  : "  Tiga generasi menghadirkan rasa istimewa untuk perayaan Anda"}
               </BlurReveal>
 
               <BlurReveal
@@ -247,7 +251,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 <OriginButton
                   intensity={0.8}
                   range={120}
-                  className="group text-xs tracking-widest uppercase"
+                  className="group border border-primary/40 bg-muted text-xs tracking-widest uppercase sm:border-2 sm:border-primary sm:bg-transparent"
                 >
                   Jelajahi Menu
                   <HugeiconsIcon
@@ -259,6 +263,10 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             </>
           )}
         </div>
+
+        {/* Scroll cue — bottom-center pill with a bobbing dot; fades out as the
+            user scrolls, reappears on return to the top. */}
+        {preloaderDone && <ScrollIndicator />}
       </main>
       <Marque preloaderDone={preloaderDone} />
     </section>

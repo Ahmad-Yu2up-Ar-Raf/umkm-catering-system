@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
 import ContactBlock from "../ui/core/block/home/contact/contact-block"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { ScrollToTop } from "./scroll-to-top"
 
 export function LayoutWrapper() {
   // Chrome (header + footer) is NOT mounted until the preloader finishes, so
@@ -17,8 +18,11 @@ export function LayoutWrapper() {
   const isMobile = useIsMobile()
   return (
     <ReactLenis root>
+      {/* Global scroll restoration — resets to the top on every route change
+          (Lenis-aware, so the next page never renders at the old scroll depth). */}
+      <ScrollToTop />
       {!isMobile && <SiteBorder />}
-      {/* {preloaderDone && <SiteHeader />} */}
+      {preloaderDone && <SiteHeader />}
       {/* Add padding-bottom on mobile to account for fixed navbar */}
       {/* Main content sits ABOVE the sticky footer's fixed inner (z-stacking),
           so the Hero — not the footer — is what the user sees after the
@@ -35,9 +39,9 @@ export function LayoutWrapper() {
         >
           <Outlet />
           {preloaderDone && <ContactBlock />}
-          <div className="pointer-events-none absolute inset-0 -top-40 h-200 bg-linear-to-t from-background/0 via-background/0 to-background md:hidden md:h-50" />
+          <div className="pointer-events-none absolute inset-0  top-0   bg-linear-to-t from-background/0 via-background/0 to-background md:hidden h-200" />
 
-          {/* <div className="pointer-events-none fixed inset-0 top-0 h-150 bg-linear-to-t from-background/0 via-background/0 to-background   md:h-50" /> */}
+          <div className="pointer-events-none hidden md:inline fixed inset-0 top-0 h-150 bg-linear-to-t from-background/0 via-background/0 to-background   md:h-50" />
         </div>
       </div>
       {preloaderDone && (

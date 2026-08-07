@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react"
 
+import { useLenis } from "lenis/react"
+import { useLocation } from "react-router"
+
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { ScrollTrigger } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
@@ -25,8 +28,9 @@ function hasSeenPreloader(): boolean {
 
 function HomePage() {
   const reduced = useReducedMotion()
-  // Reduced motion → skip the curtain AND never lock scroll; it also means the
-  // preloader never calls `onComplete`, so the gate must start "done".
+  const location = useLocation()
+  const lenis = useLenis()
+  // Preloader gate — run-once-per-session; reduced motion skips the curtain.
   const [preloaderDone, setPreloaderDone] = useState(
     () => hasSeenPreloader() || reduced
   )
@@ -50,12 +54,17 @@ function HomePage() {
       }
     }
     // Hard-reset to the very top so the HERO (never the footer) is in frame,
-    // then re-measure every ScrollTrigger after the lock is released.
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" })
-    document.documentElement.scrollTop = 0
-    document.body.scrollTop = 0
+    // UNLESS a `#hash` alignment is pending — that effect owns the viewport
+    // and would fight the reset. Then re-measure every ScrollTrigger after the
+    // lock is released.
+    const hash = location.hash
+    if (!hash || hash === "#") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" })
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+    }
     requestAnimationFrame(() => ScrollTrigger.refresh())
-  }, [preloaderDone])
+  }, [preloaderDone, location.hash])
 
   // Broadcast preloader state to the layout chrome (header + footer): while a
   // preloader is playing → `done: false` (chrome hidden), when the curtain
@@ -63,6 +72,70 @@ function HomePage() {
   useEffect(() => {
     usePreloaderStore.getState().setDone(preloaderDone)
   }, [preloaderDone])
+
+  // Align to a `#section` hash after the layout is GUARANTEED stable — and
+  // bypass GSAP's aggressive pin interception. The #cara-pesan pinned timeline
+  // (~+3000px) treats an instant deep jump as out-of-bounds and snaps the
+  // scroll back to its active pin start (≈ #tentang-kami). Sequence:
+  //   1. DISABLE all ScrollTriggers so no pin can fight the incoming jump.
+  //   2. POLL until the `.pin-spacer` exists (heavy layout injected/stable).
+  //   3. TELEPORT straight to the element via Lenis (no manual Y math).
+  //   4. RE-ENABLE + refresh so pins rebind to the new viewport position.
+  useEffect(() => {
+    if (!preloaderDone) return
+    const hash = location.hash
+    if (!hash || hash === "#") return
+    const targetEl = document.querySelector<HTMLElement>(hash)
+    if (!targetEl) return
+
+    let cancelled = false
+    let attempts = 0
+
+    // Step 1 — disarm every ScrollTrigger so the pin can't hijack the jump.
+    // `disable(false)` keeps their current values (no premature reset).
+    const triggers = ScrollTrigger.getAll()
+    triggers.forEach((st) => st.disable(false))
+
+    const tryTeleport = () => {
+      if (cancelled) return
+      // Step 2 — the OrderingBlock's pin-spacer (~+3000px) must exist, proving
+      // the heavy GSAP layout is mounted and the document height is real.
+      // (Reduced motion creates no pin, so skip straight to the teleport.)
+      const hasPinSpacer = !!document.querySelector(".pin-spacer")
+      if (!hasPinSpacer && !reduced && attempts < 50) {
+        attempts++
+        requestAnimationFrame(tryTeleport)
+        return
+      }
+
+      // Step 3 — instant teleport straight to the element (Lenis element API).
+      if (lenis) {
+        lenis.scrollTo(targetEl, {
+          immediate: true,
+          force: true,
+          lock: true,
+          offset: -96,
+        })
+      } else {
+        targetEl.scrollIntoView({ behavior: "instant", block: "center" })
+      }
+
+      // Step 4 — re-arm the triggers and rebind them to the new position.
+      requestAnimationFrame(() => {
+        if (cancelled) return
+        ScrollTrigger.getAll().forEach((st) => st.enable())
+        ScrollTrigger.refresh()
+      })
+    }
+
+    requestAnimationFrame(tryTeleport)
+
+    return () => {
+      cancelled = true
+      // Safety: re-enable everything if we unmount mid-bypass.
+      ScrollTrigger.getAll().forEach((st) => st.enable())
+    }
+  }, [preloaderDone, location, lenis, reduced])
 
   return (
     <>
@@ -91,8 +164,8 @@ function HomePage() {
         <main>
           <HeroBlock preloaderDone={preloaderDone} />
           <AboutBlock />
+          <TestimonialBlock />
           <OrderingBlock />
-          {/* <TestimonialBlock /> */}
           <FaqsSection />
         </main>
       </div>

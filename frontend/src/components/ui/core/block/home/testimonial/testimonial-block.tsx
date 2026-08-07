@@ -219,13 +219,13 @@ function TestimonialBlock() {
         id="testimoni"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
-        className="relative overflow-hidden bg-muted px-5 py-27 md:px-10"
+        className="relative overflow-hidden bg-secondary/60 px-5 py-27 md:px-10"
       >
         {/* Warm gold glow from the top — token-driven (primary amber at 9%),
             never a raw color. */}
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-primary)_9%,transparent),transparent_60%)]"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_90%)]"
         />
 
         <div

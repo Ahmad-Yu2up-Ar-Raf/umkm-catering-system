@@ -9,6 +9,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { BlurReveal } from "@/components/motion/blur-reveal"
 import { WordReveal } from "@/components/motion/word-reveal"
+import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 
 type OrderStep = {
   id: string
@@ -52,7 +53,7 @@ const ORDER_STEPS: OrderStep[] = [
     title: "Jelajahi Katalog",
     description:
       "Jelajahi katalog kami dan pilih paket yang paling pas — telusuri menu andalan, lalu tentukan pilihan terbaik untuk acara Anda.",
-    image: "/assets/images/ordering/step-1.jpg",
+    image: "/assets/images/ordering/step-1.png",
     imageAlt: "Katalog menu katering nasi box",
   },
   {
@@ -61,7 +62,7 @@ const ORDER_STEPS: OrderStep[] = [
     title: "Isi Detail Pesanan",
     description:
       "Lengkapi formulir pemesanan dengan lengkap — nama, alamat pengantaran, tanggal acara, dan catatan kebutuhan khusus Anda.",
-    image: "/assets/images/ordering/step-2.jpg",
+    image: "/assets/images/ordering/step-2.png",
     imageAlt: "Menulis detail pesanan",
   },
   {
@@ -70,7 +71,7 @@ const ORDER_STEPS: OrderStep[] = [
     title: "Konfirmasi via WhatsApp",
     description:
       "Anda diarahkan ke WhatsApp dengan ringkasan pesanan yang terisi otomatis — cek kembali detailnya, lalu kirim untuk melanjutkan.",
-    image: "/assets/images/ordering/step-3.jpg",
+    image: "/assets/images/ordering/step-3.png",
     imageAlt: "Ringkasan pesanan di aplikasi chat",
   },
   {
@@ -79,7 +80,7 @@ const ORDER_STEPS: OrderStep[] = [
     title: "Pembayaran & Verifikasi",
     description:
       "Bayar via transfer bank atau e-wallet seperti GoPay, kirim bukti pembayaran, lalu tim kami memverifikasi pesanan Anda.",
-    image: "/assets/images/ordering/step-4.jpg",
+    image: "/assets/images/ordering/step-4.png",
     imageAlt: "Pembayaran digital via ponsel",
   },
   {
@@ -88,7 +89,7 @@ const ORDER_STEPS: OrderStep[] = [
     title: "Konfirmasi Pesanan",
     description:
       "Pesanan Anda kami konfirmasi dan struk resmi dikirim — rincian paket, jumlah porsi, serta total harga tercatat dengan jelas.",
-    image: "/assets/images/ordering/step-5.jpg",
+    image: "/assets/images/ordering/step-5.png",
     imageAlt: "Struk resmi pesanan",
   },
   {
@@ -97,7 +98,7 @@ const ORDER_STEPS: OrderStep[] = [
     title: "Menanti Pengantaran",
     description:
       "Tim kami menyiapkan hidangan segar dan mengantarkan tepat jadwal — hangat, rapi, dan siap tersaji di lokasi acara Anda.",
-    image: "/assets/images/ordering/step-6.jpg",
+    image: "/assets/images/ordering/step-6.png",
     imageAlt: "Nasi box siap diantar",
   },
   {
@@ -106,7 +107,7 @@ const ORDER_STEPS: OrderStep[] = [
     title: "Siap Dinikmati",
     description:
       "Pesanan tiba dengan sempurna dan siap dinikmati — setiap sajian terasa seperti masakan rumahan untuk perayaan istimewa Anda.",
-    image: "/assets/images/ordering/step-7.jpg",
+    image: "/assets/images/ordering/step-7.png",
     imageAlt: "Tumpeng nasi kuning untuk perayaan",
   },
 ]
@@ -268,13 +269,13 @@ function OrderingBlock() {
       <section
         ref={sectionRef}
         id="cara-pesan"
-        className="relative isolate flex h-screen flex-col justify-center overflow-hidden bg-muted  text-foreground"
+        className="relative isolate flex h-screen flex-col justify-center overflow-hidden  0 text-foreground"
       >
         {/* Warm amber glow from the upper-right — token-driven, never raw. */}
-        <div
+        {/* <div
           aria-hidden="true"
-          className="absolute inset-0 -z-10 "
-        />
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_100%)]"
+        /> */}
 
         {/* `container` — the same global constraint as About / FAQ / Testimonial. */}
         <div className="container grid grid-cols-1 items-center gap-x-12 gap-y-6 md:grid-cols-[1.08fr_0.92fr]">
@@ -303,7 +304,7 @@ function OrderingBlock() {
                     scrollStart="top 85%"
                   />
                 </span>
-                <span className="block font-accent italic text-primary">
+                <span className="block font-accent text-primary italic">
                   <WordReveal
                     text="satu hidangan"
                     blur={10}
@@ -318,10 +319,7 @@ function OrderingBlock() {
 
             {/* Step stage — stacked; GSAP crossfades/slides between steps.
                 Entrance targets this container so the whole stage rises in. */}
-            <div
-              data-era-stage
-              className="relative h-[200px] md:h-[260px]"
-            >
+            <div data-era-stage className="relative h-[200px] md:h-[260px]">
               {ORDER_STEPS.map((s, i) =>
                 reduced && i > 0 ? null : (
                   <div
@@ -340,7 +338,7 @@ function OrderingBlock() {
                     </p>
                     {/* Fixed min-height so all steps hold 3 lines of
                         description — the stage never reflows. */}
-                    <p className="max-w-[440px] min-h-[76px] text-[14px] leading-[1.8] text-muted-foreground md:min-h-[88px] md:text-[16px]">
+                    <p className="min-h-[76px] max-w-[440px] text-[14px] leading-[1.8] text-muted-foreground md:min-h-[88px] md:text-[16px]">
                       {s.description}
                     </p>
                   </div>
@@ -378,9 +376,13 @@ function OrderingBlock() {
             data-polaroid-entrance
             className="relative mx-auto w-full max-w-[240px] md:ml-auto md:max-w-[500px]"
           >
-            <div ref={floatRef} data-idle-float className="will-change-transform">
+            <div
+              ref={floatRef}
+              data-idle-float
+              className="will-change-transform"
+            >
               <div
-                className="relative aspect-[1/1.13]"
+                className="relative aspect-[1/1.13] md:aspect-[1/1.13]"
                 style={{ perspective: "1500px" }}
               >
                 {ORDER_STEPS.map((s, i) =>
@@ -391,10 +393,8 @@ function OrderingBlock() {
                       className="absolute inset-0 flex flex-col rounded-[3px] border border-border bg-card p-[15px] shadow-lg will-change-transform [backface-visibility:hidden] [transform-style:preserve-3d]"
                     >
                       <div className="relative flex-1 overflow-hidden rounded-sm bg-muted">
-                        <img
-                          src={s.image}
-                          alt={s.imageAlt}
-                          loading="lazy"
+                        <MediaItem
+                          webViewLink={s.image}
                           className="h-full w-full object-cover"
                         />
                       </div>

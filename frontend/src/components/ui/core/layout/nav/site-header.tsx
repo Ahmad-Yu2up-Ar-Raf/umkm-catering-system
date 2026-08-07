@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import type { MouseEvent as ReactMouseEvent } from "react"
 
 import { AnimatePresence, motion } from "framer-motion"
+import { useLenis } from "lenis/react"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { OriginButton } from "../../../fragments/custom-ui/button/cta-button"
 import { NavbarLogo } from "./app-logo"
@@ -10,18 +12,20 @@ import { NavBody, NavItems, Navbar } from "./components/navbar"
 
 import { cn } from "@/lib/utils"
 
-import { Link } from "react-router"
+import { Link, useLocation, useNavigate } from "react-router"
 import { WhatsappIcon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 
+/** Homepage section anchors (audited ids: hero / tentang-kami / cara-pesan /
+ *  testimoni / faq / kontak). */
 const NAV_ITEMS = [
-  { name: "Beranda", link: "/" },
-  { name: "Paket Katering", link: "/paket" },
-  { name: "Tentang Kami", link: "/tentang-kami" },
-  { name: "Cara Pemesanan", link: "/cara-pemesanan" },
-  { name: "FAQ", link: "/faq" },
+  { name: "Tentang Kami", link: "/#tentang-kami" },
+  { name: "Cara Pesan", link: "/#cara-pesan" },
+  { name: "Testimoni", link: "/#testimoni" },
+  { name: "FAQ", link: "/#faq" },
+  { name: "Kontak", link: "/kontak" },
 ]
 
 /**
@@ -79,11 +83,13 @@ function MobileBar({
   open,
   onToggle,
   onNavigate,
+  onContact,
   visible,
 }: {
   open: boolean
   onToggle: () => void
-  onNavigate: () => void
+  onNavigate: (e: ReactMouseEvent<HTMLAnchorElement>) => void
+  onContact: () => void
   visible?: boolean
 }) {
   const glassed = visible || open
@@ -142,7 +148,7 @@ function MobileBar({
                 <OriginButton
                   intensity={0.8}
                   range={120}
-                  onClick={onNavigate}
+                  onClick={onContact}
                   className="w-full text-[12px] tracking-widest uppercase"
                 >
                   Kontak
@@ -162,16 +168,71 @@ function MobileBar({
 
 export function SiteHeader({ className }: { className?: string }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const lenis = useLenis()
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  /** INSTANTLY teleport to a `#section` target, framed perfectly in the
+   *  vertical center of the viewport, then reflect the anchor in the URL
+   *  silently (no page jump). No scroll animation — quick navigation. */
+  const scrollToSection = (targetId: string) => {
+    if (!targetId.startsWith("#")) return
+    const targetEl = document.querySelector<HTMLElement>(targetId)
+    if (lenis && targetEl) {
+      // Lenis works with numerical offsets: center = (target height minus the
+      // viewport height) / 2 — negative centers short sections, positive keeps
+      // the top of tall sections in view.
+      const centerOffset = (targetEl.offsetHeight - window.innerHeight) / 2
+      lenis.scrollTo(targetId, {
+        immediate: true,
+        force: true,
+        offset: centerOffset,
+      })
+    } else if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "instant", block: "center" })
+    }
+    window.history.pushState(null, "", targetId)
+  }
+
+  /** Route-aware navigation:
+   *  - ALREADY on the homepage → instantly teleport to the section (centered).
+   *  - ON ANOTHER ROUTE → route back to `/` with the hash attached, using the
+   *    OBJECT form of `navigate` (`{ pathname: "/", hash }`) — unlike the
+   *    string `"/#faq"`, this can never be mis-parsed as a hash-only change
+   *    against the current path (which is what produced `/kontak#faq`). The
+   *    homepage's mount effect then reads the hash and teleports to the
+   *    section once it renders. */
+  const goToSection = (targetId: string) => {
+    setMenuOpen(false)
+    if (location.pathname !== "/") {
+      navigate({ pathname: "/", hash: targetId })
+      return
+    }
+    scrollToSection(targetId)
+  }
+
+  /** Intercepts section-anchor clicks (`#faq` OR `/#faq`) so Lenis does the
+   *  scrolling instead of the browser's instant jump. Real routes (`/kontak`)
+   *  navigate normally. */
+  const handleNavClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    const href = e.currentTarget.getAttribute("href") || ""
+    const isSection = href.startsWith("#") || href.startsWith("/#")
+    if (!isSection) return
+    e.preventDefault()
+    // Normalize both forms to a bare hash for goToSection.
+    goToSection(href.startsWith("/") ? href.slice(1) : href)
+  }
 
   return (
     <Navbar className={cn("", className)}>
       {/* Desktop pill navigation — scroll-triggered, lg+ (unchanged). */}
       <NavBody>
         <NavbarLogo />
-        <NavItems items={NAV_ITEMS} />
+        <NavItems items={NAV_ITEMS} onItemClick={handleNavClick} />
         <OriginButton
           intensity={0.8}
           range={120}
+          onClick={() => goToSection("#kontak")}
           className="group h-fit px-5 py-3 text-[12px] tracking-widest uppercase"
         >
           Kontak
@@ -186,7 +247,8 @@ export function SiteHeader({ className }: { className?: string }) {
       <MobileBar
         open={menuOpen}
         onToggle={() => setMenuOpen((o) => !o)}
-        onNavigate={() => setMenuOpen(false)}
+        onNavigate={handleNavClick}
+        onContact={() => goToSection("#kontak")}
       />
     </Navbar>
   )

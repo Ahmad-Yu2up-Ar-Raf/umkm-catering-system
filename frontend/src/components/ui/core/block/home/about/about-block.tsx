@@ -49,7 +49,7 @@ function AboutBlock() {
       id="tentang-kami"
       className="container content-center py-20"
     >
-      <div className="flex flex-col gap-13 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         {/* Teks Filosofi Us - Kiri */}
         <header className="flex w-full flex-1 flex-col gap-y-6 md:gap-y-9">
           {/* Judul */}
@@ -96,17 +96,17 @@ function AboutBlock() {
 
         {/* Kanan — the rotating Tumpeng hero object. The wrapper spins around
             its center as the user scrolls through the section. */}
-        <div className="flex w-full items-center justify-center lg:w-[50%]">
+        <div className="flex w-full items-center justify-end lg:w-[50%]">
           <div
             ref={tumpengRef}
-            className="relative h-[260px] w-[260px] md:h-[360px] md:w-[360px] lg:h-[440px] lg:w-[440px]"
+            className="relative size-[280px] md:h-[360px] md:w-[360px] lg:h-[440px] lg:w-[440px]"
             style={{ transformOrigin: "center" }}
           >
             <img
               src="/assets/images/about/tumpeng-from-top.png"
               alt="Tumpeng nasi kuning khas Nusantara dilihat dari atas"
               loading="lazy"
-              className="h-full w-full object-contain drop-shadow-xl"
+              className="h-full w-full scale-110 object-contain drop-shadow-xl"
             />
           </div>
         </div>

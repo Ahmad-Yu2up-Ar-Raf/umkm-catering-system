@@ -28,7 +28,7 @@ interface NavItemsProps {
   }>
   visible?: boolean
   className?: string
-  onItemClick?: () => void
+  onItemClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
 }
 
 /**
@@ -110,7 +110,8 @@ export const Navbar = ({ children, className }: NavbarProps) => {
         delay: delay ? 2 : 0,
       }}
       className={cn(
-        "fixed top-7.5 z-40 w-full  px-4  md:top-7 md:px-0",
+        "fixed transition-all duration-300 ease-out top-3 z-40 w-full px-4 md:top-4 md:px-0",
+        !visible ? "pt-2" : " mt-0",
         // paths != '/' && visible == false ? '   ' : ' sticky',
         className
       )}
@@ -179,7 +180,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         return (
           <Link
             onMouseEnter={() => setHovered(idx)}
-            onClick={onItemClick}
+            // onClick={onItemClick}
             className={cn(
               "cursor-target pointer-events-auto relative px-4 py-2 text-accent-foreground",
               isActive && ""
