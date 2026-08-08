@@ -88,7 +88,7 @@ function MobileBar({
 }: {
   open: boolean
   onToggle: () => void
-  onNavigate: (e: ReactMouseEvent<HTMLAnchorElement>) => void
+  onNavigate: (e: ReactMouseEvent<HTMLAnchorElement>, hash: string) => void
   onContact: () => void
   visible?: boolean
 }) {
@@ -128,7 +128,7 @@ function MobileBar({
                 >
                   <Link
                     to={item.link}
-                    onClick={onNavigate}
+                    onClick={(e) => onNavigate(e, item.link)}
                     className="block rounded-lg px-4 py-2.5 text-sm text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
                   >
                     {item.name}
@@ -172,55 +172,59 @@ export function SiteHeader({ className }: { className?: string }) {
   const navigate = useNavigate()
   const location = useLocation()
 
-  /** INSTANTLY teleport to a `#section` target, framed perfectly in the
-   *  vertical center of the viewport, then reflect the anchor in the URL
-   *  silently (no page jump). No scroll animation — quick navigation. */
-  const scrollToSection = (targetId: string) => {
-    if (!targetId.startsWith("#")) return
-    const targetEl = document.querySelector<HTMLElement>(targetId)
-    if (lenis && targetEl) {
-      // Lenis works with numerical offsets: center = (target height minus the
-      // viewport height) / 2 — negative centers short sections, positive keeps
-      // the top of tall sections in view.
-      const centerOffset = (targetEl.offsetHeight - window.innerHeight) / 2
-      lenis.scrollTo(targetId, {
-        immediate: true,
-        force: true,
-        offset: centerOffset,
-      })
-    } else if (targetEl) {
-      targetEl.scrollIntoView({ behavior: "instant", block: "center" })
-    }
-    window.history.pushState(null, "", targetId)
-  }
-
-  /** Route-aware navigation:
-   *  - ALREADY on the homepage → instantly teleport to the section (centered).
-   *  - ON ANOTHER ROUTE → route back to `/` with the hash attached, using the
-   *    OBJECT form of `navigate` (`{ pathname: "/", hash }`) — unlike the
-   *    string `"/#faq"`, this can never be mis-parsed as a hash-only change
-   *    against the current path (which is what produced `/kontak#faq`). The
-   *    homepage's mount effect then reads the hash and teleports to the
-   *    section once it renders. */
-  const goToSection = (targetId: string) => {
+  /** Owns every `#section` jump — INSTANT, so section links feel like a raw
+   *  anchor jump, but routed through Lenis so the pinned #cara-pesan timeline
+   *  can't hijack the position.
+   *  - same page   → pushState the URL + Lenis `scrollTo` (no React Router
+   *    re-render, so the homepage's mount teleport never refires).
+   *  - other route → navigate back to `/` with the hash; the homepage's mount
+   *    effect reads it and teleports once the layout is stable. */
+  const jumpToSection = (raw: string) => {
     setMenuOpen(false)
-    if (location.pathname !== "/") {
-      navigate({ pathname: "/", hash: targetId })
-      return
+    const section = raw.replace(/^\/+/, "") // "/#faq" → "#faq"
+    if (location.pathname === "/") {
+      window.history.pushState(null, "", `/${section}`)
+      const targetEl = document.querySelector<HTMLElement>(section)
+      if (!targetEl) return
+      // #cara-pesan is pinned — scrolled past its pin, the element's own rect
+      // sits at the END of the .pin-spacer (post-timeline = step 07), so
+      // target the SPACER top instead = step 01. Pinned/tall targets always
+      // TOP-align below the fixed header; shorter standard sections get exact
+      // vertical centering.
+      const scrollTarget =
+        targetEl.closest<HTMLElement>(".pin-spacer") ?? targetEl
+      const targetHeight = scrollTarget.getBoundingClientRect().height
+      const isTallElement =
+        targetHeight > window.innerHeight || targetEl.id === "cara-pesan"
+      const dynamicOffset = isTallElement
+        ? -96
+        : -((window.innerHeight - targetHeight) / 2)
+      if (lenis) {
+        // INSTANT teleport — snaps like a raw anchor jump, never smooth.
+        lenis.scrollTo(scrollTarget, {
+          immediate: true,
+          force: true,
+          lock: true,
+          offset: dynamicOffset,
+        })
+      } else {
+        scrollTarget.scrollIntoView({ behavior: "instant", block: "center" })
+      }
+    } else {
+      navigate({ pathname: "/", hash: section })
     }
-    scrollToSection(targetId)
   }
 
   /** Intercepts section-anchor clicks (`#faq` OR `/#faq`) so Lenis does the
-   *  scrolling instead of the browser's instant jump. Real routes (`/kontak`)
-   *  navigate normally. */
-  const handleNavClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
-    const href = e.currentTarget.getAttribute("href") || ""
-    const isSection = href.startsWith("#") || href.startsWith("/#")
-    if (!isSection) return
+   *  scrolling instead of React Router's hash-only re-render. Real routes
+   *  (`/kontak`) keep their default Link navigation. */
+  const handleNavClick = (
+    e: ReactMouseEvent<HTMLAnchorElement>,
+    hash: string
+  ) => {
+    if (!hash.startsWith("#") && !hash.startsWith("/#")) return
     e.preventDefault()
-    // Normalize both forms to a bare hash for goToSection.
-    goToSection(href.startsWith("/") ? href.slice(1) : href)
+    jumpToSection(hash)
   }
 
   return (
@@ -232,7 +236,7 @@ export function SiteHeader({ className }: { className?: string }) {
         <OriginButton
           intensity={0.8}
           range={120}
-          onClick={() => goToSection("#kontak")}
+          onClick={() => jumpToSection("#kontak")}
           className="group h-fit px-5 py-3 text-[12px] tracking-widest uppercase"
         >
           Kontak
@@ -248,7 +252,7 @@ export function SiteHeader({ className }: { className?: string }) {
         open={menuOpen}
         onToggle={() => setMenuOpen((o) => !o)}
         onNavigate={handleNavClick}
-        onContact={() => goToSection("#kontak")}
+        onContact={() => jumpToSection("#kontak")}
       />
     </Navbar>
   )

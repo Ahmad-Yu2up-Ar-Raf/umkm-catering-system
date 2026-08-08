@@ -66,7 +66,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
   const isMobile = useIsMobile()
   return (
     <section ref={sectionRef} id="hero" className="size-full">
-      <main className="relative m-auto mb-0.5 flex min-h-lvh w-full flex-col items-center justify-center overflow-hidden">
+      <main className="relative m-auto mb-0.5 flex min-h-svh w-full flex-col items-center justify-center overflow-hidden">
         <Floating sensitivity={-0.5} timeline={heroTl} className="h-full">
           <FloatingElement depth={1} className="top-[0%] left-[3%]">
             <div

@@ -45,7 +45,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
   return (
     <footer
       className={cn(
-        "relative z-50 min-h-svh w-full content-center bg-muted py-20",
+        "relative z-50 min-h-lvh w-full content-center bg-muted py-20",
         className
       )}
       style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
@@ -55,8 +55,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
         {/* Add padding-bottom on mobile to account for navbar height (min-h-[9svh]) */}
         <div
           className={cn(
-            "z-99999999999999999 sticky z-50 container flex h-full flex-col justify-end px-5",
-            isMobile && "pb-[6svh]" // Space for mobile bottom navbar
+            "z-99999999999999999  sticky z-50 container flex h-full flex-col justify-end px-5"
           )}
         >
           <div className="grid grid-cols-2 gap-5 border-b pb-6 sm:gap-8 md:grid-cols-4 md:pb-15 lg:flex lg:grid-cols-4 lg:justify-between">
@@ -99,7 +98,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
 
           {/* Judul besar tengah */}
           <div className="flex h-fit w-full items-center justify-center">
-            <h1 className="relative h-25 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-70 lg:text-[13.6em]">
+            <h1 className="relative mt-10 h-30 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-70 lg:text-[13.6em]">
               Nusantara
             </h1>
           </div>

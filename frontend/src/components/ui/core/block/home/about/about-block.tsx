@@ -47,7 +47,7 @@ function AboutBlock() {
     <section
       ref={sectionRef}
       id="tentang-kami"
-      className="container content-center py-20"
+      className="container content-center py-20 lg:pb-25 lg:py-0 lg:pt-30"
     >
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         {/* Teks Filosofi Us - Kiri */}
@@ -99,14 +99,14 @@ function AboutBlock() {
         <div className="flex w-full items-center justify-end lg:w-[50%]">
           <div
             ref={tumpengRef}
-            className="relative size-[280px] md:h-[360px] md:w-[360px] lg:h-[440px] lg:w-[440px]"
+            className="relative size-full md:h-[360px] md:w-[360px] lg:h-[400px] lg:w-[400px]"
             style={{ transformOrigin: "center" }}
           >
             <img
               src="/assets/images/about/tumpeng-from-top.png"
               alt="Tumpeng nasi kuning khas Nusantara dilihat dari atas"
               loading="lazy"
-              className="h-full w-full scale-110 object-contain drop-shadow-xl"
+              className="h-full w-full md:scale-110 object-contain drop-shadow-xl"
             />
           </div>
         </div>

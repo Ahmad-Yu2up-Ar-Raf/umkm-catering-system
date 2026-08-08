@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { useLenis } from "lenis/react"
 import { useLocation } from "react-router"
@@ -34,6 +34,16 @@ function HomePage() {
   const [preloaderDone, setPreloaderDone] = useState(
     () => hasSeenPreloader() || reduced
   )
+  // Landing mask — a full-screen brand-cream overlay that obscures the page
+  // ONLY during the initial cross-route hash landing (so the Hero never flashes
+  // before the teleport). Visibility is a STATE, cleared once the teleport
+  // lands: because it stays cleared, a same-page re-render can never resurrect
+  // an opaque mask (a derived value would — that was the "mask trap").
+  const [isMaskVisible, setIsMaskVisible] = useState(
+    () =>
+      typeof window !== "undefined" && !!location.hash && location.hash !== "#"
+  )
+  const maskRef = useRef<HTMLDivElement>(null)
 
   // Bulletproof scroll lock: while the preloader is active the page CANNOT
   // scroll — `overflow: hidden` on html+body AND the main content is clipped to
@@ -82,11 +92,31 @@ function HomePage() {
   //   3. TELEPORT straight to the element via Lenis (no manual Y math).
   //   4. RE-ENABLE + refresh so pins rebind to the new viewport position.
   useEffect(() => {
+    // No pending hash → nothing to land on; ensure the mask stays gone.
+    if (!location.hash || location.hash === "#") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsMaskVisible(false)
+      return
+    }
+
+    // Every pending hash landing runs this sequence unconditionally — cross-
+    // route arrivals, back/forward, re-visits — as soon as the preloader's
+    // scroll lock is released. Nothing guards it away: a hash MUST teleport.
+    // (The header's same-page clicks use `pushState`, never a React Router
+    // hash change, so they never re-enter this effect.)
     if (!preloaderDone) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMaskVisible(true)
+
     const hash = location.hash
-    if (!hash || hash === "#") return
-    const targetEl = document.querySelector<HTMLElement>(hash)
-    if (!targetEl) return
+    const listenTarget = document.querySelector<HTMLElement>(hash)
+    if (!listenTarget) {
+      // Section didn't render (defensive): reveal the page anyway.
+      maskRef.current?.classList.replace("opacity-100", "opacity-0")
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      window.setTimeout(() => setIsMaskVisible(false), 500)
+      return
+    }
 
     let cancelled = false
     let attempts = 0
@@ -108,17 +138,34 @@ function HomePage() {
         return
       }
 
-      // Step 3 — instant teleport straight to the element (Lenis element API).
+      // Step 3 — align. #cara-pesan is pinned inside a `.pin-spacer`; once the
+      // page has scrolled past the pin, the section's OWN rect drifts to the
+      // END of the spacer (post-timeline = step 07), so target the SPACER top —
+      // the timeline's step 01. Pinned/tall targets top-align below the fixed
+      // header; shorter standard sections (faq, testimoni) get exact centering.
+      const scrollTarget =
+        listenTarget.closest<HTMLElement>(".pin-spacer") ?? listenTarget
+      const targetHeight = scrollTarget.getBoundingClientRect().height
+      const isTallElement =
+        targetHeight > window.innerHeight || listenTarget.id === "cara-pesan"
+      const dynamicOffset = isTallElement
+        ? -96
+        : -((window.innerHeight - targetHeight) / 2)
       if (lenis) {
-        lenis.scrollTo(targetEl, {
+        lenis.scrollTo(scrollTarget, {
           immediate: true,
           force: true,
           lock: true,
-          offset: -96,
+          offset: dynamicOffset,
         })
       } else {
-        targetEl.scrollIntoView({ behavior: "instant", block: "center" })
+        scrollTarget.scrollIntoView({ behavior: "instant", block: "center" })
       }
+
+      // Fade the mask, then unmount it completely.
+      maskRef.current?.classList.replace("opacity-100", "opacity-0")
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      window.setTimeout(() => setIsMaskVisible(false), 500)
 
       // Step 4 — re-arm the triggers and rebind them to the new position.
       requestAnimationFrame(() => {
@@ -135,7 +182,7 @@ function HomePage() {
       // Safety: re-enable everything if we unmount mid-bypass.
       ScrollTrigger.getAll().forEach((st) => st.enable())
     }
-  }, [preloaderDone, location, lenis, reduced])
+  }, [preloaderDone, location.hash, lenis, reduced])
 
   return (
     <>
@@ -151,6 +198,17 @@ function HomePage() {
           }}
         />
       )}
+
+      {/* Landing mask — while a hash teleport is being prepared, a fixed
+          brand-cream overlay hides the page so the Hero never flashes before
+          the target section is framed; it fades out once the teleport lands. */}
+      {isMaskVisible && preloaderDone && (
+        <div
+          ref={maskRef}
+          aria-hidden="true"
+          className="pointer-events-none fixed inset-0 z-[9999] bg-background opacity-100 transition-opacity duration-500"
+        />
+      )}
       <div
         onTouchMove={(e) => {
           if (!preloaderDone) e.preventDefault()
@@ -164,8 +222,8 @@ function HomePage() {
         <main>
           <HeroBlock preloaderDone={preloaderDone} />
           <AboutBlock />
-          <TestimonialBlock />
           <OrderingBlock />
+          <TestimonialBlock />
           <FaqsSection />
         </main>
       </div>

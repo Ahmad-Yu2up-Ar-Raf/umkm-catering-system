@@ -28,7 +28,10 @@ interface NavItemsProps {
   }>
   visible?: boolean
   className?: string
-  onItemClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void
+  onItemClick?: (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    hash: string
+  ) => void
 }
 
 /**
@@ -180,7 +183,7 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         return (
           <Link
             onMouseEnter={() => setHovered(idx)}
-            // onClick={onItemClick}
+            onClick={(e) => onItemClick?.(e, item.link)}
             className={cn(
               "cursor-target pointer-events-auto relative px-4 py-2 text-accent-foreground",
               isActive && ""

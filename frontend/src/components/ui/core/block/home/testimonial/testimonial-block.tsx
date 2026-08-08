@@ -219,7 +219,7 @@ function TestimonialBlock() {
         id="testimoni"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
-        className="relative overflow-hidden bg-secondary/60 px-5 py-27 md:px-10"
+        className="relative overflow-hidden bg-secondary/60 px-5 py-20 md:py-27 md:px-10"
       >
         {/* Warm gold glow from the top — token-driven (primary amber at 9%),
             never a raw color. */}
