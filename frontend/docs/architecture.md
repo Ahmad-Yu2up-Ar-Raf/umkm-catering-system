@@ -56,7 +56,7 @@ frontend/src/
 
 | Path | Purpose |
 |---|---|
-| `.opencode/skills/` | Project-local agent skills: `impeccable`, `catering-nusantara-design`, `motion-orchestration`, `shadcn-architecture` |
+| `~/.opencode/skills/` | Global agent skills (design engine): `impeccable`, `catering-nusantara-design`, `motion-orchestration`, `shadcn-architecture`, `hallmark` |
 | `docs/design.md` | Design source of truth (Stitch-9-compatible tokens, fonts, rules) |
 | `design-system/MASTER.md` + `design-system/pages/` | Persisted design system + page-level overrides (read before building a page) |
 | `opencode.json` | Local MCP config (agent tooling) |

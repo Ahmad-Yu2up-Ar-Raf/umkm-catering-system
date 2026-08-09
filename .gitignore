@@ -9,6 +9,9 @@ Thumbs.db
 # Node
 node_modules/
 
+# OpenCode local helper dirs (skills live globally in ~/.opencode/skills)
+**/.opencode/
+
 # PHP / Laravel
 vendor/
 

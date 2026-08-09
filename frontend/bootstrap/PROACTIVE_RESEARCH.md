@@ -9,7 +9,7 @@ This is an **ongoing, per-task protocol**. Run this file's steps every time a no
 BEFORE suggesting frontend code, designing components, or building animations, you MUST execute the following sequence:
 
 1. **CONSULT (Local Memory)**
-   - Read relevant docs already in `.ai/docs/` and existing frontend skills in `.opencode/skills/`.
+   - Read relevant docs already in `.ai/docs/` and existing design skills in `~/.opencode/skills/`.
    - Use **[codebase-memory-mcp]** to check if a similar component or animation hook already exists in the project.
 
 2. **THINK (Logic Structuring)**

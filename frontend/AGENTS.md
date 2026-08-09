@@ -50,9 +50,9 @@
 - Repo root rules → `../AGENTS.md`
 - Brand & business context (root) → `../docs/project-context.md`
 
-## 7. Design Tooling & Local Skills
+## 7. Design Tooling & Skills (installed globally)
 
-Project-local skills live in `.opencode/skills/` (self-contained, do not move):
+The design skills below are installed globally in `~/.opencode/skills/` (no repo-local copies).
 
 | Skill | When to load |
 |---|---|
@@ -73,15 +73,15 @@ Before writing ANY UI/frontend code (component, page, block, style, or animation
 run this sequence. It is mandatory, not optional.
 
 1. **Skill Discovery (always)**
-   - Load every applicable LOCAL skill from `.opencode/skills/`:
+   - Load every applicable design/UI skill from `~/.opencode/skills/`:
      `catering-nusantara-design` (brand/tokens/taste dials),
      `motion-orchestration` (GSAP/Framer, reduced-motion),
      `shadcn-architecture` (primitives, cva/cn), `impeccable` (review commands),
      `hallmark` (macrostructure + anti-slop slop test).
-   - Scan GLOBAL skills (`~/.config/opencode/skills/` + `~/.opencode/skills/`):
+   - Scan GLOBAL catalogs (`~/.opencode/skills/` — brand design engine + `~/.config/opencode/skills/` — general design/utility skills):
      `ui-ux-pro-max`, `design-taste-frontend`, `gsap-*`, `shadcn`,
      `design-preflight`, `frontend-design`, … and load any that match the task.
-   - **Taste precedence (mandatory):** load the local `catering-nusantara-design` skill
+   - **Taste precedence (mandatory):** load the `catering-nusantara-design` skill
      BEFORE the global `design-taste-frontend` skill. The project pins (VARIANCE 5 /
      MOTION 4 / DENSITY 3) must strictly override the global taste baseline (8/6/4) to
      preserve the homey, down-to-earth Nusantara brand aesthetic.

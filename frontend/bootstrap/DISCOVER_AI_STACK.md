@@ -53,7 +53,7 @@ You are equipped with an advanced MCP stack. You must use them proactively durin
 
 # CUSTOM FRONT-END PROJECT SKILLS (If no pre-built skill exists)
 
-If the audit shows no adequate existing option, propose creating these Custom Skills locally in `.opencode/skills/`:
+If the audit shows no adequate existing option, propose creating these Custom Skills globally in `~/.opencode/skills/`:
 - `impeccable-styling-patterns` (LOCAL) - Grounded in the Impeccable docs.
 - `taste-and-ui-pro-max-guide` (LOCAL) - Merging premium aesthetics.
 - `gsap-framer-orchestration` (GLOBAL) - For buttery smooth micro-interactions.

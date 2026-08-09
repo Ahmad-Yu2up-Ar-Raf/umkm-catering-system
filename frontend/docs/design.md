@@ -173,7 +173,7 @@ Three pillars, one pipeline — every UI surface passes all three before shippin
 | Pillar | Role | Enforcement |
 |---|---|---|
 | **1. Taste & Dials** | Choose the *direction* | `catering-nusantara-design` skill: VARIANCE 5 / MOTION 4 / DENSITY 3, warm OKLCH cream/amber tokens, Fraunces/Space Grotesk/Instrument Serif, "homey not stiff" |
-| **2. Hallmark** | Shape the *structure* | `.opencode/skills/hallmark` (v1.1.0): macrostructure selection (structural variety — different pages ≠ same template), 57-gate slop test, pre-emit self-critique (Philosophy/Hierarchy/Execution/Specificity/Restraint/Variety, all ≥3), honest copy (gate 46), locked tokens (gate 48), no re-drawn chrome (gate 47), responsive floor 320/375/414/768 (gates 34, 49–53) |
+| **2. Hallmark** | Shape the *structure* | `~/.opencode/skills/hallmark` (v1.1.0): macrostructure selection (structural variety — different pages ≠ same template), 57-gate slop test, pre-emit self-critique (Philosophy/Hierarchy/Execution/Specificity/Restraint/Variety, all ≥3), honest copy (gate 46), locked tokens (gate 48), no re-drawn chrome (gate 47), responsive floor 320/375/414/768 (gates 34, 49–53) |
 | **3. Impeccable** | Verify the *code* | `npm run lint:design` (`impeccable detect src/`) — deterministic hard gate, must stay `[]`; `/impeccable critique|polish|audit` for review passes |
 
 **Workflow:** Hallmark picks the macrostructure + runs the slop test → Taste dials + brand tokens bind the result to the Catering Nusantara identity → Impeccable validates the shipped code. Load order: `catering-nusantara-design` → `hallmark` → `impeccable`.
