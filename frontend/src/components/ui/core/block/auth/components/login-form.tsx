@@ -40,12 +40,12 @@ export default function LoginForm({ form, isLoading }: componentProps) {
       </FieldGroup>
       <Button
         type="submit"
-        size={"default"}
+        size={"lg"}
         variant={"default"}
-        className="w-full cursor-pointer rounded-2xl text-sm"
+        className="w-full cursor-pointer rounded-2xl "
         disabled={isLoading}
       >
-        <span className="font-bold  tracking-wider">Login</span>
+        <span className="font-bold  ">Login</span>
         {isLoading && (
           <>
             <Spinner className="text-primary-foreground" />

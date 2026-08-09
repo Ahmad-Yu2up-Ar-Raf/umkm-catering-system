@@ -45,7 +45,7 @@ export default function AuthLayout({
               to={"/"}
               className={cn(
                 buttonVariants({ variant: "ghost" }),
-                "flex items-center gap-0 p-0 font-medium [&_span]:text-lg"
+                "flex hover:bg-transparent items-center gap-0 p-0 font-medium [&_span]:text-lg"
               )}
             >
               <NavbarLogo />
@@ -97,7 +97,7 @@ export default function AuthLayout({
       <div className="relative hidden content-center justify-end bg-background lg:block dark:border-l">
         <MediaItem
           webViewLink={
-            "assets/images/textures/kraft-paper-box-macro-texture.png"
+            "/assets/images/products/ai-generated/paket-combo-1.png"
           }
 
           className="inset- 0 ml-auto h-[89dvh] w-[40dvw] rounded-l-2xl"
