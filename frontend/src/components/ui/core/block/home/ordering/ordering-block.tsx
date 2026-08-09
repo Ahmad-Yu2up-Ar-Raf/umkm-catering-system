@@ -11,7 +11,7 @@ import { BlurReveal } from "@/components/motion/blur-reveal"
 import { WordReveal } from "@/components/motion/word-reveal"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { ORDER_STEPS } from "./ordering-data"
-import OrderingMobileTimeline from "./ordering-mobile-timeline"
+import OrderingMobileTimeline from "./components/ordering-mobile-timeline"
 
 /**
  * #cara-pesan — the 7-step ordering workflow as a scroll-pinned timeline.

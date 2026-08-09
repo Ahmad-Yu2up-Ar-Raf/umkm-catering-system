@@ -276,3 +276,14 @@
 @utility container {
   @apply px-5 md:px-0  max-w-4xl m-auto;
 }
+
+/* Marquee — the hourly infinite strip used by the Momen gallery (#momentum).
+   Track is rendered twice and translated -50% for a seamless loop; the track
+   class pauses via `[animation-play-state:paused]` on hover. */
+@theme {
+  --animate-marquee: marquee 32s linear infinite;
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+}

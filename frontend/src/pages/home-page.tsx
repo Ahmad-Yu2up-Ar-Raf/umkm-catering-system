@@ -15,10 +15,12 @@ import {
 import { HeroBlock } from "@/components/ui/core/block/home/hero/hero-block"
 import { Preloader } from "@/components/motion/preloader"
 import AboutBlock from "@/components/ui/core/block/home/about/about-block"
+import { MengapaBlock } from "@/components/ui/core/block/home/mengapa/mengapa-block"
 import { FaqsSection } from "@/components/ui/core/block/home/faq/faq-block"
 import OrderingBlock from "@/components/ui/core/block/home/ordering/ordering-block"
 import { PilihanMenuBlock } from "@/components/ui/core/block/home/pilihan-menu/menu-block"
 import TestimonialBlock from "@/components/ui/core/block/home/testimonial/testimonial-block"
+import { MomentBlock } from "@/components/ui/core/block/home/momen/moment-block"
 
 const PRELOADER_FLAG = "hasSeenPreloader"
 
@@ -227,8 +229,10 @@ function HomePage() {
         <main>
           <HeroBlock preloaderDone={preloaderDone} />
           <AboutBlock />
-          <PilihanMenuBlock />
+          <MengapaBlock />
           <OrderingBlock />
+          <MomentBlock />
+          <PilihanMenuBlock />
           <TestimonialBlock />
           <FaqsSection />
         </main>

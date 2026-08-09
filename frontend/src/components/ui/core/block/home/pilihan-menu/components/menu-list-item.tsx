@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import type { MenuChoice } from "./menu-data"
+import type { MenuChoice } from "../menu-data"
 
 /**
  * MenuListItem — one tab row (exact DOM replica of the reference):
@@ -45,7 +45,7 @@ export function MenuListItem({
         </span>
         <span
           className={cn(
-            "min-w-0 flex-1 truncate font-heading text-xl leading-[1.2] font-light transition-all duration-500 ease-in-out md:text-2xl ",
+            "min-w-0 flex-1 truncate font-heading text-xl leading-[1.2] font-light transition-all duration-500 ease-in-out md:text-2xl lg:text-3xl",
             isActive
               ? "text-primary"
               : "text-foreground/60 group-hover:text-foreground"

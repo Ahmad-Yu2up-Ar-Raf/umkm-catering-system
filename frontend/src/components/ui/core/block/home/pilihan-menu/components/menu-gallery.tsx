@@ -5,7 +5,7 @@ import { useRef } from "react"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
-import { AUTO_ADVANCE_MS, MENU_CHOICES } from "./menu-data"
+import { AUTO_ADVANCE_MS, MENU_CHOICES } from "../menu-data"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 
 /** Luxury ease — premium Apple-like cubic-bezier (matches the project grammar). */
@@ -169,7 +169,7 @@ export function MenuGallery({ activeIndex }: { activeIndex: number }) {
         </p>
         <h3
           data-menu-caption-item
-          className="mt-1.5 truncate font-heading text-base leading-tight font-semibold text-background md:mt-2 md:text-2xl "
+          className="mt-1.5 truncate font-heading text-base leading-tight font-semibold text-background md:mt-2 md:text-2xl"
         >
           {active.title}
         </h3>
@@ -182,7 +182,7 @@ export function MenuGallery({ activeIndex }: { activeIndex: number }) {
         <a
           data-menu-caption-item
           href={active.href}
-          className="group mt-2.5 inline-flex items-center gap-2 rounded-full text-[10.5px] tracking-[0.2em] text-accent uppercase transition-colors duration-300   md:mt-4 md:gap-2.5"
+          className="group mt-2.5 inline-flex items-center gap-2 rounded-full text-[10.5px] tracking-[0.2em] text-accent uppercase transition-colors duration-300 md:mt-4 md:gap-2.5"
         >
           Jelajahi Paket
           <span

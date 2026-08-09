@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { MENU_CHOICES } from "./menu-data"
+import { MENU_CHOICES } from "../menu-data"
 import { MenuListItem } from "./menu-list-item"
 
 /**
@@ -32,7 +32,7 @@ export function MenuList({
       role="group"
       aria-label="Daftar paket menu"
       onKeyDown={handleKeyDown}
-      className={cn("flex gap-2 flex-col")}
+      className={cn("flex flex-col gap-2")}
     >
       {MENU_CHOICES.map((item, index) => (
         <MenuListItem

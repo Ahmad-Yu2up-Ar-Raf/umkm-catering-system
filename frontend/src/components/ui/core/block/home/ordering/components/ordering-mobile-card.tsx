@@ -1,6 +1,6 @@
 "use client"
 
-import type { OrderStep } from "./ordering-data"
+import type { OrderStep } from "../ordering-data"
 
 type OrderingMobileCardProps = {
   step: OrderStep

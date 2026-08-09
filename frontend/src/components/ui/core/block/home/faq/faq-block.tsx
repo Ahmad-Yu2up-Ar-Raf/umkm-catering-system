@@ -194,7 +194,7 @@ export function FaqsSection() {
       <section
         ref={sectionRef}
         id="faq"
-        className="container min-h-lvh content-center space-y-10 px-0 py-20 md:space-y-10 md:pt-30"
+        className="container min-h-lvh content-center space-y-10 px-0 py-20 md:space-y-10 md:pt-30 md:pb-0"
       >
         <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-5 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
           <div className="flex w-full flex-col gap-y-1">

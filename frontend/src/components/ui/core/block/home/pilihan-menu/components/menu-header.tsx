@@ -16,7 +16,10 @@ export function MenuHeader() {
         <p className="mb-3 text-[11px] uppercase tracking-[0.34em] text-primary">
           Pilihan Menu
         </p>
-        <h2 className="font-heading text-[clamp(30px,3.8vw,54px)] leading-[0.95] font-light tracking-[-0.02em] text-foreground">
+        <h2 className="font-heading text-[clamp(30px,3.8vw,54px)] leading-[0.95] font-light tracking-[-0.02em] text-foreground "
+
+        
+        >
           <span className="contents">
             <span className="inline-block">Cita&nbsp;</span>
             <span className="inline-block">rasa&nbsp;</span>

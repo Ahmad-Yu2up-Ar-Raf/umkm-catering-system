@@ -2,7 +2,7 @@
 
 import { LazyMotion, domAnimation, m } from "framer-motion"
 
-import { ORDER_STEPS } from "./ordering-data"
+import { ORDER_STEPS } from "../ordering-data"
 import OrderingMobileCard from "./ordering-mobile-card"
 
 /**
@@ -34,7 +34,7 @@ function OrderingMobileTimeline() {
             {/* Node dot, seated on the hairline. */}
             <span
               aria-hidden="true"
-              className="absolute -left-7.75 top-1.5 size-3 rounded-full border-2 border-background  bg-primary"
+              className="absolute top-1.5 -left-7.75 size-3 rounded-full border-2 border-background bg-primary"
             />
             <OrderingMobileCard step={step} />
           </m.div>

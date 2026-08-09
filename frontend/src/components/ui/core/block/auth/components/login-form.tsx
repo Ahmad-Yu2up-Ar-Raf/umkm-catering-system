@@ -42,10 +42,10 @@ export default function LoginForm({ form, isLoading }: componentProps) {
         type="submit"
         size={"lg"}
         variant={"default"}
-        className="w-full cursor-pointer rounded-2xl "
+        className="w-full cursor-pointer   "
         disabled={isLoading}
       >
-        <span className="font-bold  ">Login</span>
+        <span className="font-bold   ">Login</span>
         {isLoading && (
           <>
             <Spinner className="text-primary-foreground" />

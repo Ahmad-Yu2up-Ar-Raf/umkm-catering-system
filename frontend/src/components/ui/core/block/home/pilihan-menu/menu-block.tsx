@@ -8,9 +8,9 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
 import { AUTO_ADVANCE_MS, MENU_CHOICES } from "./menu-data"
-import { MenuHeader } from "./menu-header"
-import { MenuList } from "./menu-list"
-import { MenuGallery } from "./menu-gallery"
+import { MenuHeader } from "./components/menu-header"
+import { MenuList } from "./components/menu-list"
+import { MenuGallery } from "./components/menu-gallery"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
@@ -149,15 +149,15 @@ export function PilihanMenuBlock() {
     <section
       ref={sectionRef}
       id="pilihan-menu"
-      className="relative overflow-hidden bg-gradient-to-b from-muted via-secondary to-background py-10 md:pt-17"
+      className="relative overflow-hidden pb-20 md:pt-10 md:pb-30"
     >
       {/* Soft warm halo above — token-driven (background light, never raw color). */}
-      <div
+      {/* <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_85%,transparent),transparent_85%)]"
-      />
+      /> */}
 
-      <div className="relative z-30 container flex flex-col justify-center  md:gap-4">
+      <div className="relative z-30 container flex flex-col justify-center md:gap-4">
         <div data-menu-header>
           <MenuHeader />
         </div>
