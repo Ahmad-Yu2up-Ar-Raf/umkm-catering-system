@@ -138,26 +138,34 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
           ref={eyebrowRef}
           className="relative mb-10 flex w-full max-w-xs items-center gap-4 text-xs tracking-[0.34em] text-primary uppercase sm:max-w-md"
         >
-          <div aria-hidden="true" data-eyebrow-line className="h-px w-full flex-1 bg-primary" />
-          <p className="flex w-fit flex-col whitespace-nowrap text-[10px] sm:flex-row sm:gap-2 sm:text-xs">
+          <div
+            aria-hidden="true"
+            data-eyebrow-line
+            className="h-px w-full flex-1 bg-primary"
+          />
+          <p className="flex w-fit flex-col text-[10px] whitespace-nowrap sm:flex-row sm:gap-2 sm:text-xs">
             <span>Sejak 2024</span>
             <span className="hidden sm:inline"> · </span>
             <span>Bogor</span>
           </p>
-          <div aria-hidden="true" data-eyebrow-line className="h-px w-full flex-1 bg-primary" />
+          <div
+            aria-hidden="true"
+            data-eyebrow-line
+            className="h-px w-full flex-1 bg-primary"
+          />
         </div>
 
         {/* Word-mask title — compact editorial scale, lightweight. */}
         <h2
           ref={titleRef}
-          className="min-w-0 leading-[1.15] font-light tracking-tight text-balance text-foreground text-3xl md:text-4xl lg:text-7xl"
+          className="min-w-0 text-4xl leading-[1] font-light tracking-tight text-balance text-foreground lg:text-7xl"
         >
           {TITLE_LINES.map((line, lineIndex) => (
             <span key={lineIndex} className="block">
               {line.map((word, wordIndex) => (
                 <span
                   key={wordIndex}
-                  className="-mb-[0.12em] inline-block overflow-hidden px-2 pb-[0.12em] align-bottom "
+                  className="-mb-[0.12em] inline-block overflow-hidden px-2 pb-[0.12em] align-bottom"
                 >
                   <span
                     data-pw

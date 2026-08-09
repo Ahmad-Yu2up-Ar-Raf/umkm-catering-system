@@ -35,20 +35,19 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
   {
     id: "paket-menu",
     label: "Paket & Menu",
-    description: "Isi paket · harga · kustomisasi",
+    description: "Isi · harga · kustom",
   },
   {
     id: "acara-layanan",
     label: "Acara & Layanan",
-    description: "Jenis acara · korporat · kapasitas",
+    description: "Event · skala · fasilitas",
   },
   {
     id: "pembayaran-struk",
     label: "Pembayaran & Struk",
-    description: "Transfer · uang muka · struk resmi",
+    description: "Transfer · DP · struk resmi",
   },
 ]
-
 export const FAQ_ITEMS: FaqItem[] = [
   /* ─────────────────────────── Pemesanan & Pengiriman ─────────────────────────── */
   {

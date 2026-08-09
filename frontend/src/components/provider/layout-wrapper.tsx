@@ -1,12 +1,12 @@
 import ReactLenis from "lenis/react"
-import SiteFooter from "../ui/core/layout/nav/site-footer"
+import SiteFooter from "../ui/core/layout/site-footer"
 import SiteBorder from "../ui/core/layout/nav/site-border"
 import { SiteHeader } from "../ui/core/layout/nav/site-header"
 import { Outlet } from "react-router"
 
 import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
-import ContactBlock from "../ui/core/block/home/contact/contact-block"
+import CTABlock from "../ui/core/layout/cta-block"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ScrollToTop } from "./scroll-to-top"
 
@@ -16,6 +16,7 @@ export function LayoutWrapper() {
   // lifts.
   const preloaderDone = usePreloaderStore((s) => s.done)
   const isMobile = useIsMobile()
+
   return (
     <ReactLenis root>
       {/* Global scroll restoration — resets to the top on every route change
@@ -38,10 +39,10 @@ export function LayoutWrapper() {
           )}
         >
           <Outlet />
-          {preloaderDone && <ContactBlock />}
-          <div className="pointer-events-none absolute inset-0  top-0   bg-linear-to-t from-background/0 via-background/0 to-background md:hidden h-200" />
+          {preloaderDone && <CTABlock />}
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-linear-to-t from-background/0 via-background/80 to-background md:hidden" />
 
-          <div className="pointer-events-none hidden md:inline fixed inset-0 top-0 h-150 bg-linear-to-t from-background/0 via-background/0 to-background   md:h-50" />
+          <div className="pointer-events-none fixed inset-0 top-0 hidden h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:inline md:h-50" />
         </div>
       </div>
       {preloaderDone && (

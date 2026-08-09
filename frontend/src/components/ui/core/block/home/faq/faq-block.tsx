@@ -194,7 +194,7 @@ export function FaqsSection() {
       <section
         ref={sectionRef}
         id="faq"
-        className="container min-h-lvh content-center space-y-10 py-20 px-0 md:pt-30  md:space-y-10"
+        className="container min-h-lvh content-center space-y-10 px-0 py-20 md:space-y-10 md:pt-30"
       >
         <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-5 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
           <div className="flex w-full flex-col gap-y-1">
@@ -206,7 +206,7 @@ export function FaqsSection() {
                 </BlurReveal>
               </p>
             </div>
-            <h2 className="w-full font-serif text-3xl md:text-4xl md:leading-14 lg:text-5xl">
+            <h2 className="w-full font-serif text-4xl md:leading-14 lg:text-5xl">
               <BlurReveal
                 as="span"
                 className="block"
@@ -228,7 +228,7 @@ export function FaqsSection() {
 
           <BlurReveal
             as="p"
-            className="text-xs leading-relaxed text-muted-foreground sm:w-1/2 md:text-sm"
+            className=" leading-relaxed text-muted-foreground sm:w-1/2 text-sm"
             amount={0.3}
           >
             Semua yang perlu Anda tahu sebelum merayakan momen bersama kami —
@@ -261,7 +261,7 @@ export function FaqsSection() {
               openItem={openItem}
               onOpenChange={setOpenItem}
             />
-            <FaqCta className="order-last mt-12 px-5 md:hidden md:px-0" />
+            <FaqCta className="order-last mt-9 px-5 md:hidden md:px-0" />
           </div>
         </div>
       </section>

@@ -47,9 +47,9 @@ function AboutBlock() {
     <section
       ref={sectionRef}
       id="tentang-kami"
-      className="container content-center py-20 lg:pb-25 lg:py-0 lg:pt-30"
+      className="container content-center py-15 lg:py-0 lg:pt-30 lg:pb-25"
     >
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+      <div className="flex flex-col gap-11 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         {/* Teks Filosofi Us - Kiri */}
         <header className="flex w-full flex-1 flex-col gap-y-6 md:gap-y-9">
           {/* Judul */}
@@ -62,7 +62,7 @@ function AboutBlock() {
                 </BlurReveal>
               </p>
             </div>
-            <h2 className="w-full font-serif text-3xl md:text-4xl md:leading-14 lg:text-5xl">
+            <h2 className="w-full font-serif text-4xl md:leading-14 lg:text-5xl">
               <BlurReveal
                 as="span"
                 className="block"
@@ -85,12 +85,12 @@ function AboutBlock() {
           {/* Deskripsi - lebih singkat */}
           <BlurReveal
             as="p"
-            className="text-xs leading-relaxed text-muted-foreground md:text-sm"
+            className="text-sm leading-relaxed text-muted-foreground md:text-base md:text-[16px]"
             amount={0.3}
           >
             Sejak 2024, Catering Nusantara hadir dari dapur keluarga di Bogor,
             dimasak segar dengan sepenuh hati untuk Anda. Kami percaya hidangan
-            terbaik yang itu penting.
+            terbaik itu penting.
           </BlurReveal>
         </header>
 
@@ -106,7 +106,7 @@ function AboutBlock() {
               src="/assets/images/about/tumpeng-from-top.png"
               alt="Tumpeng nasi kuning khas Nusantara dilihat dari atas"
               loading="lazy"
-              className="h-full w-full md:scale-110 object-contain drop-shadow-xl"
+              className="h-full w-full object-contain drop-shadow-xl md:scale-110"
             />
           </div>
         </div>

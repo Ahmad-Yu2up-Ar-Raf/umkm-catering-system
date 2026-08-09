@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { MouseEvent as ReactMouseEvent } from "react"
 
 import { AnimatePresence, motion } from "framer-motion"
@@ -11,6 +11,11 @@ import { NavbarLogo } from "./app-logo"
 import { NavBody, NavItems, Navbar } from "./components/navbar"
 
 import { cn } from "@/lib/utils"
+import {
+  resetOrderingTimeline,
+  resolveScrollTarget,
+  sectionScrollOffset,
+} from "@/lib/hash-scroll"
 
 import { Link, useLocation, useNavigate } from "react-router"
 import { WhatsappIcon } from "@hugeicons/core-free-icons"
@@ -45,9 +50,9 @@ function HamburgerButton({
       onClick={onClick}
       aria-label={open ? "Tutup menu" : "Buka menu"}
       aria-expanded={open}
-        size={"icon"}
+        size={"default"}
       variant={"outline"}
-      className="flex p-2 scale-80  items-center justify-center rounded-full border   border-primary/20   transition-colors duration-300 "
+      className="flex p-2 scale-90  items-center justify-center rounded-full border   border-primary/20   transition-colors duration-300 "
     >
       <span
         className="relative flex h-3 w-5 flex-col justify-between"
@@ -82,20 +87,42 @@ function HamburgerButton({
 function MobileBar({
   open,
   onToggle,
+  onClose,
   onNavigate,
   onContact,
   visible,
 }: {
   open: boolean
   onToggle: () => void
+  onClose: () => void
   onNavigate: (e: ReactMouseEvent<HTMLAnchorElement>, hash: string) => void
   onContact: () => void
   visible?: boolean
 }) {
   const glassed = visible || open
+  // The whole bar (trigger + drawer) is the "inside" region: any pointer press
+  // landing OUTSIDE it, or an Escape keypress, closes the open drawer.
+  const barRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onPointerDown = (e: PointerEvent) => {
+      if (!barRef.current?.contains(e.target as Node)) onClose()
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
+    }
+    document.addEventListener("pointerdown", onPointerDown)
+    document.addEventListener("keydown", onKeyDown)
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown)
+      document.removeEventListener("keydown", onKeyDown)
+    }
+  }, [open, onClose])
 
   return (
     <div
+      ref={barRef}
       className={cn(
         "relative container mx-auto flex items-center justify-between gap-3 px-2 py-2 transition-all duration-300 lg:hidden",
         glassed &&
@@ -186,29 +213,24 @@ export function SiteHeader({ className }: { className?: string }) {
       window.history.pushState(null, "", `/${section}`)
       const targetEl = document.querySelector<HTMLElement>(section)
       if (!targetEl) return
-      // #cara-pesan is pinned — scrolled past its pin, the element's own rect
-      // sits at the END of the .pin-spacer (post-timeline = step 07), so
-      // target the SPACER top instead = step 01. Pinned/tall targets always
-      // TOP-align below the fixed header; shorter standard sections get exact
-      // vertical centering.
-      const scrollTarget =
-        targetEl.closest<HTMLElement>(".pin-spacer") ?? targetEl
-      const targetHeight = scrollTarget.getBoundingClientRect().height
-      const isTallElement =
-        targetHeight > window.innerHeight || targetEl.id === "cara-pesan"
-      const dynamicOffset = isTallElement
-        ? -96
-        : -((window.innerHeight - targetHeight) / 2)
+      // Pinned #cara-pesan always lands on the SPACER top (step 01) — never its
+      // own post-pin rect (step 07) — and its scrubbed timeline is snapped to 0
+      // so a jump FROM BELOW can't reverse-rewind Step 07 → 01.
+      const scrollTarget = resolveScrollTarget(targetEl)
+      const offset = sectionScrollOffset(scrollTarget, targetEl)
       if (lenis) {
         // INSTANT teleport — snaps like a raw anchor jump, never smooth.
         lenis.scrollTo(scrollTarget, {
           immediate: true,
           force: true,
           lock: true,
-          offset: dynamicOffset,
+          offset,
         })
       } else {
         scrollTarget.scrollIntoView({ behavior: "instant", block: "center" })
+      }
+      if (targetEl.id === "cara-pesan") {
+        resetOrderingTimeline(targetEl)
       }
     } else {
       navigate({ pathname: "/", hash: section })
@@ -222,6 +244,9 @@ export function SiteHeader({ className }: { className?: string }) {
     e: ReactMouseEvent<HTMLAnchorElement>,
     hash: string
   ) => {
+    // Close the drawer on EVERY click — section anchors AND real page routes
+    // like /kontak (the caller below returns before jumpToSection would run).
+    setMenuOpen(false)
     if (!hash.startsWith("#") && !hash.startsWith("/#")) return
     e.preventDefault()
     jumpToSection(hash)
@@ -251,6 +276,7 @@ export function SiteHeader({ className }: { className?: string }) {
       <MobileBar
         open={menuOpen}
         onToggle={() => setMenuOpen((o) => !o)}
+        onClose={() => setMenuOpen(false)}
         onNavigate={handleNavClick}
         onContact={() => jumpToSection("#kontak")}
       />

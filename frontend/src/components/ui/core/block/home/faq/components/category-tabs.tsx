@@ -46,7 +46,7 @@ function CategoryDescription({ text }: { text: string }) {
   return (
     <span
       ref={ref}
-      className="block text-[12px] font-light text-muted-foreground/80"
+      className="block text-sm font-light text-muted-foreground/80"
     >
       {text}
     </span>
@@ -138,7 +138,7 @@ export function CategoryTabs({
 
                 <span
                   className={cn(
-                    "text-sm text-foreground/80 transition-colors duration-300 ease-out",
+                    "text-base text-foreground/80 transition-colors duration-300 ease-out",
                     !isActive && "text-muted-foreground/40"
                   )}
                 >

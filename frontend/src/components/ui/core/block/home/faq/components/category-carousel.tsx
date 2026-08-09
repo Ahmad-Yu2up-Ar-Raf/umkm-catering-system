@@ -31,7 +31,7 @@ export function CategoryCarousel({
   return (
     <Carousel
       opts={{ align: "start", dragFree: true, containScroll: "trimSnaps" }}
-      className={cn("w-full ", className)}
+      className={cn("w-full", className)}
     >
       <CarouselContent className="ml-2.5">
         {categories.map((cat) => {
@@ -42,10 +42,9 @@ export function CategoryCarousel({
                 data-faq-cat
                 onClick={() => onSelect(cat.id)}
                 variant={isActive ? "default" : "outline"}
-                size="sm"
                 aria-pressed={isActive}
                 className={cn(
-                  "rounded-full text-xs whitespace-nowrap opacity-0",
+                  "rounded-full text-sm whitespace-nowrap opacity-0",
                   isActive
                     ? "text-primary-foreground"
                     : "border-border bg-input/30 text-muted-foreground hover:bg-input/50 hover:text-foreground"

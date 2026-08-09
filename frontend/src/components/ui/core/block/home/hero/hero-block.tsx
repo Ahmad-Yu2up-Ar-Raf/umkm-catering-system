@@ -70,7 +70,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
         <Floating sensitivity={-0.5} timeline={heroTl} className="h-full">
           <FloatingElement depth={1} className="top-[0%] left-[3%]">
             <div
-              className="relative h-36 w-35 -rotate-12 overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-36 sm:w-48 md:h-44 md:w-56 lg:h-67 lg:w-55"
+              className="relative h-36 w-30 -rotate-12 overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-36 sm:w-48 md:h-44 md:w-56 lg:h-67 lg:w-55"
               // Use will-change sparingly
               style={{ willChange: "transform, opacity" }}
             >
@@ -95,7 +95,9 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
               <MediaItem
                 className="h-full w-full cursor-zoom-in"
 
-                webViewLink={"/assets/images/products/ai-generated/wedding.png"}
+                webViewLink={
+                  "/assets/images/products/ai-generated/paket-prasmanan-nikahan/paket-prasmanan-nikahan-2.png"
+                }
               />
             </div>
           </FloatingElement>
@@ -105,14 +107,14 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             className="top-[0%] left-[68%] md:top-[2%] md:left-[89%]"
           >
             <div
-              className="h-36 w-35 rotate-12 overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-44 sm:w-48 md:h-52 md:w-60 lg:h-67 lg:w-55"
+              className="h-36 w-32 rotate-12 overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-44 sm:w-48 md:h-52 md:w-60 lg:h-67 lg:w-55"
               style={{ willChange: "transform, opacity" }}
             >
               <MediaItem
                 className="h-full w-full cursor-zoom-in"
 
                 webViewLink={
-                  "/assets/images/products/ai-generated/paket-ulang-tahun.png"
+                  "/assets/images/products/ai-generated/paket-tumpeng-mini/paket-tumpeng-mini-2.png"
                 }
               />
             </div>
@@ -251,7 +253,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 <OriginButton
                   intensity={0.8}
                   range={120}
-                  className="group border border-primary/40 bg-muted text-xs tracking-widest uppercase sm:border-2 sm:border-primary sm:bg-transparent"
+                  className="group border border-primary/40 text-xs tracking-widest uppercase sm:border-2 sm:border-primary"
                 >
                   Jelajahi Menu
                   <HugeiconsIcon

@@ -51,11 +51,11 @@ export function FaqCta({ className }: { className?: string }) {
     <div
       ref={ref}
       data-faq-cta
-      className={cn("flex flex-col items-start gap-5", className)}
+      className={cn("flex flex-col items-start gap-6", className)}
     >
       <span
         data-faq-cta-line
-        className="text-xs font-light text-muted-foreground/80"
+        className="text-sm md:text-[14px] pl-1 font-light text-muted-foreground/80"
       >
         Masih ada yang ingin ditanyakan?
       </span>

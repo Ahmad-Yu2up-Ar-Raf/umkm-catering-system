@@ -1,7 +1,7 @@
 import React from "react"
 
 import { cn } from "@/lib/utils"
-import { useIsMobile } from "@/hooks/use-mobile"
+
 import { Link } from "react-router"
 import Logo from "@/components/svg/app-logo-svg"
 
@@ -40,8 +40,6 @@ const footerColumns = [
 ]
 
 export default function SiteFooter({ className, ...props }: StickyFooterProps) {
-  const isMobile = useIsMobile()
-
   return (
     <footer
       className={cn(
@@ -55,7 +53,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
         {/* Add padding-bottom on mobile to account for navbar height (min-h-[9svh]) */}
         <div
           className={cn(
-            "z-99999999999999999  sticky z-50 container flex h-full flex-col justify-end px-5"
+            "z-99999999999999999 sticky z-50 container flex h-full flex-col justify-end px-5"
           )}
         >
           <div className="grid grid-cols-2 gap-5 border-b pb-6 sm:gap-8 md:grid-cols-4 md:pb-15 lg:flex lg:grid-cols-4 lg:justify-between">
@@ -71,8 +69,8 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
                 </Link>
               </div>
               <p className="text- mb-3 text-sm leading-relaxed text-foreground/60 md:mb-6 md:text-sm">
-                Memberdayakan bisnis dengan solusi yang andal, skalabel, dan
-                inovatif.
+                Menghadirkan kelezatan autentik Nusantara dengan standar
+                kualitas tinggi untuk setiap momen istimewa Anda.
               </p>
             </div>
 

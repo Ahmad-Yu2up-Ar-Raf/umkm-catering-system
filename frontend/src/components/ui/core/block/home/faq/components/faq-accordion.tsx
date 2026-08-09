@@ -74,7 +74,7 @@ function RichText({ text }: { text: string }) {
   }
 
   return (
-    <div className="space-y-3 text-xs sm:text-base">
+    <div className="space-y-3 text-sm sm:text-base">
       {blocks.map((block, bi) => {
         if (block.type === "ul") {
           return (
@@ -277,7 +277,7 @@ export function FaqAccordion({
                 {/* Relative wrapper = the trigger row ONLY. The indicator is
                     absolutely scoped to this box, never to the content. */}
                 <div className="relative">
-                  <AccordionTrigger className="group/accordion-trigger px-4 font-sans text-sm hover:no-underline **:data-[slot=accordion-trigger-icon]:hidden md:text-base">
+                  <AccordionTrigger className="group/accordion-trigger px-4 font-sans   hover:no-underline **:data-[slot=accordion-trigger-icon]:hidden text-base">
                     <span
                       className={cn(
                         "flex-1 text-foreground/90 transition-all duration-300 ease-out group-hover:translate-x-2"

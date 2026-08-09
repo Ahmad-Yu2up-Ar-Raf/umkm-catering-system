@@ -1,44 +1,44 @@
 import HomePage from "@/pages/home-page"
-import LoginPage from "@/pages/auth/login-page"
 
 import { createBrowserRouter } from "react-router"
 import DashboardPage from "@/pages/admin/dashboard-page"
 import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
 import { LayoutWrapper } from "@/components/provider/layout-wrapper"
 import ContactPage from "@/pages/contact/contact-page"
+import LoginBlock from "@/components/ui/core/block/auth/login-block"
 
 export const router = createBrowserRouter([
+  {
+    element: <GuestGuard />,
+    children: [
+      {
+        path: "/login",
+        element: <LoginBlock />,
+      },
+    ],
+  },
   {
     element: <LayoutWrapper />,
     children: [
       {
-        element: <GuestGuard />,
-        children: [
-          {
-            path: "/",
-            element: <HomePage />,
-          },
-          {
-            path: "/kontak",
-            element: <ContactPage />,
-          },
-          {
-            path: "/login",
-            element: <LoginPage />,
-          },
-        ],
+        path: "/",
+        element: <HomePage />,
       },
       {
-        element: <AuthenticatedGuard />,
+        path: "/kontak",
+        element: <ContactPage />,
+      },
+    ],
+  },
+  {
+    element: <AuthenticatedGuard />,
+    children: [
+      {
+        path: "/dashboard",
         children: [
           {
-            path: "/dashboard",
-            children: [
-              {
-                index: true,
-                element: <DashboardPage />,
-              },
-            ],
+            index: true,
+            element: <DashboardPage />,
           },
         ],
       },

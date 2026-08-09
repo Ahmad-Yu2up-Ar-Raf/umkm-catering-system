@@ -29,7 +29,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
  *  - CTA: scale-up + fade, just after the title reads.
  * All easing reuses the shared luxury cubic-bezier / power3.out family.
  */
-function ContactBlock() {
+function CTABlock() {
   const sectionRef = useRef<HTMLElement>(null)
   const eyebrowRef = useRef<HTMLDivElement>(null)
   const eyebrowLineLRef = useRef<HTMLDivElement>(null)
@@ -162,4 +162,4 @@ function ContactBlock() {
   )
 }
 
-export default ContactBlock
+export default CTABlock

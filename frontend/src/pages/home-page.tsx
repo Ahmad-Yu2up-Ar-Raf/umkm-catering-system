@@ -7,11 +7,17 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { ScrollTrigger } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
+import {
+  resetOrderingTimeline,
+  resolveScrollTarget,
+  sectionScrollOffset,
+} from "@/lib/hash-scroll"
 import { HeroBlock } from "@/components/ui/core/block/home/hero/hero-block"
 import { Preloader } from "@/components/motion/preloader"
 import AboutBlock from "@/components/ui/core/block/home/about/about-block"
 import { FaqsSection } from "@/components/ui/core/block/home/faq/faq-block"
 import OrderingBlock from "@/components/ui/core/block/home/ordering/ordering-block"
+import { PilihanMenuBlock } from "@/components/ui/core/block/home/pilihan-menu/menu-block"
 import TestimonialBlock from "@/components/ui/core/block/home/testimonial/testimonial-block"
 
 const PRELOADER_FLAG = "hasSeenPreloader"
@@ -128,38 +134,37 @@ function HomePage() {
 
     const tryTeleport = () => {
       if (cancelled) return
-      // Step 2 — the OrderingBlock's pin-spacer (~+3000px) must exist, proving
-      // the heavy GSAP layout is mounted and the document height is real.
-      // (Reduced motion creates no pin, so skip straight to the teleport.)
+      // Step 2 — on DESKTOP the OrderingBlock's pin-spacer (~+3000px) must exist
+      // (proves the heavy GSAP layout is mounted / the document height real).
+      // On mobile the ordering section is unpinned (nothing to wait for) and
+      // reduced motion creates no pin, so skip straight to the teleport.
+      const pinEnabled = window.matchMedia("(min-width: 768px)").matches
       const hasPinSpacer = !!document.querySelector(".pin-spacer")
-      if (!hasPinSpacer && !reduced && attempts < 50) {
+      if (!hasPinSpacer && !reduced && pinEnabled && attempts < 50) {
         attempts++
         requestAnimationFrame(tryTeleport)
         return
       }
 
-      // Step 3 — align. #cara-pesan is pinned inside a `.pin-spacer`; once the
-      // page has scrolled past the pin, the section's OWN rect drifts to the
-      // END of the spacer (post-timeline = step 07), so target the SPACER top —
-      // the timeline's step 01. Pinned/tall targets top-align below the fixed
-      // header; shorter standard sections (faq, testimoni) get exact centering.
-      const scrollTarget =
-        listenTarget.closest<HTMLElement>(".pin-spacer") ?? listenTarget
-      const targetHeight = scrollTarget.getBoundingClientRect().height
-      const isTallElement =
-        targetHeight > window.innerHeight || listenTarget.id === "cara-pesan"
-      const dynamicOffset = isTallElement
-        ? -96
-        : -((window.innerHeight - targetHeight) / 2)
+      // Step 3 — align. Pinned/tall targets (≥85% viewport, #cara-pesan) TOP
+      // align below the fixed header; short standard sections (faq, testimoni)
+      // get exact vertical centering. #cara-pesan lands on the SPACER top.
+      const scrollTarget = resolveScrollTarget(listenTarget)
+      const offset = sectionScrollOffset(scrollTarget, listenTarget)
       if (lenis) {
         lenis.scrollTo(scrollTarget, {
           immediate: true,
           force: true,
           lock: true,
-          offset: dynamicOffset,
+          offset,
         })
       } else {
         scrollTarget.scrollIntoView({ behavior: "instant", block: "center" })
+      }
+      // Snap the scrubbed ordering timeline to 0 when landing on the pin, so a
+      // jump from below never reverse-scrubs Step 07 → 01.
+      if (listenTarget.id === "cara-pesan") {
+        resetOrderingTimeline(listenTarget)
       }
 
       // Fade the mask, then unmount it completely.
@@ -222,6 +227,7 @@ function HomePage() {
         <main>
           <HeroBlock preloaderDone={preloaderDone} />
           <AboutBlock />
+          <PilihanMenuBlock />
           <OrderingBlock />
           <TestimonialBlock />
           <FaqsSection />
