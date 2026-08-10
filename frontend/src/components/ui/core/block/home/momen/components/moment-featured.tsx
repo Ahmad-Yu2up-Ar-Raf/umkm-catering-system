@@ -124,7 +124,7 @@ export function MomentFeatured({
   return (
     <div
       ref={ref}
-      className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(52vh,520px)]"
+      className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(42vh,520px)]"
     >
       {/* Stacked photos — only the active one is visible at any time. */}
       {MOMENT_ITEMS.map((item, index) => (
@@ -149,7 +149,7 @@ export function MomentFeatured({
       />
 
       {/* Caption + pagination pills (exact reference structure). */}
-      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-6 text-left sm:p-9">
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-6 text-left sm:p-9 md:pb-8">
         <div className="min-w-0">
           <p
             data-moment-caption

@@ -35,7 +35,7 @@ export function LayoutWrapper() {
       >
         <div
           className={cn(
-            "relative mx-auto flex h-full w-full flex-col content-center gap-10 overflow-x-hidden sm:gap-8 md:overflow-visible lg:gap-25"
+            "relative mx-auto flex h-full w-full flex-col content-center gap-10 overflow-x-hidden sm:gap-8 md:overflow-visible "
           )}
         >
           <Outlet />

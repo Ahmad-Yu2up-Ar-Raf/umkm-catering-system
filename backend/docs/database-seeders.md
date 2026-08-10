@@ -13,9 +13,10 @@
 
 ## 1. Overview & Scope
 
-- **Tables seeded:** `paket` + `paket_images`. One folder under `frontend/public/assets/images/products` = one package (15 folders on disk). `users` (admin test user) via `DatabaseSeeder`.
-- **Image strategy:** Local product photography is uploaded to **Cloudinary** during seeding via Laravel's native `Http` client (`POST /v1_1/{cloud}/image/upload`, HTTP **Basic Auth** with `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET`) — **zero SDK dependencies**. The 1st upload's `secure_url` → `paket.thumbnail`; the 1st + 2nd uploads → `paket_images.image_url`.
-- **Data source:** each folder slug is cross-referenced against `menu-data.ts` (`id`/`title`/`description`) for display text; the 5 documented packages below keep their exact client data. Unmatched folders get realistic Faker mock data (Indonesian menu pools).
+- **Tables seeded:** `paket` + `paket_images`. One folder under `frontend/public/assets/images/products` = one package (exactly 15 folders on disk). `users` (admin test user) via `DatabaseSeeder`.
+- **Image strategy:** Local product photography is uploaded to **Cloudinary** during seeding via Laravel's native `Http` client (`POST /v1_1/{cloud}/image/upload`, HTTP **Basic Auth** with `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET`) — **zero SDK dependencies**. **2–3 images per folder** (min 2, max 3; a folder with exactly 2 uses both). The 1st upload's `secure_url` → `paket.thumbnail`; **all** uploaded `secure_url`s → `paket_images.image_url`.
+- **Clean slate:** the seeder first **purges** every asset under `catering-nusantara/products/` (Admin API delete-by-prefix, paginated via `next_cursor`) so re-seeding never duplicates or accumulates stale assets.
+- **Data source:** no Faker. The 5 documented packages below keep their exact client data; the other 10 folders use hand-curated inference (names/descriptions/prices derived from each folder's name and photography).
 - **Cloudinary layout:** images upload to folder `catering-nusantara/products/{folder-slug}` — never the Cloudinary root.
 - **Idempotency:** `PaketSeeder` uses `updateOrCreate(nama_paket)` and wipes each paket's `paket_images` before re-inserting — re-running is safe.
 - **Enums used:** `PaketKategoriEnum` (Nasi Box / Prasmanan / Snack / Tumpeng), `KategoriAcaraEnum` (Pernikahan / Kantor / Ulang Tahun / Arisan / Umum).
@@ -113,13 +114,14 @@ Every product folder under `frontend/public/assets/images/products` is uploaded 
 - **Auth:** HTTP Basic Auth — `api_key` as username, `api_secret` as password (no signature needed).
 - **Transport:** Laravel `Http::attach('file', fopen($path, 'r'), basename($path))` (multipart).
 - **Organized in:** `folder => 'catering-nusantara/products/{folder-slug}'`.
-- **Limit:** at most **2** image files (`.jpg`/`.jpeg`/`.png`/`.webp`) per folder, sorted by name.
-- **Persisted:** 1st upload `secure_url` → `paket.thumbnail`; 1st + 2nd → `paket_images.image_url`.
+- **Limit:** **2–3** image files (`.jpg`/`.jpeg`/`.png`/`.webp`) per folder, sorted by name — min 2 (skip the folder otherwise), max 3.
+- **Persisted:** 1st upload `secure_url` → `paket.thumbnail`; **all** uploads → `paket_images.image_url`.
+- **Cleanup:** before uploading, the seeder purges the whole `catering-nusantara/products/` prefix via `DELETE /v1_1/{cloud}/resources/image/upload?prefix=...` (Admin API, paginated with `next_cursor`) — a clean slate on every run.
 
 Example of a stored `thumbnail` / `image_url`:
 
 ```
-https://res.cloudinary.com/df94cviif/image/upload/v1786338690/catering-nusantara/products/paket-gold-ayam-bakar/h23pm08kbfp3pj8pqnn0.jpg
+https://res.cloudinary.com/df94cviif/image/upload/v1786345393/catering-nusantara/products/paket-tumpeng-mini/kttthrx6iwbf9igqrprm.png
 ```
 
 > **Note:** the previous Unsplash/Pexels harvest strategy was replaced by this local-asset → Cloudinary pipeline (client photography is the brand standard — no generic stock photos).
@@ -131,26 +133,28 @@ https://res.cloudinary.com/df94cviif/image/upload/v1786338690/catering-nusantara
 ```php
 $root = base_path('../frontend/public/assets/images/products'); // == C:\...\frontend\public\assets\images\products
 
-foreach (productFolders($root) as $slug) {          // one folder = one package
-    $images = imagePaths($folder);                  // ≤2 .jpg/.jpeg/.png/.webp, sorted
+purgeCloudinaryAssets();                              // clean slate: delete prefix before upload
+
+foreach (productFolders($root) as $slug) {            // one folder = one package (15 total)
+    $images = imagePaths($folder);                    // 2–3 .jpg/.jpeg/.png/.webp, sorted
     $urls   = $images->map(fn ($p) => uploadToCloudinary($p, $slug)); // Http + Basic Auth → secure_url
 
-    $data = paketData($slug, $menuMap[$slug] ?? null);  // ORIGINALS if known, else Faker
-    $data['thumbnail'] = $urls->first();             // 1st upload → thumbnail
+    $data = paketData($slug);                         // ORIGINALS | INFERRED (no Faker)
+    $data['thumbnail'] = $urls->first();              // 1st upload → thumbnail
 
     $paket = Paket::updateOrCreate(['nama_paket' => $data['nama_paket']], $data);
 
-    PaketImage::where('paket_id', $paket->id)->delete();          // idempotency
+    $paket->images()->delete();                       // idempotency
     $urls->each(fn ($url) => PaketImage::create(['paket_id' => $paket->id, 'image_url' => $url]));
 }
 ```
 
 **Key decisions:**
 - `base_path('../frontend/...')` resolves the exact Windows directory from the monorepo layout (works under native Windows PHP and WSL).
-- `menuMap()` regex-parses `menu-data.ts` → `[imagePath-folder-slug => id/title/description]` for display text on new products.
-- `ORIGINALS` (the 5 client packages, keyed by folder slug) keep their exact data — only `gambar` was dropped in favor of the uploaded `thumbnail`.
-- Folder without images → skipped with a warning (no product without a thumbnail).
-- `updateOrCreate(nama_paket)` + per-paket `paket_images` wipe → idempotent re-seeding.
+- `purgeCloudinaryAssets()` deletes every asset under `catering-nusantara/products/` via the Admin API prefix delete (paginated with `next_cursor`) before any upload — re-seeding always starts clean.
+- `ORIGINALS` (the 5 client packages, keyed by folder slug) are verbatim from this doc; `INFERRED` (the other 10) are hand-curated from folder name + photography — **no Faker**.
+- Folder with <2 images → skipped with a warning; otherwise 2–3 images are used and all are stored in `paket_images`.
+- `updateOrCreate(nama_paket)` + per-paket `images()->delete()` → idempotent re-seeding.
 
 ## 7. DatabaseSeeder Wiring
 
@@ -194,6 +198,9 @@ Factory = fake test data. Seeder = real client data. They never overlap.
 
 ## 9. Run & Verify
 
+> **Ops runbook:** everyday commands (fresh start, re-seed, changing image limits) live in
+> [`seeder-operations.md`](./seeder-operations.md).
+
 ```bash
 # Seed everything (user + paket + gallery)
 php artisan db:seed
@@ -206,13 +213,13 @@ php artisan migrate:fresh --seed
 
 # Verify row counts
 php artisan tinker --execute 'echo \App\Models\Paket::count();'          # 15
-php artisan tinker --execute 'echo \App\Models\PaketImage::count();'     # ≤30 (2 per paket)
+php artisan tinker --execute 'echo \App\Models\PaketImage::count();'     # 39 (2–3 per paket)
 
 # Verify JSON columns decode as arrays
 php artisan tinker --execute 'dump(\App\Models\Paket::first()->menu_utama);'
 ```
 
-**Expected:** `Paket::count()` → `15` (one per image folder), `PaketImage::count()` → `2 × 15 = 30`, every `thumbnail`/`image_url` begins `https://res.cloudinary.com/`. Re-running `db:seed` twice does NOT duplicate `paket` or `paket_images` rows.
+**Expected:** `Paket::count()` → `15` (one per image folder), `PaketImage::count()` → `39` (2–3 per paket), every `thumbnail`/`image_url` begins `https://res.cloudinary.com/`. The seeder purges the Cloudinary prefix first, so the asset count in Cloudinary equals the `paket_images` row count. Re-running `db:seed` twice does NOT duplicate `paket`, `paket_images`, or Cloudinary assets.
 
 ## 10. Business-Rule Checklist (enforced)
 
@@ -221,4 +228,5 @@ php artisan tinker --execute 'dump(\App\Models\Paket::first()->menu_utama);'
 - ✅ JSON arrays validated & cast (no junction tables)
 - ✅ `kategori_paket` / `kategori_acara` backed by enums + `Rule::enum()`
 - ✅ Single approved gallery table added: `paket_images` (FK `paket_id` cascade delete) — `testimoni`/`faq` still rejected
+- ✅ Seeder purges the Cloudinary `catering-nusantara/products/` prefix before upload — no stale assets or duplicates accumulate
 - ✅ `thumbnail`/`image_url` = Cloudinary secure URLs (real client photography, no stock photos)

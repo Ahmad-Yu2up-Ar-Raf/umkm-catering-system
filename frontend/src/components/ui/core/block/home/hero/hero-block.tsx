@@ -96,7 +96,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 className="h-full w-full cursor-zoom-in"
 
                 webViewLink={
-                  "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-2.png"
+                  "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-1.png"
                 }
               />
             </div>

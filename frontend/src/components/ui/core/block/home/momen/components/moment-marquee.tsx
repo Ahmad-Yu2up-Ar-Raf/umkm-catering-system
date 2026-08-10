@@ -69,7 +69,7 @@ export function MomentMarquee({
               aria-pressed={isActive}
               onClick={() => onSelect(realIndex)}
               className={cn(
-                "group/card relative mr-3 aspect-[4/3] w-[170px] shrink-0 overflow-hidden rounded-2xl ring-1 transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-xl hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-[180px]",
+                "group/card relative mr-3 aspect-[4/3] w-[170px] shrink-0 overflow-hidden rounded-2xl ring-1 transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-xl hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-[190px]",
                 isActive ? "ring-primary/60" : "ring-border"
               )}
             >
