@@ -11,6 +11,7 @@ import { AUTO_ADVANCE_MS, MENU_CHOICES } from "./menu-data"
 import { MenuHeader } from "./components/menu-header"
 import { MenuList } from "./components/menu-list"
 import { MenuGallery } from "./components/menu-gallery"
+import { Link } from "react-router"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
@@ -149,7 +150,7 @@ export function PilihanMenuBlock() {
     <section
       ref={sectionRef}
       id="pilihan-menu"
-      className="relative overflow-hidden pb-20   md:py-25"
+      className="relative overflow-hidden pb-20 md:py-25"
     >
       {/* Soft warm halo above — token-driven (background light, never raw color). */}
       {/* <div
@@ -180,17 +181,19 @@ export function PilihanMenuBlock() {
         {/* Mobile CTA — at the very bottom of the section, always reachable
             after scrolling the menu list. Hidden on md+ (header owns it). */}
         <div className="mt-9 flex justify-center md:hidden">
-          <OriginButton
-            intensity={0.8}
-            range={120}
-            className="group border border-primary/40 bg-muted text-xs tracking-widest uppercase sm:border-2 sm:border-primary sm:bg-transparent"
-          >
-            Lihat Menu Lengkap
-            <HugeiconsIcon
-              icon={ArrowRight}
-              className="z-[9] size-4 fill-none transition-transform duration-700 ease-out group-hover:translate-x-1"
-            />
-          </OriginButton>
+          <Link to={'/paket'}>
+            <OriginButton
+              intensity={0.8}
+              range={120}
+              className="group border border-primary/40 bg-muted text-xs tracking-widest uppercase sm:border-2 sm:border-primary sm:bg-transparent"
+            >
+              Lihat Menu Lengkap
+              <HugeiconsIcon
+                icon={ArrowRight}
+                className="z-[9] size-4 fill-none transition-transform duration-700 ease-out group-hover:translate-x-1"
+              />
+            </OriginButton>
+          </Link>
         </div>
       </div>
     </section>

@@ -23,7 +23,7 @@ export function LayoutWrapper() {
           (Lenis-aware, so the next page never renders at the old scroll depth). */}
       <ScrollToTop />
       {!isMobile && <SiteBorder />}
-      {preloaderDone && <SiteHeader />}
+      {/* {preloaderDone && <SiteHeader />} */}
       {/* Add padding-bottom on mobile to account for fixed navbar */}
       {/* Main content sits ABOVE the sticky footer's fixed inner (z-stacking),
           so the Hero — not the footer — is what the user sees after the

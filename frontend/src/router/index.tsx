@@ -7,6 +7,7 @@ import { LayoutWrapper } from "@/components/provider/layout-wrapper"
 import ContactPage from "@/pages/contact-page"
 import LoginBlock from "@/components/ui/core/block/auth/login-block"
 import PaketPage from "@/pages/paket-page"
+import { AppShell } from "@/components/ui/core/layout/dashboard/app-shell"
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/dashboard",
+        element: <AppShell />,
         children: [
           {
             index: true,

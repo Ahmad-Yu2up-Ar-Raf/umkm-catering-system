@@ -2,7 +2,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/fragments/shadcn-ui/sidebar"
-import { AppSidebar } from "./app-sidebar"
+import { AppSidebar } from "./components/app-sidebar"
 import { Outlet } from "react-router"
 
 export function AppShell() {

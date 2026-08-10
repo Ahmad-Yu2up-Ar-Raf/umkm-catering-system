@@ -1,32 +1,49 @@
 import { api } from "@/api/client"
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
 
-import type { PaketResponse } from "../types/paket-types"
+import type { PaketListResponse } from "../types/paket-types"
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query"
+const PAKET_PER_PAGE = 9
 
-interface FetchPaketParams {
+interface UsePaketQueryParams {
+  kategori: string
   search: string
-  page: number
-  perPage: number
 }
 
-export const FetchPaket = ({ search, page, perPage }: FetchPaketParams) => {
-  return useQuery({
-    // Masukkan search ke dalam queryKey agar TanStack otomatis refetch saat search berubah
-    queryKey: ["paket", search, page, perPage],
-    queryFn: async () =>
+/**
+ * Catalog query — `useInfiniteQuery` over `GET /api/v1/paket`.
+ * - `kategori`/`search` live in the URL (see `use-catalog-params`); they are
+ *   in the queryKey, so a filter change refetches automatically.
+ * - The page cursor derives from the server's `meta.pagination.hasMore` —
+ *   no page state ever lives in the UI.
+ * - `placeholderData: keepPreviousData` keeps the previous result rendered
+ *   during a refetch (the grid dims it) instead of flashing skeletons.
+ * - `staleTime: 5000` — deliberately NO `refetchInterval`: the catalog is
+ *   read-only and polling would just spam the API.
+ */
+export function usePaketQuery({ kategori, search }: UsePaketQueryParams) {
+  return useInfiniteQuery({
+    queryKey: ["paket", kategori, search, PAKET_PER_PAGE],
+
+    queryFn: async ({ pageParam }) =>
       api
         .get("paket", {
           searchParams: {
-            page: page.toString(),
-            perPage: perPage.toString(),
+            page: String(pageParam),
+            perPage: String(PAKET_PER_PAGE),
+            ...(kategori ? { kategori_paket: kategori } : {}),
             ...(search ? { search } : {}),
           },
         })
-        .json<PaketResponse>(),
+        .json<PaketListResponse>(),
 
-    // PENTING: Jangan pakai refetchInterval di sini agar tidak spam!
-    staleTime: 5000, // Cache data selama 5 detik
-    placeholderData: keepPreviousData, // Menjaga UI tabel tetap stabil saat memuat halaman baru
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const { pagination } = lastPage.meta
+      return pagination.hasMore ? pagination.currentPage + 1 : undefined
+    },
+
+    staleTime: 5000,
+    placeholderData: keepPreviousData,
   })
 }
