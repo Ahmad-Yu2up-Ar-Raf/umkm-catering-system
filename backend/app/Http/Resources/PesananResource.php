@@ -27,7 +27,7 @@ class PesananResource extends JsonResource
             'biaya_tambahan' => $this->biaya_tambahan,
             'catatan' => $this->catatan,
             'total_harga' => $this->total_harga,
-            'status_pesanan' => $this->status_pesanan,
+            'status_pesanan' => $this->status_pesanan?->value ?? $this->status_pesanan,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

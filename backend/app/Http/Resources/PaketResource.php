@@ -17,8 +17,8 @@ class PaketResource extends JsonResource
         return [
             'id' => $this->id,
             'nama_paket' => $this->nama_paket,
-            'kategori_paket' => $this->kategori_paket,
-            'kategori_acara' => $this->kategori_acara,
+            'kategori_paket' => $this->kategori_paket?->value ?? $this->kategori_paket,
+            'kategori_acara' => $this->kategori_acara?->value ?? $this->kategori_acara,
             'menu_utama' => $this->menu_utama,
             'menu_tambahan' => $this->menu_tambahan,
             'fasilitas_termasuk' => $this->fasilitas_termasuk,

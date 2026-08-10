@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\KategoriAcaraEnum;
+use App\Enums\PaketKategoriEnum;
 use Database\Factories\PaketFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -43,6 +45,8 @@ class Paket extends Model
     protected function casts(): array
     {
         return [
+            'kategori_paket' => PaketKategoriEnum::class,
+            'kategori_acara' => KategoriAcaraEnum::class,
             'menu_utama' => 'array',
             'menu_tambahan' => 'array',
             'fasilitas_termasuk' => 'array',
@@ -61,16 +65,11 @@ class Paket extends Model
         return $query->where('is_best_seller', true);
     }
 
-
-
-//  public function scopeForWebsite(Builder $q): Builder
-//     {
-//         // Ubah 'asc' menjadi 'desc' di sini 👇
-//         return $q->withCount('antrian as total_kunjungan')->orderBy('updated_at', 'asc');
-//     }
-
-
-
+    //  public function scopeForWebsite(Builder $q): Builder
+    //     {
+    //         // Ubah 'asc' menjadi 'desc' di sini 👇
+    //         return $q->withCount('antrian as total_kunjungan')->orderBy('updated_at', 'asc');
+    //     }
 
     /**
      * Get the orders for the package.

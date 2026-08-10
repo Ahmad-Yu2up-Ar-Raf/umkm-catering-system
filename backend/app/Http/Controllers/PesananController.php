@@ -19,9 +19,9 @@ class PesananController extends Controller
      */
     public function index(Request $request)
     {
-        $status = $request->query('status');
-        $page = $request->input('page', 1);
-        $perPage = $request->input('perPage', 15);
+        $status = $request->input('status_pesanan') ?? $request->input('status');
+        $page = $request->integer('page', 1);
+        $perPage = $request->integer('perPage', 15);
 
         $query = Pesanan::query()->with('paket');
 
@@ -31,7 +31,9 @@ class PesananController extends Controller
 
         $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
 
-        $filters = ['status' => $status ?? ''];
+        $filters = array_filter([
+            'status_pesanan' => $status,
+        ], fn ($value) => ! is_null($value) && $value !== '');
 
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Pesanan $item) => new PesananResource($item)),

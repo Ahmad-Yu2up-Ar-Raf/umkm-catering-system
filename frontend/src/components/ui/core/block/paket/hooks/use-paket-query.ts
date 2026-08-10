@@ -1,29 +1,29 @@
 import { api } from "@/api/client"
 
-import type { AntrianResponse } from "../types/antrian-type"
+import type { PaketResponse } from "../types/paket-types"
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 
-interface FetchAntrianParams {
+interface FetchPaketParams {
   search: string
   page: number
   perPage: number
 }
 
-export const FetchAntrian = ({ search, page, perPage }: FetchAntrianParams) => {
+export const FetchPaket = ({ search, page, perPage }: FetchPaketParams) => {
   return useQuery({
     // Masukkan search ke dalam queryKey agar TanStack otomatis refetch saat search berubah
-    queryKey: ["antrian", search, page, perPage],
+    queryKey: ["paket", search, page, perPage],
     queryFn: async () =>
       api
-        .get("antrian", {
+        .get("paket", {
           searchParams: {
             page: page.toString(),
             perPage: perPage.toString(),
             ...(search ? { search } : {}),
           },
         })
-        .json<AntrianResponse>(),
+        .json<PaketResponse>(),
 
     // PENTING: Jangan pakai refetchInterval di sini agar tidak spam!
     staleTime: 5000, // Cache data selama 5 detik

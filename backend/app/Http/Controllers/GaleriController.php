@@ -6,7 +6,7 @@ use App\Http\Requests\Galeri\GaleriStoreRequest;
 use App\Http\Requests\Galeri\GaleriUpdateRequest;
 use App\Http\Resources\GaleriResource;
 use App\Models\Galeri;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 
 class GaleriController extends Controller
 {
@@ -16,22 +16,24 @@ class GaleriController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $page = $request->input('page', 1);
-        $perPage = $request->input('perPage', 10);
+        $page = $request->integer('page', 1);
+        $perPage = $request->integer('perPage', 10);
 
         $query = Galeri::query();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_acara', 'like', "%{$search}%")
-                  ->orWhere('deskripsi_acara', 'like', "%{$search}%")
-                  ->orWhere('tanggal_acara', 'like', "%{$search}%");
+                    ->orWhere('deskripsi_acara', 'like', "%{$search}%")
+                    ->orWhere('tanggal_acara', 'like', "%{$search}%");
             });
         }
 
         $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
 
-        $filters = ['search' => $search ?? ''];
+        $filters = array_filter([
+            'search' => $search,
+        ], fn ($value) => ! is_null($value) && $value !== '');
 
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Galeri $item) => new GaleriResource($item)),

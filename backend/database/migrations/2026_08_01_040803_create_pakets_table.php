@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('paket', function (Blueprint $table) {
             $table->id();
             $table->string('nama_paket');
-            $table->string('kategori_paket');
-            $table->string('kategori_acara')->nullable();
+            $table->enum('kategori_paket', ['Nasi Box', 'Prasmanan', 'Snack', 'Tumpeng']);
+            $table->enum('kategori_acara', ['Pernikahan', 'Kantor', 'Ulang Tahun', 'Arisan', 'Umum'])->nullable();
             $table->json('menu_utama');
             $table->json('menu_tambahan')->nullable();
             $table->json('fasilitas_termasuk')->nullable();

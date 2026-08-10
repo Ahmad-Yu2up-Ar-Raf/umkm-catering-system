@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal('biaya_tambahan', 12, 2)->default(0);
             $table->text('catatan')->nullable();
             $table->decimal('total_harga', 12, 2);
-            $table->string('status_pesanan')->default('pending');
+            $table->enum('status_pesanan', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
 
             $table->index('status_pesanan');
