@@ -14,9 +14,9 @@
 - **Connection:** `.env.example` ships with `DB_CONNECTION=pgsql` and a Neon host; fill `DB_*` vars from your Neon connection string (`DB_SSLMODE=require`).
 - **Agent Context:** The OpenCode agent is globally equipped with the **Neon MCP** to manage this database, run SQL queries, and inspect schemas when needed.
 
-## Core Tables (4 only — NO additions without explicit approval)
+## Core Tables (5 — the original 4 + `paket_images`, approved with the Cloudinary gallery upgrade)
 
-`testimoni` and `faq` are future candidates — **NOT approved**. Do not create migrations for them.
+`testimoni` and `faq` remain future candidates — **NOT approved**. Do not create migrations for them.
 
 ```dbml
 Table users {
@@ -43,8 +43,16 @@ Table paket {
   harga_per_porsi decimal(12,2) [not null]
   kapasitas_produksi int
   deskripsi text
-  gambar varchar
+  thumbnail varchar                        // Cloudinary secure_url (1st gallery image)
   is_best_seller boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table paket_images {
+  id int [pk, increment]
+  paket_id int [ref: > paket.id, not null] // cascade delete
+  image_url varchar [not null]             // Cloudinary secure_url
   created_at timestamp
   updated_at timestamp
 }

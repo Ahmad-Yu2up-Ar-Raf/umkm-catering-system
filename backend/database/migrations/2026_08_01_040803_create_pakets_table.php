@@ -25,7 +25,7 @@ return new class extends Migration
             $table->decimal('harga_per_porsi', 12, 2);
             $table->integer('kapasitas_produksi')->nullable();
             $table->text('deskripsi')->nullable();
-            $table->string('gambar')->nullable();
+            $table->string('thumbnail')->nullable();
             $table->boolean('is_best_seller')->default(false);
             $table->timestamps();
 

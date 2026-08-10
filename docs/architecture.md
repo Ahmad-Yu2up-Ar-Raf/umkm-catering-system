@@ -119,7 +119,7 @@ The critical transition remains the same as the previous version: the output of 
 
 ## 4. Database Schema (ERD)
 
-No new tables in this revision. The schema remains:
+Five tables: the original 4 core tables plus `paket_images` (product gallery, approved with the Cloudinary thumbnail+gallery upgrade).
 
 ```dbml
 Table users {
@@ -146,8 +146,16 @@ Table paket {
   harga_per_porsi decimal(12,2) [not null]
   kapasitas_produksi int
   deskripsi text
-  gambar varchar
+  thumbnail varchar                        // Cloudinary secure_url of the 1st gallery image
   is_best_seller boolean [default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table paket_images {
+  id int [pk, increment]
+  paket_id int [ref: > paket.id, not null]
+  image_url varchar [not null]             // Cloudinary secure_url
   created_at timestamp
   updated_at timestamp
 }

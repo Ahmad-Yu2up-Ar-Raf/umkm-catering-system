@@ -40,7 +40,7 @@ class PaketUpdateRequest extends FormRequest
             'harga_per_porsi' => ['sometimes', 'required', 'numeric', 'min:0'],
             'kapasitas_produksi' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'deskripsi' => ['sometimes', 'nullable', 'string'],
-            'gambar' => ['sometimes', 'nullable', 'string', 'max:2048'],
+            'thumbnail' => ['sometimes', 'nullable', 'string', 'max:2048'],
             'is_best_seller' => ['sometimes', 'nullable', 'boolean'],
         ];
     }

@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'harga_per_porsi',
     'kapasitas_produksi',
     'deskripsi',
-    'gambar',
+    'thumbnail',
     'is_best_seller',
 ])]
 class Paket extends Model
@@ -66,5 +66,13 @@ class Paket extends Model
     public function pesanan(): HasMany
     {
         return $this->hasMany(Pesanan::class);
+    }
+
+    /**
+     * Get the gallery images for the package.
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(PaketImage::class);
     }
 }

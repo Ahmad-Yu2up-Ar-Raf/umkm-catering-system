@@ -5,7 +5,7 @@ import { gsap, useGSAP } from "@/components/motion/gsap"
 import { BlurReveal } from "@/components/motion/blur-reveal"
 
 /**
- * #tentang-kami — the founder/philosophy block.
+ * #profil — the founder/philosophy block.
  *
  * Motion (GSAP ScrollTrigger, `prefers-reduced-motion` → static):
  *  - The right-side hero object is a single top-down Tumpeng PNG that rotates
@@ -46,8 +46,8 @@ function AboutBlock() {
   return (
     <section
       ref={sectionRef}
-      id="tentang-kami"
-      className="container content-center py-15 lg:py-0 lg:pt-30 lg:pb-25"
+      id="profil"
+      className="container content-center py-15 lg:py-0 lg:pt-30 lg:pb-30"
     >
       <div className="flex flex-col gap-11 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
         {/* Teks Filosofi Us - Kiri */}

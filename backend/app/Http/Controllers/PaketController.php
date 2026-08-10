@@ -14,7 +14,7 @@ class PaketController extends Controller
      */
     public function index()
     {
-        $paket = Paket::query()->latest()->paginate(12)->through(
+        $paket = Paket::query()->with('images')->latest()->paginate(12)->through(
             fn (Paket $item) => new PaketResource($item)
         );
 
@@ -30,7 +30,7 @@ class PaketController extends Controller
      */
     public function bestSeller()
     {
-        $paket = Paket::query()->bestSeller()->latest()->get();
+        $paket = Paket::query()->with('images')->bestSeller()->latest()->get();
 
         return response()->json([
             'status' => true,
@@ -44,6 +44,8 @@ class PaketController extends Controller
      */
     public function show(Paket $paket)
     {
+        $paket->load('images');
+
         return response()->json([
             'status' => true,
             'message' => 'Data retrieved successfully',

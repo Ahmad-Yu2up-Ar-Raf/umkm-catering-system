@@ -72,7 +72,7 @@ export function MengapaBlock() {
       <section
         ref={sectionRef}
         id="mengapa"
-        className="relative md:mb-6 overflow-hidden bg-secondary/60 px-5 py-20 md:px-10 md:py-20"
+        className="relative overflow-hidden bg-secondary/60   py-20 md:py-20"
       >
         {/* Warm glow from the top — token-driven, never a raw color. */}
         <div
@@ -80,7 +80,7 @@ export function MengapaBlock() {
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_90%)]"
         />
 
-        <div className="relative mx-auto container p-0">
+        <div className="relative container mx-auto p-0">
           <div data-mengapa-header>
             <MengapaHeader />
           </div>

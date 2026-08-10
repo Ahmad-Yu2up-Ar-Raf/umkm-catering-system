@@ -32,7 +32,7 @@ export const MOMENT_ITEMS: MomentItem[] = [
     category: "Pernikahan",
     title: "Prasmanan penuh kehangatan",
     imagePath:
-      "/assets/images/products/ai-generated/paket-prasmanan-nikahan/paket-prasmanan-nikahan-1.png",
+      "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-1.png",
   },
   {
     id: "korporat-1",
@@ -46,30 +46,30 @@ export const MOMENT_ITEMS: MomentItem[] = [
     category: "Korporat",
     title: "Prasmanan acara kantor",
     imagePath:
-      "/assets/images/products/ai-generated/paket-prasmanan-korporat/paket-prasmanan-korporat-1.png",
+      "/assets/images/products/paket-prasmanan-korporat/paket-prasmanan-korporat-1.png",
   },
   {
     id: "syukuran-1",
     category: "Syukuran",
     title: "Tumpeng syukuran keluarga",
-    imagePath: "/assets/images/products/tumpeng/tumpeng-1.jpg",
+    imagePath: "/assets/images/products/paket-tumpeng/tumpeng-1.jpg",
   },
   {
     id: "syukuran-2",
     category: "Syukuran",
     title: "Tumpeng mini ulang tahun",
-    imagePath: "/assets/images/products/tumpeng-mini/tumpeng-mini-1.jpg",
+    imagePath: "/assets/images/products/paket-tumpeng-mini/tumpeng-mini-1.jpg",
   },
   {
     id: "hampers-1",
     category: "Hampers",
     title: "Bingkisan istimewa untuk berbagi",
-    imagePath: "/assets/images/products/ai-generated/paket-combo-1.png",
+    imagePath: "/assets/images/lifestyle/paket-combo-1.png",
   },
   {
     id: "di-balik-layar-1",
     category: "Di Balik Layar",
     title: "Penyajian yang telaten",
-    imagePath: "/assets/images/products/ai-generated/kantor-3.png",
+    imagePath: "/assets/images/lifestyle/kantor-3.png",
   },
 ]

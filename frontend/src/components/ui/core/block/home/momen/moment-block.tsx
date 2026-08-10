@@ -55,8 +55,13 @@ export function MomentBlock() {
       <section
         ref={sectionRef}
         id="momentum"
-        className="relative overflow-hidden px-0 pb-15 sm:py-15 md:px-10 md:py-20 lg:pt-5"
+        className="relative overflow-hidden bg-secondary/60 px-0 pb-15 sm:py-15 md:px-10 md:py-20  "
       >
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_90%)]"
+        />
+
         <div className="relative z-50 container mx-auto w-full">
           {/* 1 + 2 — header (word-blur) and CTA (delayed) animate internally. */}
           <MomentHeader />

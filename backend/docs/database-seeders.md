@@ -5,17 +5,19 @@
 
 # Database Seeders — Initial Data (Catering Nusantara)
 
-> Source of truth for the 5 initial product packages seeded into the `paket` table.
-> Data verified from the client sheet — [Analisa Kebutuhan User](https://docs.google.com/spreadsheets/d/1UYbfbsZ_asf-wG8vFCRsTVzjUWqlxUxA5CXYM7_JsKM/edit?gid=716699607#gid=716699607).
+> Source of truth for the product packages seeded into `paket` + `paket_images`.
+> The 5 original packages come from the client sheet — [Analisa Kebutuhan User](https://docs.google.com/spreadsheets/d/1UYbfbsZ_asf-wG8vFCRsTVzjUWqlxUxA5CXYM7_JsKM/edit?gid=716699607#gid=716699607). New product folders are Faker-generated.
 > Schema reference: `DATABASE.md`. Pipeline reference: `WORKFLOW.md`.
 
 ---
 
 ## 1. Overview & Scope
 
-- **Tables seeded:** `paket` (5 packages). `users` (admin test user) via `DatabaseSeeder`.
-- **Image strategy:** Direct CDN URLs harvested via the global `image-explorer` CLI (Unsplash / Pexels / Pixabay) — **no local downloads**. The `gambar` column stores a clean, stable HD URL.
-- **Idempotency:** `PaketSeeder` uses `updateOrCreate(nama_paket)` — re-running is safe.
+- **Tables seeded:** `paket` + `paket_images`. One folder under `frontend/public/assets/images/products` = one package (15 folders on disk). `users` (admin test user) via `DatabaseSeeder`.
+- **Image strategy:** Local product photography is uploaded to **Cloudinary** during seeding via Laravel's native `Http` client (`POST /v1_1/{cloud}/image/upload`, HTTP **Basic Auth** with `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET`) — **zero SDK dependencies**. The 1st upload's `secure_url` → `paket.thumbnail`; the 1st + 2nd uploads → `paket_images.image_url`.
+- **Data source:** each folder slug is cross-referenced against `menu-data.ts` (`id`/`title`/`description`) for display text; the 5 documented packages below keep their exact client data. Unmatched folders get realistic Faker mock data (Indonesian menu pools).
+- **Cloudinary layout:** images upload to folder `catering-nusantara/products/{folder-slug}` — never the Cloudinary root.
+- **Idempotency:** `PaketSeeder` uses `updateOrCreate(nama_paket)` and wipes each paket's `paket_images` before re-inserting — re-running is safe.
 - **Enums used:** `PaketKategoriEnum` (Nasi Box / Prasmanan / Snack / Tumpeng), `KategoriAcaraEnum` (Pernikahan / Kantor / Ulang Tahun / Arisan / Umum).
 
 ## 2. Schema Alignment
@@ -36,8 +38,10 @@ Seeder writes the exact columns of `database/migrations/2026_08_01_040803_create
 | `harga_per_porsi` | decimal(12,2) | Sheet "Harga/Porsi" |
 | `kapasitas_produksi` | int | Sheet "Kapasitas Produksi" |
 | `deskripsi` | text | Sheet "Deskripsi" |
-| `gambar` | string (URL) | `image-explorer` harvest |
+| `thumbnail` | string (Cloudinary secure_url) | 1st uploaded image |
 | `is_best_seller` | boolean | Sheet "Best Seller" |
+
+`paket_images`: `paket_id` (FK → `paket.id`, cascade on delete), `image_url` (Cloudinary secure_url).
 
 ## 3. Full Package Data Table
 
@@ -101,87 +105,52 @@ Seeder writes the exact columns of `database/migrations/2026_08_01_040803_create
 
 **Rules applied:** stored as native PHP arrays in the seeder → model `casts()` handles JSON encoding. All validated per `DATABASE.md` §4 (required array, string items).
 
-## 5. Image URL Reference
+## 5. Cloudinary Image Strategy
 
-Harvested via `image-explorer --query="<q>" --count=1 --orientation=landscape`. URLs are **clean** (session tracking params removed) and **HD**:
+Every product folder under `frontend/public/assets/images/products` is uploaded to Cloudinary during seeding:
 
-| # | Query | Source | `gambar` URL | License / Attribution |
-|---|-------|--------|--------------|----------------------|
-| 1 | `indonesian nasi box ayam goreng` | Unsplash | `https://images.unsplash.com/photo-1666239308347-4292ea2ff777?w=1920&q=80&fm=jpg&fit=crop` | Unsplash License · [@mufidpwt](https://unsplash.com/@mufidpwt) |
-| 2 | `indonesian wedding buffet rendang` | Unsplash | `https://images.unsplash.com/photo-1555244162-803834f70033?w=1920&q=80&fm=jpg&fit=crop` | Unsplash License · [@saile_ilyas](https://unsplash.com/@saile_ilyas) |
-| 3 | `kue basah tradisional Indonesia snack box` | Unsplash | `https://images.unsplash.com/photo-1738225734433-9fb17ed770a4?w=1920&q=80&fm=jpg&fit=crop` | Unsplash License · [@fabiobiirahmananta](https://unsplash.com/@fabiobiirahmananta) |
-| 4 | `nasi tumpeng kuning mini` | Pexels | `https://images.pexels.com/photos/36956925/pexels-photo-36956925.jpeg?auto=compress&cs=tinysrgb&w=1600` | Pexels License · [Firman Marek_Brew](https://www.pexels.com/photo/traditional-indonesian-tumpeng-rice-dish-presentation-36956925/) |
-| 5 | `western fusion corporate buffet catering` | Pexels | `https://images.pexels.com/photos/34321370/pexels-photo-34321370.jpeg?auto=compress&cs=tinysrgb&w=1600` | Pexels License · [photo 34321370](https://www.pexels.com/photo/elegant-appetizer-presentation-at-outdoor-event-34321370/) |
+- **Endpoint:** `POST https://api.cloudinary.com/v1_1/{CLOUDINARY_CLOUD_NAME}/image/upload`
+- **Auth:** HTTP Basic Auth — `api_key` as username, `api_secret` as password (no signature needed).
+- **Transport:** Laravel `Http::attach('file', fopen($path, 'r'), basename($path))` (multipart).
+- **Organized in:** `folder => 'catering-nusantara/products/{folder-slug}'`.
+- **Limit:** at most **2** image files (`.jpg`/`.jpeg`/`.png`/`.webp`) per folder, sorted by name.
+- **Persisted:** 1st upload `secure_url` → `paket.thumbnail`; 1st + 2nd → `paket_images.image_url`.
 
-**URL cleaning rules:**
-- Unsplash: strip session params (`ixid`, `ixlib`), normalize to `?w=1920&q=80&fm=jpg&fit=crop`
-- Pexels: strip size-clamping params (`h=650&w=940`), use original CDN file + `?auto=compress&cs=tinysrgb&w=1600`
+Example of a stored `thumbnail` / `image_url`:
 
-## 6. PaketSeeder Code Blueprint
+```
+https://res.cloudinary.com/df94cviif/image/upload/v1786338690/catering-nusantara/products/paket-gold-ayam-bakar/h23pm08kbfp3pj8pqnn0.jpg
+```
 
-**File:** `database/seeders/PaketSeeder.php` (created)
+> **Note:** the previous Unsplash/Pexels harvest strategy was replaced by this local-asset → Cloudinary pipeline (client photography is the brand standard — no generic stock photos).
+
+## 6. PaketSeeder Logic (dynamic — folder-driven)
+
+**File:** `database/seeders/PaketSeeder.php` (rewritten)
 
 ```php
-<?php
+$root = base_path('../frontend/public/assets/images/products'); // == C:\...\frontend\public\assets\images\products
 
-namespace Database\Seeders;
+foreach (productFolders($root) as $slug) {          // one folder = one package
+    $images = imagePaths($folder);                  // ≤2 .jpg/.jpeg/.png/.webp, sorted
+    $urls   = $images->map(fn ($p) => uploadToCloudinary($p, $slug)); // Http + Basic Auth → secure_url
 
-use App\Enums\KategoriAcaraEnum;
-use App\Enums\PaketKategoriEnum;
-use App\Models\Paket;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Carbon;
+    $data = paketData($slug, $menuMap[$slug] ?? null);  // ORIGINALS if known, else Faker
+    $data['thumbnail'] = $urls->first();             // 1st upload → thumbnail
 
-class PaketSeeder extends Seeder
-{
-    use WithoutModelEvents;
+    $paket = Paket::updateOrCreate(['nama_paket' => $data['nama_paket']], $data);
 
-    private function paket(): array
-    {
-        return [
-            [
-                'nama_paket' => 'Paket Nasi Box Hemat',
-                'kategori_paket' => PaketKategoriEnum::NasiBox,
-                'kategori_acara' => KategoriAcaraEnum::Kantor,
-                'menu_utama' => ['Ayam Goreng', 'Tempe Orek', 'Sayur Sop'],
-                'menu_tambahan' => ['Kerupuk'],
-                'fasilitas_termasuk' => ['Nasi putih', 'Air mineral gelas'],
-                'catatan_alergen' => 'Ayam segar harian, tanpa MSG tambahan',
-                'jenis_kemasan' => 'Box kertas food grade',
-                'min_order' => 20,
-                'harga_per_porsi' => 22000,
-                'kapasitas_produksi' => 300,
-                'deskripsi' => 'Menu harian ekonomis untuk kebutuhan kantor/rapat, praktis dan mengenyangkan',
-                'gambar' => 'https://images.unsplash.com/photo-1666239308347-4292ea2ff777?w=1920&q=80&fm=jpg&fit=crop',
-                'is_best_seller' => true,
-                'created_at' => Carbon::create(2019, 1, 1),
-            ],
-            // ... 4 more packages (see file)
-        ];
-    }
-
-    public function run(): void
-    {
-        foreach ($this->paket() as $data) {
-            // Enums must be persisted as their backing string value.
-            $data['kategori_paket'] = $data['kategori_paket']->value;
-            $data['kategori_acara'] = $data['kategori_acara']->value;
-
-            Paket::updateOrCreate(
-                ['nama_paket' => $data['nama_paket']],
-                $data,
-            );
-        }
-    }
+    PaketImage::where('paket_id', $paket->id)->delete();          // idempotency
+    $urls->each(fn ($url) => PaketImage::create(['paket_id' => $paket->id, 'image_url' => $url]));
 }
 ```
 
 **Key decisions:**
-- `updateOrCreate(nama_paket)` → idempotent re-seeding
-- Enum objects in the definition, converted via `->value` in `run()` (never persist raw enum objects)
-- Native PHP arrays for JSON columns → model `casts()` encodes
-- Explicit `created_at` = "Active Since" month
+- `base_path('../frontend/...')` resolves the exact Windows directory from the monorepo layout (works under native Windows PHP and WSL).
+- `menuMap()` regex-parses `menu-data.ts` → `[imagePath-folder-slug => id/title/description]` for display text on new products.
+- `ORIGINALS` (the 5 client packages, keyed by folder slug) keep their exact data — only `gambar` was dropped in favor of the uploaded `thumbnail`.
+- Folder without images → skipped with a warning (no product without a thumbnail).
+- `updateOrCreate(nama_paket)` + per-paket `paket_images` wipe → idempotent re-seeding.
 
 ## 7. DatabaseSeeder Wiring
 
@@ -226,7 +195,7 @@ Factory = fake test data. Seeder = real client data. They never overlap.
 ## 9. Run & Verify
 
 ```bash
-# Seed everything (user + 5 paket)
+# Seed everything (user + paket + gallery)
 php artisan db:seed
 
 # Seed just packages
@@ -235,14 +204,15 @@ php artisan db:seed --class=PaketSeeder
 # Fresh migrate + seed (CI / local reset)
 php artisan migrate:fresh --seed
 
-# Verify row count
-php artisan tinker --execute 'echo \App\Models\Paket::count();'
+# Verify row counts
+php artisan tinker --execute 'echo \App\Models\Paket::count();'          # 15
+php artisan tinker --execute 'echo \App\Models\PaketImage::count();'     # ≤30 (2 per paket)
 
 # Verify JSON columns decode as arrays
 php artisan tinker --execute 'dump(\App\Models\Paket::first()->menu_utama);'
 ```
 
-**Expected:** `Paket::count()` → `5`. Re-running `db:seed` twice does NOT create duplicates.
+**Expected:** `Paket::count()` → `15` (one per image folder), `PaketImage::count()` → `2 × 15 = 30`, every `thumbnail`/`image_url` begins `https://res.cloudinary.com/`. Re-running `db:seed` twice does NOT duplicate `paket` or `paket_images` rows.
 
 ## 10. Business-Rule Checklist (enforced)
 
@@ -250,5 +220,5 @@ php artisan tinker --execute 'dump(\App\Models\Paket::first()->menu_utama);'
 - ✅ **Tumpeng Mini:** `harga_per_porsi = 25000`, `min_order = 10` — per-package price (Rp250.000/10 porsi) documented in `deskripsi`, never stored raw
 - ✅ JSON arrays validated & cast (no junction tables)
 - ✅ `kategori_paket` / `kategori_acara` backed by enums + `Rule::enum()`
-- ✅ No tables added beyond the 4 core
-- ✅ `gambar` = stable HD CDN URLs (no session params, no local files)
+- ✅ Single approved gallery table added: `paket_images` (FK `paket_id` cascade delete) — `testimoni`/`faq` still rejected
+- ✅ `thumbnail`/`image_url` = Cloudinary secure URLs (real client photography, no stock photos)

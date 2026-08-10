@@ -23,11 +23,11 @@ import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 
-/** Homepage section anchors (audited ids: hero / tentang-kami / cara-pesan /
+/** Homepage section anchors (audited ids: hero / profil / cara-pesan /
  *  testimoni / faq / kontak). */
 const NAV_ITEMS = [
-  { name: "Tentang Kami", link: "/#tentang-kami" },
-  { name: "Cara Pesan", link: "/#cara-pesan" },
+  { name: "Profil", link: "/#profil" },
+  { name: "Menu", link: "/menu" },
   { name: "Testimoni", link: "/#testimoni" },
   { name: "FAQ", link: "/#faq" },
   { name: "Kontak", link: "/kontak" },
@@ -50,9 +50,9 @@ function HamburgerButton({
       onClick={onClick}
       aria-label={open ? "Tutup menu" : "Buka menu"}
       aria-expanded={open}
-        size={"default"}
+      size={"default"}
       variant={"outline"}
-      className="flex p-2 scale-90  items-center justify-center rounded-full border   border-primary/20   transition-colors duration-300 "
+      className="flex scale-90 items-center justify-center rounded-full border border-primary/20 p-2 transition-colors duration-300"
     >
       <span
         className="relative flex h-3 w-5 flex-col justify-between"

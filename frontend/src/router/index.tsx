@@ -4,8 +4,9 @@ import { createBrowserRouter } from "react-router"
 import DashboardPage from "@/pages/admin/dashboard-page"
 import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
 import { LayoutWrapper } from "@/components/provider/layout-wrapper"
-import ContactPage from "@/pages/contact/contact-page"
+import ContactPage from "@/pages/contact-page"
 import LoginBlock from "@/components/ui/core/block/auth/login-block"
+import MenuPage from "@/pages/menu-page"
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
       {
         path: "/kontak",
         element: <ContactPage />,
+      },
+      {
+        path: "/menu",
+        element: <MenuPage />,
       },
     ],
   },

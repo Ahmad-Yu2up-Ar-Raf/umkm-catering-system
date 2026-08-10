@@ -31,7 +31,7 @@ const footerColumns = [
   {
     title: "Perusahaan",
     links: [
-      { name: "Tentang Kami", to: "/tentang-kami" },
+      { name: "Tentang Kami", to: "/profil" },
       { name: "FAQ & Ketentuan", to: "/faq" },
       { name: "Cara Pemesanan", to: "/cara-pemesanan" },
       { name: "Hubungi WhatsApp", to: "https://wa.me/628561155113" },

@@ -31,7 +31,7 @@ export const MENU_CHOICES: MenuChoice[] = [
     title: "Nasi Box Hemat",
     description: "Praktis, ekonomis untuk kebutuhan kantor",
     imagePath:
-      "/assets/images/products/ai-generated/paket-nasi-box-hemat/paket-nasi-box-hemat-2.png",
+      "/assets/images/products/paket-nasi-box-hemat/paket-nasi-box-hemat-2.png",
     href: PACKET_QUERY("nasi-box-hemat"),
   },
   {
@@ -40,7 +40,7 @@ export const MENU_CHOICES: MenuChoice[] = [
     title: "Prasmanan Pernikahan",
     description: "Resepsi lengkap dengan penataan meja prasmanan",
     imagePath:
-      "/assets/images/products/ai-generated/paket-prasmanan-nikahan/paket-prasmanan-nikahan-2.png",
+      "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-2.png",
     href: PACKET_QUERY("prasmanan-pernikahan"),
   },
   {
@@ -49,7 +49,7 @@ export const MENU_CHOICES: MenuChoice[] = [
     title: "Snack Box Arisan",
     description: "Empat kue basah segar untuk arisan",
     imagePath:
-      "/assets/images/products/ai-generated/paket-snack-box-arisan/paket-snack-box-arisan-2.png",
+      "/assets/images/products/paket-snack-box-arisan/paket-snack-box-arisan-2.png",
     href: PACKET_QUERY("snack-box-arisan"),
   },
   {
@@ -58,7 +58,7 @@ export const MENU_CHOICES: MenuChoice[] = [
     title: "Tumpeng Mini",
     description: "Perayaan kecil yang tetap menarik",
     imagePath:
-      "/assets/images/products/ai-generated/paket-tumpeng-mini/paket-tumpeng-mini-2.png",
+      "/assets/images/products/paket-tumpeng-mini/paket-tumpeng-mini-2.png",
     href: PACKET_QUERY("tumpeng-mini"),
   },
   {
@@ -67,7 +67,7 @@ export const MENU_CHOICES: MenuChoice[] = [
     title: "Prasmanan Korporat",
     description: "Gathering formal dengan menu modern",
     imagePath:
-      "/assets/images/products/ai-generated/paket-prasmanan-korporat/paket-prasmanan-korporat-2.png",
+      "/assets/images/products/paket-prasmanan-korporat/paket-prasmanan-korporat-2.png",
     href: PACKET_QUERY("prasmanan-korporat"),
   },
   {
@@ -75,8 +75,7 @@ export const MENU_CHOICES: MenuChoice[] = [
     index: "06",
     title: "Silver Ayam Bakar",
     description: "Ayam bakar bumbu rumahan, harian istimewa",
-    imagePath:
-      "/assets/images/products/ai-generated/paket-silver-ayam-bakar-1.png",
+    imagePath: "/assets/images/products/paket-silver-ayam-bakar-1.png",
     href: PACKET_QUERY("silver-ayam-bakar"),
   },
   {
@@ -85,7 +84,7 @@ export const MENU_CHOICES: MenuChoice[] = [
     title: "Silver Ayam Lada Hitam",
     description: "Gurih sederhana, tetap terasa premium",
     imagePath:
-      "/assets/images/products/ai-generated/paket-silver-ayam-lada-hitam-1.jpg",
+      "/assets/images/products/paket-silver-ayam-lada-hitam/paket-silver-ayam-lada-hitam-1.jpg",
     href: PACKET_QUERY("silver-ayam-lada-hitam"),
   },
 ]

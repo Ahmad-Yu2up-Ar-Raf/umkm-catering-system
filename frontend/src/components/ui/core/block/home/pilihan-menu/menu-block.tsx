@@ -149,7 +149,7 @@ export function PilihanMenuBlock() {
     <section
       ref={sectionRef}
       id="pilihan-menu"
-      className="relative overflow-hidden pb-20 md:pt-10 md:pb-30"
+      className="relative overflow-hidden pb-20   md:py-30"
     >
       {/* Soft warm halo above — token-driven (background light, never raw color). */}
       {/* <div

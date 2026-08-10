@@ -78,7 +78,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 className="h-full w-full cursor-zoom-in"
 
                 webViewLink={
-                  "/assets/images/products/ai-generated/paket-combo-1.png"
+                  "/assets/images/lifestyle/paket-combo-1.png"
                 }
               />
             </div>
@@ -96,7 +96,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 className="h-full w-full cursor-zoom-in"
 
                 webViewLink={
-                  "/assets/images/products/ai-generated/paket-prasmanan-nikahan/paket-prasmanan-nikahan-2.png"
+                  "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-2.png"
                 }
               />
             </div>
@@ -114,7 +114,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 className="h-full w-full cursor-zoom-in"
 
                 webViewLink={
-                  "/assets/images/products/ai-generated/paket-tumpeng-mini/paket-tumpeng-mini-2.png"
+                  "/assets/images/products/paket-tumpeng-mini/paket-tumpeng-mini-2.png"
                 }
               />
             </div>
@@ -132,7 +132,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 className="h-full w-full cursor-zoom-in"
 
                 webViewLink={
-                  "/assets/images/products/ai-generated/kantor-3.png"
+                  "/assets/images/products/paket-prasmanan-korporat/paket-prasmanan-korporat-2.png"
                 }
               />
             </div>

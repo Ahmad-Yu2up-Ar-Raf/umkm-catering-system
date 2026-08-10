@@ -94,7 +94,7 @@ function HomePage() {
   // Align to a `#section` hash after the layout is GUARANTEED stable — and
   // bypass GSAP's aggressive pin interception. The #cara-pesan pinned timeline
   // (~+3000px) treats an instant deep jump as out-of-bounds and snaps the
-  // scroll back to its active pin start (≈ #tentang-kami). Sequence:
+  // scroll back to its active pin start (≈ #profil). Sequence:
   //   1. DISABLE all ScrollTriggers so no pin can fight the incoming jump.
   //   2. POLL until the `.pin-spacer` exists (heavy layout injected/stable).
   //   3. TELEPORT straight to the element via Lenis (no manual Y math).

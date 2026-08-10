@@ -6,7 +6,7 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api"
+            "url": "http://localhost/api"
         }
     ],
     "paths": {
@@ -636,7 +636,17 @@
                                                 "data": {
                                                     "type": "array",
                                                     "items": {
-                                                        "$ref": "#/components/schemas/PaketResource"
+                                                        "allOf": [
+                                                            {
+                                                                "$ref": "#/components/schemas/PaketResource"
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "images"
+                                                                ]
+                                                            }
+                                                        ]
                                                     }
                                                 },
                                                 "first_page_url": {
@@ -780,7 +790,17 @@
                                         "data": {
                                             "type": "array",
                                             "items": {
-                                                "$ref": "#/components/schemas/PaketResource"
+                                                "allOf": [
+                                                    {
+                                                        "$ref": "#/components/schemas/PaketResource"
+                                                    },
+                                                    {
+                                                        "type": "object",
+                                                        "required": [
+                                                            "images"
+                                                        ]
+                                                    }
+                                                ]
                                             }
                                         }
                                     },
@@ -830,7 +850,17 @@
                                             "const": "Data retrieved successfully"
                                         },
                                         "data": {
-                                            "$ref": "#/components/schemas/PaketResource"
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/PaketResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "images"
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -880,7 +910,17 @@
                                                 "data": {
                                                     "type": "array",
                                                     "items": {
-                                                        "$ref": "#/components/schemas/PaketResource"
+                                                        "allOf": [
+                                                            {
+                                                                "$ref": "#/components/schemas/PaketResource"
+                                                            },
+                                                            {
+                                                                "type": "object",
+                                                                "required": [
+                                                                    "images"
+                                                                ]
+                                                            }
+                                                        ]
                                                     }
                                                 },
                                                 "first_page_url": {
@@ -1088,7 +1128,17 @@
                                             "const": "Data retrieved successfully"
                                         },
                                         "data": {
-                                            "$ref": "#/components/schemas/PaketResource"
+                                            "allOf": [
+                                                {
+                                                    "$ref": "#/components/schemas/PaketResource"
+                                                },
+                                                {
+                                                    "type": "object",
+                                                    "required": [
+                                                        "images"
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     },
                                     "required": [
@@ -1905,11 +1955,15 @@
                             "null"
                         ]
                     },
-                    "gambar": {
+                    "thumbnail": {
                         "type": [
                             "string",
                             "null"
                         ]
+                    },
+                    "images": {
+                        "type": "array",
+                        "items": {}
                     },
                     "is_best_seller": {
                         "type": "boolean"
@@ -1943,7 +1997,7 @@
                     "harga_per_porsi",
                     "kapasitas_produksi",
                     "deskripsi",
-                    "gambar",
+                    "thumbnail",
                     "is_best_seller",
                     "created_at",
                     "updated_at"
@@ -2035,7 +2089,7 @@
                             "null"
                         ]
                     },
-                    "gambar": {
+                    "thumbnail": {
                         "type": [
                             "string",
                             "null"
@@ -2142,7 +2196,7 @@
                             "null"
                         ]
                     },
-                    "gambar": {
+                    "thumbnail": {
                         "type": [
                             "string",
                             "null"

@@ -39,7 +39,7 @@ class PaketFactory extends Factory
             'harga_per_porsi' => fake()->numberBetween(15000, 60000),
             'kapasitas_produksi' => fake()->numberBetween(20, 1000),
             'deskripsi' => fake()->paragraph(),
-            'gambar' => fake()->imageUrl(),
+            'thumbnail' => fake()->imageUrl(),
             'is_best_seller' => false,
         ];
     }

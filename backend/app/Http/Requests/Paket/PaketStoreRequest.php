@@ -40,7 +40,7 @@ class PaketStoreRequest extends FormRequest
             'harga_per_porsi' => ['required', 'numeric', 'min:0'],
             'kapasitas_produksi' => ['nullable', 'integer', 'min:1'],
             'deskripsi' => ['nullable', 'string'],
-            'gambar' => ['nullable', 'string', 'max:2048'],
+            'thumbnail' => ['nullable', 'string', 'max:2048'],
             'is_best_seller' => ['nullable', 'boolean'],
         ];
     }

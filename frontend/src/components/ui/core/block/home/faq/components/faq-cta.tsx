@@ -55,7 +55,7 @@ export function FaqCta({ className }: { className?: string }) {
     >
       <span
         data-faq-cta-line
-        className="text-sm md:text-[14px] pl-1 font-light text-muted-foreground/80"
+        className="text-sm md:text-[13px] pl-1 font-light text-muted-foreground/80"
       >
         Masih ada yang ingin ditanyakan?
       </span>

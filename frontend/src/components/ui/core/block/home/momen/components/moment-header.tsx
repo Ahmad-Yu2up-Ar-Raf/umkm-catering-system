@@ -8,7 +8,7 @@ import { BlurReveal } from "@/components/motion/blur-reveal"
  * MomentHeader — eyebrow + display headline (single italic accent word) +
  * the "Lihat galeri lengkap" CTA.
  *
- * Reveal — the project-standard blur fade (matching #mengapa / #tentang-kami
+ * Reveal — the project-standard blur fade (matching #mengapa / #profil
  * / #faq / #menu):
  *  - Eyebrow label and the H2 blur-fade FIRST (shared `BlurReveal`).
  *  - The CTA follows with a short delay (a `motion.a`, transform/opacity only).
@@ -25,12 +25,9 @@ export function MomentHeader() {
           </BlurReveal>
         </p>
         <h2 className="font-heading text-[clamp(30px,3.8vw,54px)] leading-[0.95] font-light tracking-[-0.01em] text-foreground">
-          <BlurReveal blur={10} stagger={0.07} amount={0.3}
-
-          
-          >
+          <BlurReveal blur={10} stagger={0.07} amount={0.3}>
             Momen yang kami{" "}
-            <span className="font-accent italic text-primary">rayakan</span>
+            <span className="font-accent text-primary italic">rayakan</span>
           </BlurReveal>
         </h2>
       </div>

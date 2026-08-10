@@ -20,7 +20,7 @@ function paketPayload(array $overrides = []): array
         'harga_per_porsi' => 25000,
         'kapasitas_produksi' => 500,
         'deskripsi' => 'Paket hemat untuk acara kantor.',
-        'gambar' => 'https://example.com/paket.jpg',
+        'thumbnail' => 'https://example.com/paket.jpg',
         'is_best_seller' => true,
     ], $overrides);
 }
@@ -43,7 +43,8 @@ test('public show returns a single paket', function () {
         ->assertOk()
         ->assertJsonPath('status', true)
         ->assertJsonPath('data.nama_paket', $paket->nama_paket)
-        ->assertJsonPath('data.menu_utama', $paket->menu_utama);
+        ->assertJsonPath('data.menu_utama', $paket->menu_utama)
+        ->assertJsonStructure(['data' => ['thumbnail', 'images']]);
 });
 
 test('best-seller route returns only best-seller paket', function () {
