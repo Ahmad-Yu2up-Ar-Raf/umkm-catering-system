@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Traits;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 
-abstract class Controller
+trait ApiResponser
 {
     /**
-     * Return a standardized paginated response.
+     * Return a standardized API response with pagination.
      */
     public function respondWithPagination(
         LengthAwarePaginator $paginator,
@@ -15,10 +15,12 @@ abstract class Controller
         array $filters = []
     ): array
     {
+        $data = $paginator->items();
+        
         return [
             'status' => true,
             'message' => $message,
-            'data' => $paginator->items(),
+            'data' => $data,
             'meta' => [
                 'filters' => $filters,
                 'pagination' => [

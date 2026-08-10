@@ -6,23 +6,39 @@ use App\Http\Requests\Paket\PaketStoreRequest;
 use App\Http\Requests\Paket\PaketUpdateRequest;
 use App\Http\Resources\PaketResource;
 use App\Models\Paket;
+use Illuminate\Support\Facades\Request;
 
 class PaketController extends Controller
 {
     /**
      * Display a paginated listing of the resource (public).
      */
-    public function index()
+    public function index(Request $request)
     {
-        $paket = Paket::query()->with('images')->latest()->paginate(12)->through(
-            fn (Paket $item) => new PaketResource($item)
-        );
+        $search = $request->input('search');
+        $page = $request->input('page', 1);
+        $perPage = $request->input('perPage', 10);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Data retrieved successfully',
-            'data' => $paket,
-        ]);
+        $query = Paket::query()->with('images');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_paket', 'like', "%{$search}%")
+                  ->orWhere('deskripsi', 'like', "%{$search}%")
+                  ->orWhere('kategori_paket', 'like', "%{$search}%")
+                  ->orWhere('kategori_acara', 'like', "%{$search}%");
+            });
+        }
+
+        $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
+
+        $filters = ['search' => $search ?? ''];
+
+        return response()->json($this->respondWithPagination(
+            $paginate->through(fn (Paket $item) => new PaketResource($item)),
+            'Data retrieved successfully',
+            $filters
+        ));
     }
 
     /**

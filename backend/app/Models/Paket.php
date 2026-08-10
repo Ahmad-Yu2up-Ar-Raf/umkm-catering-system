@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\PaketFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -59,6 +60,17 @@ class Paket extends Model
     {
         return $query->where('is_best_seller', true);
     }
+
+
+
+//  public function scopeForWebsite(Builder $q): Builder
+//     {
+//         // Ubah 'asc' menjadi 'desc' di sini 👇
+//         return $q->withCount('antrian as total_kunjungan')->orderBy('updated_at', 'asc');
+//     }
+
+
+
 
     /**
      * Get the orders for the package.

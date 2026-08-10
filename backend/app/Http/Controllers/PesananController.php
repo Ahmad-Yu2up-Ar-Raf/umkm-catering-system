@@ -19,21 +19,25 @@ class PesananController extends Controller
      */
     public function index(Request $request)
     {
-        $pesanan = Pesanan::query()
-            ->with('paket')
-            ->when(
-                $request->query('status'),
-                fn ($query, string $status) => $query->where('status_pesanan', $status)
-            )
-            ->latest()
-            ->paginate(15)
-            ->through(fn (Pesanan $item) => new PesananResource($item));
+        $status = $request->query('status');
+        $page = $request->input('page', 1);
+        $perPage = $request->input('perPage', 15);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Data retrieved successfully',
-            'data' => $pesanan,
-        ]);
+        $query = Pesanan::query()->with('paket');
+
+        if ($status) {
+            $query->where('status_pesanan', $status);
+        }
+
+        $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
+
+        $filters = ['status' => $status ?? ''];
+
+        return response()->json($this->respondWithPagination(
+            $paginate->through(fn (Pesanan $item) => new PesananResource($item)),
+            'Data retrieved successfully',
+            $filters
+        ));
     }
 
     /**

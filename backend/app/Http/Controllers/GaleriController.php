@@ -6,23 +6,38 @@ use App\Http\Requests\Galeri\GaleriStoreRequest;
 use App\Http\Requests\Galeri\GaleriUpdateRequest;
 use App\Http\Resources\GaleriResource;
 use App\Models\Galeri;
+use Illuminate\Support\Facades\Request;
 
 class GaleriController extends Controller
 {
     /**
      * Display a paginated listing of the resource (public).
      */
-    public function index()
+    public function index(Request $request)
     {
-        $galeri = Galeri::query()->latest()->paginate(12)->through(
-            fn (Galeri $item) => new GaleriResource($item)
-        );
+        $search = $request->input('search');
+        $page = $request->input('page', 1);
+        $perPage = $request->input('perPage', 10);
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Data retrieved successfully',
-            'data' => $galeri,
-        ]);
+        $query = Galeri::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('nama_acara', 'like', "%{$search}%")
+                  ->orWhere('deskripsi_acara', 'like', "%{$search}%")
+                  ->orWhere('tanggal_acara', 'like', "%{$search}%");
+            });
+        }
+
+        $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
+
+        $filters = ['search' => $search ?? ''];
+
+        return response()->json($this->respondWithPagination(
+            $paginate->through(fn (Galeri $item) => new GaleriResource($item)),
+            'Data retrieved successfully',
+            $filters
+        ));
     }
 
     /**

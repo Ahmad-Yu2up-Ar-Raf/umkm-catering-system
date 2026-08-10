@@ -6,7 +6,7 @@ import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
 import { LayoutWrapper } from "@/components/provider/layout-wrapper"
 import ContactPage from "@/pages/contact-page"
 import LoginBlock from "@/components/ui/core/block/auth/login-block"
-import MenuPage from "@/pages/menu-page"
+import PaketPage from "@/pages/paket-page"
 
 export const router = createBrowserRouter([
   {
@@ -30,8 +30,8 @@ export const router = createBrowserRouter([
         element: <ContactPage />,
       },
       {
-        path: "/menu",
-        element: <MenuPage />,
+        path: "/paket",
+        element: <PaketPage />,
       },
     ],
   },
