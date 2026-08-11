@@ -29,9 +29,9 @@ export function FilterBar({
   return (
     <div
       style={{ top }}
-      className="sticky z-40 border-b border-border bg-background/90 backdrop-blur-sm"
+      className="sticky  z-40  py-2.5  border-b border-border bg-background/90 backdrop-blur-sm"
     >
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:gap-6 md:px-6">
+      <div className="mx-auto px-6 flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:gap-6">
         <CategoryNav active={kategori} onSelect={onKategoriChange} />
         <div className="w-full md:ml-auto md:w-64">
           <SearchBar search={search} onSearchChange={onSearchChange} />

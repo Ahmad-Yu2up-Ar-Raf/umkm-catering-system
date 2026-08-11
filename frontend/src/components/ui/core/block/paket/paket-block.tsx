@@ -1,9 +1,10 @@
 "use client"
 
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
 
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
+import { useCatalogStore } from "@/store/catalog-store"
 
 import { CatalogHeader } from "./components/catalog-header"
 import { FilterBar } from "./components/filter-bar"
@@ -32,6 +33,15 @@ export function PaketBlock() {
   const pakets = query.data?.pages.flatMap((page) => page.data) ?? []
   const total = query.data?.pages[0]?.meta.pagination.total ?? 0
 
+  // Signal the global layout when the catalog is fully drained (CTA band +
+  // footer only appear after the last page — hidden while loading/scrollable).
+  const setCatalogEnded = useCatalogStore((s) => s.setEnded)
+  const catalogEnded = !query.isFetching && !query.hasNextPage
+
+  useEffect(() => {
+    setCatalogEnded(catalogEnded)
+  }, [catalogEnded, setCatalogEnded])
+
   useGSAP(
     () => {
       const el = headerRef.current
@@ -58,7 +68,7 @@ export function PaketBlock() {
 
   return (
     <section id="katalog-paket" className="flex flex-col">
-      <div ref={headerRef}>
+      <div ref={headerRef} className="m-auto w-full max-w-7xl px-4 md:px-6">
         <CatalogHeader />
       </div>
 
@@ -69,7 +79,9 @@ export function PaketBlock() {
         onSearchChange={setSearch}
       />
 
-      <div className="py-10 md:py-14">
+      {/* pb-24 / md:pb-32 — breathing room below the grid so the infinite
+          scroll spinner (and the trailing CTA/footer) never feel cramped. */}
+      <div className="m-auto w-full max-w-7xl px-4 pt-10 pb-24 md:px-8 md:pt-10 md:pb-32">
         <PaketGrid
           pakets={pakets}
           total={total}
@@ -80,7 +92,7 @@ export function PaketBlock() {
           isFetchingNextPage={query.isFetchingNextPage}
           kategori={kategori}
           search={search}
-          onLoadMore={() => query.fetchNextPage()}
+          onLoadMore={query.fetchNextPage}
           onRetry={() => query.refetch()}
           onReset={() => {
             setKategori("")

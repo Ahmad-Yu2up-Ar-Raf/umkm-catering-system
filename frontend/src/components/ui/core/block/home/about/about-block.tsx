@@ -1,51 +1,19 @@
-import { useRef } from "react"
-
-import { useReducedMotion } from "@/hooks/use-reduced-motion"
-import { gsap, useGSAP } from "@/components/motion/gsap"
 import { BlurReveal } from "@/components/motion/blur-reveal"
+import { ScrollRotatingVisual } from "@/components/ui/core/visual/scroll-rotating-visual"
 
 /**
  * #profil — the founder/philosophy block.
  *
- * Motion (GSAP ScrollTrigger, `prefers-reduced-motion` → static):
+ * Motion:
  *  - The right-side hero object is a single top-down Tumpeng PNG that rotates
- *    continuously, tied 1:1 to the user's scroll through the section
- *    (`scrub: true`, rotate 0 → 45°) around its center — a slow, premium spin
- *    that makes the hero object feel alive without any extra UI.
+ *    continuously, tied 1:1 to the user's scroll through the section — handled
+ *    by the reusable `ScrollRotatingVisual` (Framer `useScroll`/`useSpring`,
+ *    `prefers-reduced-motion` → static).
  *  - Header + description reveal via the shared word-blur primitives.
  */
 function AboutBlock() {
-  const sectionRef = useRef<HTMLElement>(null)
-  const tumpengRef = useRef<HTMLDivElement>(null)
-  const reduced = useReducedMotion()
-
-  useGSAP(
-    () => {
-      if (reduced || !sectionRef.current || !tumpengRef.current) return
-
-      // Continuous scroll-linked rotation — the tumpeng turns 45° across the
-      // section's full travel, scrubbed to the wheel (no snap, center origin).
-      gsap.fromTo(
-        tumpengRef.current,
-        { rotate: 0 },
-        {
-          rotate: 45,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-          },
-        }
-      )
-    },
-    { scope: sectionRef }
-  )
-
   return (
     <section
-      ref={sectionRef}
       id="profil"
       className="container content-center py-15 lg:py-0 lg:pt-30 lg:pb-30"
     >
@@ -94,21 +62,13 @@ function AboutBlock() {
           </BlurReveal>
         </header>
 
-        {/* Kanan — the rotating Tumpeng hero object. The wrapper spins around
-            its center as the user scrolls through the section. */}
+        {/* Kanan — the rotating Tumpeng hero object. */}
         <div className="flex w-full items-center justify-end lg:w-[50%]">
-          <div
-            ref={tumpengRef}
-            className="relative size-full md:h-[360px] md:w-[360px] lg:h-[400px] lg:w-[400px]"
-            style={{ transformOrigin: "center" }}
-          >
-            <img
-              src="/assets/images/about/tumpeng-from-top.png"
-              alt="Tumpeng nasi kuning khas Nusantara dilihat dari atas"
-              loading="lazy"
-              className="h-full w-full object-contain drop-shadow-xl md:scale-110"
-            />
-          </div>
+          <ScrollRotatingVisual
+            imageSrc="/assets/images/about/tumpeng-from-top.png"
+            alt="Tumpeng nasi kuning khas Nusantara dilihat dari atas"
+            className="size-full md:h-[360px] md:w-[360px] lg:h-[400px] lg:w-[400px]"
+          />
         </div>
       </div>
     </section>

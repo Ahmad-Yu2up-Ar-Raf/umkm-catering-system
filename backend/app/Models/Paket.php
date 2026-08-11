@@ -54,6 +54,7 @@ class Paket extends Model
             'harga_per_porsi' => 'decimal:2',
             'kapasitas_produksi' => 'integer',
             'is_best_seller' => 'boolean',
+            'jenis_kemasan' => 'string',
         ];
     }
 

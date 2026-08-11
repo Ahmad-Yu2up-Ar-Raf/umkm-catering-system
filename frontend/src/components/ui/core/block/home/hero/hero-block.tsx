@@ -12,6 +12,7 @@ import { WordReveal } from "@/components/motion/word-reveal"
 import { ParallaxMotionBackground } from "@/components/motion/parallax-motion-background"
 import { ScrollIndicator } from "./components/scroll-indicator"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { Link } from "react-router"
 /* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V4 */
 
 /**
@@ -77,9 +78,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
               <MediaItem
                 className="h-full w-full cursor-zoom-in"
 
-                webViewLink={
-                  "/assets/images/lifestyle/paket-combo-1.png"
-                }
+                webViewLink={"/assets/images/lifestyle/paket-combo-1.png"}
               />
             </div>
           </FloatingElement>
@@ -250,17 +249,19 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 delay={0.35 * 6}
                 className="inline-block"
               >
-                <OriginButton
-                  intensity={0.8}
-                  range={120}
-                  className="group border border-primary/40 text-xs tracking-widest uppercase sm:border-2 sm:border-primary"
-                >
-                  Jelajahi Menu
-                  <HugeiconsIcon
-                    icon={ArrowRight}
-                    className="z-[9] size-4 fill-none transition-transform duration-700 ease-out group-hover:translate-x-1"
-                  />
-                </OriginButton>
+                <Link to={"/paket"}>
+                  <OriginButton
+                    intensity={0.8}
+                    range={120}
+                    className="group border border-primary/40 text-xs tracking-widest uppercase sm:border-2 sm:border-primary"
+                  >
+                    Jelajahi Menu
+                    <HugeiconsIcon
+                      icon={ArrowRight}
+                      className="z-[9] size-4 fill-none transition-transform duration-700 ease-out group-hover:translate-x-1"
+                    />
+                  </OriginButton>
+                </Link>
               </BlurReveal>
             </>
           )}

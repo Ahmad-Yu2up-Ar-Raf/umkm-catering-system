@@ -4,8 +4,7 @@
         "laravel-boost": {
             "type": "local",
             "enabled": true,
-            "dir": "/mnt/c/Dev/Web/catering/backend",
-            "command": ["/mnt/c/xampp/php/php.exe", "artisan", "boost:mcp"]
+            "command": ["powershell.exe", "-Command", "php artisan boost:mcp"]
         }
     }
 }

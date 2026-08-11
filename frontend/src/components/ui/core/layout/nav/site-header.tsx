@@ -251,11 +251,13 @@ export function SiteHeader({ className }: { className?: string }) {
     e.preventDefault()
     jumpToSection(hash)
   }
+  const { pathname } = useLocation()
+  const isPaketPage = pathname !== "/paket"
 
   return (
-    <Navbar className={cn("", className)}>
+    <Navbar isPaketPage={isPaketPage} className={cn("", className)}>
       {/* Desktop pill navigation — scroll-triggered, lg+ (unchanged). */}
-      <NavBody>
+      <NavBody isPaketPage={isPaketPage}>
         <NavbarLogo />
         <NavItems items={NAV_ITEMS} onItemClick={handleNavClick} />
         <OriginButton

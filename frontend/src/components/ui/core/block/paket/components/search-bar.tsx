@@ -9,14 +9,16 @@ import { Input } from "@/components/ui/fragments/shadcn-ui/input"
 const DEBOUNCE_MS = 300
 
 /**
- * SearchBar — minimalist pill search. Owns the instant typing value locally;
- * the URL is the source of truth, so every change is debounced into
+ * SearchBar — minimalist pill search with strict one-way data flow: the local
+ * `value` is the ONLY source of truth for the input. Typing updates it
+ * instantly, then a 300ms debounce commits it to the URL via
  * `onSearchChange` (→ `?search=`).
  *
- * The URL → input mirror uses React's "adjust state during render" pattern
- * instead of an effect: when `search` changes externally (back/forward,
- * Reset filter) the input re-syncs during render — and never re-writes the
- * stale local value back into the URL.
+ * The URL is NEVER mirrored back into the input while it is focused — so a
+ * self-originated debounced commit (or any navigation) can't clobber live
+ * typing, and trailing spaces are preserved. Re-sync only happens when the
+ * input is NOT focused (explicit external resets / back-forward) via a
+ * render-time adjustment, per React's derived-state pattern.
  */
 export function SearchBar({
   search,
@@ -26,19 +28,24 @@ export function SearchBar({
   onSearchChange: (term: string) => void
 }) {
   const [value, setValue] = useState(search)
+  const [focused, setFocused] = useState(false)
   const [prevSearch, setPrevSearch] = useState(search)
 
-  if (prevSearch !== search) {
-    setPrevSearch(search)
-    setValue(search)
-  }
-
-  // Local typing → debounced URL write (skipped while already in sync).
+  // Local typing → debounced URL write. Skipped while already in sync, so a
+  // trailing space never schedules a redundant re-commit.
   useEffect(() => {
-    if (value === search) return
+    if (value.trim() === search) return
     const id = window.setTimeout(() => onSearchChange(value), DEBOUNCE_MS)
     return () => window.clearTimeout(id)
   }, [value, search, onSearchChange])
+
+  // Render-time adjustment (React's derived-state pattern): fires only when
+  // the URL actually changed AND the input is NOT focused — mid-typing
+  // commits land while focused, so they never re-write the field.
+  if (prevSearch !== search) {
+    setPrevSearch(search)
+    if (!focused && value !== search) setValue(search)
+  }
 
   return (
     <Input
@@ -47,6 +54,8 @@ export function SearchBar({
       clearable
       value={value}
       onChange={(e) => setValue(e.target.value)}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
       placeholder="Cari paket…"
       aria-label="Cari paket"
       className="h-9 w-full rounded-full border-border bg-muted/40"

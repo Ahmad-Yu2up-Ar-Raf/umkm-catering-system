@@ -13,12 +13,14 @@ import { cn } from "@/lib/utils"
 interface NavbarProps {
   children: React.ReactNode
   className?: string
+  isPaketPage: boolean
 }
 
 interface NavBodyProps {
   children: React.ReactNode
   className?: string
   visible?: boolean
+  isPaketPage: boolean
 }
 
 interface NavItemsProps {
@@ -28,10 +30,7 @@ interface NavItemsProps {
   }>
   visible?: boolean
   className?: string
-  onItemClick?: (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    hash: string
-  ) => void
+  onItemClick?: (e: React.MouseEvent<HTMLAnchorElement>, hash: string) => void
 }
 
 /**
@@ -55,7 +54,7 @@ function useIsDesktop() {
   return isDesktop
 }
 
-export const Navbar = ({ children, className }: NavbarProps) => {
+export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
   const ref = useRef<HTMLDivElement>(null)
   // `isDesktop` gates the hide-on-scroll translation: the mobile header never
   // slides away, but the glass/shrink signal (`visible`) still flows to kids on
@@ -95,6 +94,26 @@ export const Navbar = ({ children, className }: NavbarProps) => {
     }
   })
 
+  if (!isPaketPage)
+    return (
+      <nav
+        className={cn(
+          "relative top-3 z-40 w-full bg-background px-4 transition-all duration-300 ease-out md:top-4 md:px-0",
+
+          // paths != '/' && visible == false ? '   ' : ' sticky',
+          className
+        )}
+      >
+        {React.Children.map(children, (child) =>
+          React.isValidElement(child)
+            ? React.cloneElement(
+                child as React.ReactElement<{ visible?: boolean }>,
+                { visible }
+              )
+            : child
+        )}
+      </nav>
+    )
   return (
     <motion.nav
       ref={ref}
@@ -113,8 +132,8 @@ export const Navbar = ({ children, className }: NavbarProps) => {
         delay: delay ? 2 : 0,
       }}
       className={cn(
-        "fixed transition-all duration-300 ease-out top-3 z-40 w-full px-4 md:top-4 md:px-0",
-        !visible ? "pt-2" : " mt-0",
+        "fixed top-3 z-40 w-full px-4 transition-all duration-300 ease-out md:top-4 md:px-0",
+        !visible ? "pt-2" : "mt-0",
         // paths != '/' && visible == false ? '   ' : ' sticky',
         className
       )}
@@ -131,7 +150,25 @@ export const Navbar = ({ children, className }: NavbarProps) => {
   )
 }
 
-export const NavBody = ({ children, className, visible }: NavBodyProps) => {
+export const NavBody = ({
+  children,
+  className,
+  visible,
+  isPaketPage,
+}: NavBodyProps) => {
+  if (!isPaketPage)
+    return (
+      <div
+        className={cn(
+          "relative z-60 mx-auto hidden w-full max-w-7xl flex-row items-center justify-between self-start rounded-full px-3 py-2 transition-all duration-300 ease-out lg:flex",
+
+          className
+        )}
+      >
+        {children}
+      </div>
+    )
+
   return (
     <motion.div
       animate={{

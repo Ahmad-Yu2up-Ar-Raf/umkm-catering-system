@@ -1,7 +1,12 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
+
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
+import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { cn } from "@/lib/utils"
 
 import type { Paket } from "../types/paket-types"
@@ -9,12 +14,21 @@ import { PaketCard } from "./paket-card"
 
 const SKELETON_COUNT = 6
 
+/** Stagger between product cards on a fresh-filter reveal (index × 50ms). */
+const STAGGER_S = 0.05
+
 /**
  * PaketGrid — responsive card grid (1 → 2 → 3 cols, per `catalog.md`) with
- * the loading / empty / error / load-more states. Skeletons only appear when
- * there is NO cached data at all; a filter change keeps the previous pages
- * visible and dimmed (`isPlaceholderData` → `opacity-60`) instead of flashing
- * skeletons. Load-more is an explicit button — no auto-infinite scroll.
+ * the loading / empty / error / infinite-scroll states. Skeletons only appear
+ * when there is NO cached data at all; a filter change keeps the previous
+ * pages visible and dimmed (`isPlaceholderData` → `opacity-60`) instead of
+ * flashing skeletons. Auto-loads the next page when a sentinel below the grid
+ * enters the viewport (native IntersectionObserver, 400px pre-load margin).
+ *
+ * Entry reveal: cards fade + rise in a 50ms stagger — but ONLY on the initial
+ * load and when fresh data lands for a changed filter (`isPlaceholderData`
+ * flipping true→false). Infinite-scroll appends never re-stagger, so the page
+ * stays smooth at the bottom.
  */
 export function PaketGrid({
   pakets,
@@ -44,6 +58,44 @@ export function PaketGrid({
   onReset: () => void
 }) {
   const isFiltered = Boolean(kategori || search)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const reduced = useReducedMotion()
+
+  // Re-run the entry stagger ONLY when fresh data lands for a changed filter
+  // (placeholder → real). Uses React's sanctioned "adjust state during render"
+  // pattern — no ref reads during render, no setState in effects.
+  const [prevPlaceholder, setPrevPlaceholder] = useState(isPlaceholderData)
+  const [revealKey, setRevealKey] = useState(0)
+  if (prevPlaceholder !== isPlaceholderData) {
+    setPrevPlaceholder(isPlaceholderData)
+    if (!isPlaceholderData) setRevealKey((k) => k + 1)
+  }
+
+  // Sentinel → next page. Re-arms when a fetch finishes (the guard reads the
+  // fresh `isFetchingNextPage`), so scrolling chains pages until `hasNextPage`
+  // runs out.
+  useEffect(() => {
+    if (!hasNextPage) return
+    const el = sentinelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) onLoadMore()
+      },
+      { root: null, rootMargin: "400px", threshold: 0 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [hasNextPage, isFetchingNextPage, onLoadMore])
+
+  const cardVariants = {
+    hidden: { opacity: reduced ? 1 : 0, y: reduced ? 0 : 10 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: reduced ? 0 : 0.4, ease: "easeOut" },
+    },
+  } as const
 
   return (
     <div className="flex flex-col gap-8">
@@ -96,24 +148,31 @@ export function PaketGrid({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            key={revealKey}
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: {
+                transition: { staggerChildren: reduced ? 0 : STAGGER_S },
+              },
+            }}
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {pakets.map((paket) => (
-              <PaketCard
-                key={paket.id}
-                paket={paket}
-                className={cn(isPlaceholderData && "opacity-60")}
-              />
+              <motion.div key={paket.id} variants={cardVariants}>
+                <PaketCard
+                  paket={paket}
+                  className={cn(isPlaceholderData && "opacity-60")}
+                />
+              </motion.div>
             ))}
-          </div>
-          {hasNextPage && (
-            <div className="flex justify-center">
-              <Button
-                variant="outline"
-                onClick={onLoadMore}
-                disabled={isFetchingNextPage}
-              >
-                {isFetchingNextPage ? "Memuat…" : "Muat lebih banyak"}
-              </Button>
+          </motion.div>
+          {hasNextPage && <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />}
+          {isFetchingNextPage && (
+            <div className="flex w-full items-center justify-center min-h-[120px] py-6">
+              <Spinner className="size-5 text-muted-foreground" />
             </div>
           )}
         </>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback } from "react"
 import { useSearchParams } from "react-router"
 
 import type { KategoriFilter } from "../data/categories"
@@ -44,35 +44,17 @@ export function useCatalogParams() {
     [commit]
   )
 
-  // 300ms debounce so every keystroke never fires a request. The SearchBar
-  // keeps instant local typing; the URL — and therefore the query refetch —
-  // waits for the pause.
-  const debounceRef = useRef<number | null>(null)
-
+  // Immediate commit — debouncing lives in the SearchBar (single layer), so a
+  // pause only fires one request. Reset also clears the URL instantly.
   const setSearch = useCallback(
     (term: string) => {
-      if (debounceRef.current !== null) {
-        window.clearTimeout(debounceRef.current)
-      }
-      debounceRef.current = window.setTimeout(() => {
-        commit((params) => {
-          const value = term.trim()
-          if (value) params.set("search", value)
-          else params.delete("search")
-        })
-      }, 300)
+      commit((params) => {
+        const value = term.trim()
+        if (value) params.set("search", value)
+        else params.delete("search")
+      })
     },
     [commit]
-  )
-
-  // Flush any pending debounce when the hook consumer unmounts.
-  useEffect(
-    () => () => {
-      if (debounceRef.current !== null) {
-        window.clearTimeout(debounceRef.current)
-      }
-    },
-    []
   )
 
   return { kategori, search, setKategori, setSearch }

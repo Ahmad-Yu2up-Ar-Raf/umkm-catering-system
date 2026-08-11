@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\KategoriAcaraEnum;
 use Database\Factories\GaleriFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -32,6 +33,7 @@ class Galeri extends Model
     {
         return [
             'tanggal_acara' => 'date',
+            'kategori_acara' => KategoriAcaraEnum::class,
         ];
     }
 }

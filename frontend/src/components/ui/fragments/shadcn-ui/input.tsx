@@ -10,7 +10,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import { EyeIcon, EyeOff, X } from "@hugeicons/core-free-icons"
 
 const inputVariants = cva(
-  "h-9 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-5 text-base transition-colors outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50",
+  "h-9 w-full min-w-0 rounded-lg border border-border bg-background px-3 py-5 text-base transition-colors outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[2px] focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50 transition-all duration-300 ease-out",
 
   {
     variants: {
@@ -19,7 +19,7 @@ const inputVariants = cva(
           "border-border focus-visible:text-primary focus-visible:placeholder:text-primary",
         destructive: "border-destructive focus-visible:ring-destructive",
         ghost:
-          "border-transparent bg-accent focus-visible:border-border focus-visible:bg-input",
+          "border-transparent bg-accent focus-visible:border-border/30 focus-visible:bg-input/40",
       },
       size: {
         default: "h-9 px-3 py-2",
