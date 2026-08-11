@@ -124,7 +124,7 @@ export function MomentFeatured({
   return (
     <div
       ref={ref}
-      className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(42vh,520px)]"
+      className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(50vh,520px)]"
     >
       {/* Stacked photos — only the active one is visible at any time. */}
       {MOMENT_ITEMS.map((item, index) => (

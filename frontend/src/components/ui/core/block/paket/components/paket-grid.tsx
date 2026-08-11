@@ -164,14 +164,19 @@ export function PaketGrid({
               <motion.div key={paket.id} variants={cardVariants}>
                 <PaketCard
                   paket={paket}
-                  className={cn(isPlaceholderData && "opacity-60")}
+                  className={cn(
+                    isPlaceholderData && "opacity-60",
+                    "min-h-[14em]"
+                  )}
                 />
               </motion.div>
             ))}
           </motion.div>
-          {hasNextPage && <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />}
+          {hasNextPage && (
+            <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
+          )}
           {isFetchingNextPage && (
-            <div className="flex w-full items-center justify-center min-h-[120px] py-6">
+            <div className="flex min-h-[120px] w-full items-center justify-center py-6">
               <Spinner className="size-5 text-muted-foreground" />
             </div>
           )}

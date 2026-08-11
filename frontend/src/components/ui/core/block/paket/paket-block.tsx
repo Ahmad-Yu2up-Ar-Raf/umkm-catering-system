@@ -68,7 +68,7 @@ export function PaketBlock() {
 
   return (
     <section id="katalog-paket" className="flex flex-col">
-      <div ref={headerRef} className="m-auto w-full max-w-7xl px-4 md:px-6">
+      <div ref={headerRef} className="m-auto w-full container  ">
         <CatalogHeader />
       </div>
 
@@ -81,7 +81,7 @@ export function PaketBlock() {
 
       {/* pb-24 / md:pb-32 — breathing room below the grid so the infinite
           scroll spinner (and the trailing CTA/footer) never feel cramped. */}
-      <div className="m-auto w-full max-w-7xl px-4 pt-10 pb-24 md:px-8 md:pt-10 md:pb-32">
+      <div className="m-auto w-full  container pt-10 pb-24 md:px-8 md:pt-10 md:pb-32">
         <PaketGrid
           pakets={pakets}
           total={total}
@@ -103,3 +103,5 @@ export function PaketBlock() {
     </section>
   )
 }
+
+

@@ -7,11 +7,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { ScrollTrigger } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
-import {
-  resetOrderingTimeline,
-  resolveScrollTarget,
-  sectionScrollOffset,
-} from "@/lib/hash-scroll"
+import { teleportToHash } from "@/lib/hash-scroll"
 import { HeroBlock } from "@/components/ui/core/block/home/hero/hero-block"
 import { Preloader } from "@/components/motion/preloader"
 import AboutBlock from "@/components/ui/core/block/home/about/about-block"
@@ -23,6 +19,13 @@ import TestimonialBlock from "@/components/ui/core/block/home/testimonial/testim
 import { MomentBlock } from "@/components/ui/core/block/home/momen/moment-block"
 
 const PRELOADER_FLAG = "hasSeenPreloader"
+
+/**
+ * Max rAF retries (≈2s) waiting for the pinned `#cara-pesan` layout to settle
+ * before a cross-route hash teleport. After this the mask is revealed without
+ * jumping rather than teleporting into a half-built layout.
+ */
+const MAX_SETTLE_ATTEMPTS = 120
 
 /** Run-once-per-session gate — read lazily at mount so a repeat visit never
  *  flashes the curtain (no useEffect, no paint of a preloader that will be skipped). */
@@ -91,14 +94,17 @@ function HomePage() {
     usePreloaderStore.getState().setDone(preloaderDone)
   }, [preloaderDone])
 
-  // Align to a `#section` hash after the layout is GUARANTEED stable — and
-  // bypass GSAP's aggressive pin interception. The #cara-pesan pinned timeline
-  // (~+3000px) treats an instant deep jump as out-of-bounds and snaps the
-  // scroll back to its active pin start (≈ #profil). Sequence:
-  //   1. DISABLE all ScrollTriggers so no pin can fight the incoming jump.
-  //   2. POLL until the `.pin-spacer` exists (heavy layout injected/stable).
-  //   3. TELEPORT straight to the element via Lenis (no manual Y math).
-  //   4. RE-ENABLE + refresh so pins rebind to the new viewport position.
+  // Align to a `#section` hash ONLY once GSAP's layout is GUARANTEED stable —
+  // the pinned #cara-pesan section reserves ~3000px of document height via its
+  // `.pin-spacer`. Until that spacer's height EXISTS IN THE DOM and stops
+  // changing between frames, every section AFTER it (#testimoni, #faq) is still
+  // at its PRE-pin document position — measuring now would teleport into the
+  // pin and strand the viewport inside it. Sequence:
+  //   1. POLL (with a forced `ScrollTrigger.refresh()` each retry) until the
+  //      spacer height is applied and stable across 2 consecutive frames.
+  //   2. TELEPORT via the shared `teleportToHash` (force-refresh → disarm →
+  //      instant Lenis jump → re-arm).
+  //   3. REVEAL the landing mask.
   useEffect(() => {
     // No pending hash → nothing to land on; ensure the mask stays gone.
     if (!location.hash || location.hash === "#") {
@@ -113,73 +119,68 @@ function HomePage() {
     // (The header's same-page clicks use `pushState`, never a React Router
     // hash change, so they never re-enter this effect.)
     if (!preloaderDone) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsMaskVisible(true)
 
     const hash = location.hash
     const listenTarget = document.querySelector<HTMLElement>(hash)
+
+    const revealMask = () => {
+      maskRef.current?.classList.replace("opacity-100", "opacity-0")
+      window.setTimeout(() => setIsMaskVisible(false), 500)
+    }
+
     if (!listenTarget) {
       // Section didn't render (defensive): reveal the page anyway.
-      maskRef.current?.classList.replace("opacity-100", "opacity-0")
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      window.setTimeout(() => setIsMaskVisible(false), 500)
+      revealMask()
       return
     }
 
+    setIsMaskVisible(true)
+
     let cancelled = false
     let attempts = 0
-
-    // Step 1 — disarm every ScrollTrigger so the pin can't hijack the jump.
-    // `disable(false)` keeps their current values (no premature reset).
-    const triggers = ScrollTrigger.getAll()
-    triggers.forEach((st) => st.disable(false))
+    let prevSpacerHeight = -1
+    let stableFrames = 0
 
     const tryTeleport = () => {
       if (cancelled) return
-      // Step 2 — on DESKTOP the OrderingBlock's pin-spacer (~+3000px) must exist
-      // (proves the heavy GSAP layout is mounted / the document height real).
-      // On mobile the ordering section is unpinned (nothing to wait for) and
-      // reduced motion creates no pin, so skip straight to the teleport.
+
+      // Desktop PINS #cara-pesan; mobile + reduced-motion render it static
+      // (no `.pin-spacer` at all), so there is nothing to wait for.
       const pinEnabled = window.matchMedia("(min-width: 768px)").matches
-      const hasPinSpacer = !!document.querySelector(".pin-spacer")
-      if (!hasPinSpacer && !reduced && pinEnabled && attempts < 50) {
+      const pinnedExpected = pinEnabled && !reduced
+
+      // Read the spacer's APPLIED height (a forced layout read — the only way
+      // to know GSAP actually reserved the pin travel in the DOM).
+      const spacerHeight =
+        document.querySelector<HTMLElement>(".pin-spacer")?.offsetHeight ?? -1
+      if (spacerHeight === prevSpacerHeight && spacerHeight > 100) {
+        stableFrames++
+      } else {
+        stableFrames = 0
+      }
+      prevSpacerHeight = spacerHeight
+
+      const settled = !pinnedExpected || stableFrames >= 2
+
+      if (!settled && attempts < MAX_SETTLE_ATTEMPTS) {
         attempts++
+        // Force GSAP to measure the shifting layout on every retry, so the
+        // spacer height converges instead of stalling.
+        ScrollTrigger.refresh()
         requestAnimationFrame(tryTeleport)
         return
       }
 
-      // Step 3 — align. Pinned/tall targets (≥85% viewport, #cara-pesan) TOP
-      // align below the fixed header; short standard sections (faq, testimoni)
-      // get exact vertical centering. #cara-pesan lands on the SPACER top.
-      const scrollTarget = resolveScrollTarget(listenTarget)
-      const offset = sectionScrollOffset(scrollTarget, listenTarget)
-      if (lenis) {
-        lenis.scrollTo(scrollTarget, {
-          immediate: true,
-          force: true,
-          lock: true,
-          offset,
-        })
-      } else {
-        scrollTarget.scrollIntoView({ behavior: "instant", block: "center" })
-      }
-      // Snap the scrubbed ordering timeline to 0 when landing on the pin, so a
-      // jump from below never reverse-scrubs Step 07 → 01.
-      if (listenTarget.id === "cara-pesan") {
-        resetOrderingTimeline(listenTarget)
+      if (!settled) {
+        // Give up gracefully rather than teleporting into a half-built layout.
+        revealMask()
+        return
       }
 
-      // Fade the mask, then unmount it completely.
-      maskRef.current?.classList.replace("opacity-100", "opacity-0")
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      window.setTimeout(() => setIsMaskVisible(false), 500)
-
-      // Step 4 — re-arm the triggers and rebind them to the new position.
-      requestAnimationFrame(() => {
-        if (cancelled) return
-        ScrollTrigger.getAll().forEach((st) => st.enable())
-        ScrollTrigger.refresh()
-      })
+      // Layout is stable — teleport (force-refresh → disarm → jump → re-arm)
+      // and fade the mask.
+      teleportToHash(hash, lenis)
+      revealMask()
     }
 
     requestAnimationFrame(tryTeleport)

@@ -8,6 +8,7 @@ import ContactPage from "@/pages/contact-page"
 import LoginBlock from "@/components/ui/core/block/auth/login-block"
 import PaketPage from "@/pages/paket-page"
 import { AppShell } from "@/components/ui/core/layout/dashboard/app-shell"
+import GaleryPage from "@/pages/galery-page"
 
 export const router = createBrowserRouter([
   {
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
       {
         path: "/paket",
         element: <PaketPage />,
+      },
+      {
+        path: "/galeri",
+        element: <GaleryPage />,
       },
     ],
   },

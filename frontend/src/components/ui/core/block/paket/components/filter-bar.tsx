@@ -31,7 +31,7 @@ export function FilterBar({
       style={{ top }}
       className="sticky  z-40  py-2.5  border-b border-border bg-background/90 backdrop-blur-sm"
     >
-      <div className="mx-auto px-6 flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:gap-6">
+      <div className="mx-auto px-6 flex max-w-5xl flex-col gap-3 md:flex-row md:items-center md:gap-6">
         <CategoryNav active={kategori} onSelect={onKategoriChange} />
         <div className="w-full md:ml-auto md:w-64">
           <SearchBar search={search} onSearchChange={onSearchChange} />

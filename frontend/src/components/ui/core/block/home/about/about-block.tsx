@@ -57,7 +57,7 @@ function AboutBlock() {
             amount={0.3}
           >
             Sejak 2024, Catering Nusantara hadir dari dapur keluarga di Bogor,
-            dimasak segar dengan sepenuh hati untuk Anda. Kami percaya hidangan
+            dimasak segar dengan sepenuh hati untuk Anda. Hidangan
             terbaik itu penting.
           </BlurReveal>
         </header>

@@ -128,7 +128,7 @@ export function MenuGallery({ activeIndex }: { activeIndex: number }) {
   return (
     <div
       ref={galleryRef}
-      className="relative h-[48vh] min-h-[320px] w-full overflow-hidden rounded-2xl md:h-full md:rounded-3xl"
+      className="relative h-[48vh] lg:pl-20 min-h-[320px] w-full overflow-hidden rounded-2xl md:h-full md:rounded-3xl"
     >
       {/* Stacked photos — only the active one is visible at any time. */}
       {MENU_CHOICES.map((item, index) => (

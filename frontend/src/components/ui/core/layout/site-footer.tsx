@@ -65,7 +65,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
                   to="/"
                   className="size-10 transition-transform duration-300 group-hover:scale-105 group-hover:brightness-110 sm:size-5 md:size-8 lg:size-10"
                 >
-                  <Logo />
+                  <Logo  className=" lg:size-12"/>
                 </Link>
               </div>
               <p className="text- mb-3 text-sm leading-relaxed text-foreground/60 md:mb-6 md:text-sm">
@@ -96,7 +96,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
 
           {/* Judul besar tengah */}
           <div className="flex h-fit w-full items-center justify-center">
-            <h1 className="relative mt-10 h-30 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-70 lg:text-[13.6em]">
+            <h1 className="relative   h-30 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-63 lg:text-[13.6em]">
               Nusantara
             </h1>
           </div>

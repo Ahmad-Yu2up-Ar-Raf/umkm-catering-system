@@ -29,22 +29,33 @@ export function ScrollToTop() {
   const lenis = useLenis()
 
   useEffect(() => {
-    // Re-measure every ScrollTrigger once the new route's layout settles, so
-    // nothing is pinned/measured against stale coordinates.
-    requestAnimationFrame(() => ScrollTrigger.refresh())
-
     // If a `#hash` alignment is pending (e.g. cross-route `/#faq`), the
     // homepage's mount effect owns the viewport — DO NOT yank to the top and
     // fight it. Only reset to 0 when there's no hash to land on.
     if (window.location.hash) return
 
-    if (lenis) {
-      // Force Lenis to the very top, skipping any smooth animation — its
-      // internal scroll and the native scroll both land at 0 together.
-      lenis.scrollTo(0, { immediate: true, force: true })
-    } else {
+    const resetToTop = () => {
+      // Authoritative NATIVE reset first — Lenis reads `window.scrollY` back
+      // on its next tick, so even a stopped/locked Lenis can't keep the old
+      // page's depth visible.
       window.scrollTo(0, 0)
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      // Sync Lenis's internal state so its RAF loop agrees (writes 0, not a
+      // stale position).
+      lenis?.scrollTo(0, { immediate: true, force: true })
     }
+
+    // Instant reset — the new route opens at the top, never below the fold.
+    resetToTop()
+
+    // Once the new route's layout settles, re-measure every ScrollTrigger and
+    // re-assert the top in case a late mount (pin spacer, heavy images)
+    // adjusted scroll after the first reset.
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh()
+      if (window.scrollY !== 0) resetToTop()
+    })
   }, [pathname, lenis])
 
   return null

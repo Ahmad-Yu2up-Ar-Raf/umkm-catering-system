@@ -1,48 +1,76 @@
+"use client"
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
-
 import { cn } from "@/lib/utils"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 
 const badgeVariants = cva(
-  "group/badge inline-flex h-5 w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-4xl border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3!",
+  "flex items-center justify-center gap-1.5 rounded-[calc(var(--radius)-4px)] border text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        default:
+          "g-primary border-transparent shadow-sm/2 hover:bg-primary/80 focus-visible:ring-ring",
         secondary:
-          "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 focus-visible:ring-ring",
         destructive:
-          "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+          "text-destructive-foreground border-transparent bg-destructive shadow-sm/2 hover:bg-destructive/80 focus-visible:ring-destructive",
         outline:
-          "border-border bg-input/30 text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
+          "border-border text-foreground shadow-sm/2 hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring",
         ghost:
-          "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
-        link: "text-primary underline-offset-4 hover:underline",
+          "border-transparent text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring",
+      },
+      size: {
+        sm: "h-5 px-2",
+        default: "h-6 px-2.5",
+        lg: "h-7 px-3 text-sm",
+        icon: "h-6 w-6 p-0",
       },
     },
     defaultVariants: {
       variant: "default",
+      size: "default",
     },
   }
 )
 
+export interface BadgeProps
+  extends
+    React.HTMLAttributes<HTMLSpanElement>,
+    VariantProps<typeof badgeVariants> {
+  icon?: IconSvgElement
+  iconPosition?: "left" | "right"
+}
+
 function Badge({
   className,
-  variant = "default",
-  asChild = false,
+  variant,
+  size,
+  icon: Icon,
+  iconPosition = "left",
+  children,
   ...props
-}: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
-  const Comp = asChild ? Slot.Root : "span"
+}: BadgeProps) {
+  const iconSize = size === "sm" ? 12 : size === "lg" ? 14 : 12
 
   return (
-    <Comp
-      data-slot="badge"
-      data-variant={variant}
-      className={cn(badgeVariants({ variant }), className)}
+    <span
+      className={cn(
+        badgeVariants({ variant, size }),
+        "w-fit rounded-xl text-accent-foreground",
+        className
+      )}
       {...props}
-    />
+    >
+      {Icon && iconPosition === "left" && (
+        <HugeiconsIcon icon={Icon} size={iconSize} className="shrink-0" />
+      )}
+      {children}
+      {Icon && iconPosition === "right" && (
+        <HugeiconsIcon icon={Icon} size={iconSize} className="shrink-0" />
+      )}
+    </span>
   )
 }
 
