@@ -117,10 +117,10 @@ export function PaketGrid({
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (
             <div
               key={i}
-              className="flex flex-col gap-3 overflow-hidden rounded-lg border border-border bg-card p-0 shadow-sm"
+              className="flex flex-col gap-10 overflow-hidden rounded-lg p-0"
             >
-              <Skeleton className="aspect-[4/3] w-full rounded-none" />
-              <div className="flex flex-col gap-2 p-4">
+              <Skeleton className="group relative min-h-[16em] overflow-hidden rounded-xl px-0 md:min-h-[20em]" />
+              <div className="flex flex-col gap-2 p-0">
                 <Skeleton className="h-5 w-3/4" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-1/2" />
@@ -158,7 +158,7 @@ export function PaketGrid({
                 transition: { staggerChildren: reduced ? 0 : STAGGER_S },
               },
             }}
-            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3"
           >
             {pakets.map((paket) => (
               <motion.div key={paket.id} variants={cardVariants}>
@@ -177,7 +177,7 @@ export function PaketGrid({
           )}
           {isFetchingNextPage && (
             <div className="flex min-h-[120px] w-full items-center justify-center py-6">
-              <Spinner className="size-5 text-muted-foreground" />
+              <Spinner className="size-5 lg:size-14 text-muted-foreground" />
             </div>
           )}
         </>

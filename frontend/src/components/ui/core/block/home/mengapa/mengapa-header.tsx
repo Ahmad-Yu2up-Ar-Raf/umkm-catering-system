@@ -17,16 +17,20 @@ import { BlurReveal } from "@/components/motion/blur-reveal"
 export function MengapaHeader() {
   return (
     <div className="mb-12 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-      <BlurReveal
-        as="h2"
-        blur={8}
-        stagger={0.08}
-        amount={0.4}
-        className="max-w-[760px] font-serif text-4xl md:leading-14 lg:text-5xl text-balance text-foreground"
-      >
-        Mengapa memilih{" "}
-        <span className="font-accent italic text-primary">Nusantara</span>
-      </BlurReveal>
+      <h2 className="max-w-[760px] font-serif text-4xl text-balance text-foreground md:leading-14 lg:text-5xl">
+        <BlurReveal as="span" blur={8} stagger={0.08} amount={0.4}>
+          Mengapa memilih
+        </BlurReveal>
+        <BlurReveal
+          as="span"
+          blur={8}
+          stagger={0.08}
+          amount={0.4}
+          className="block font-accent text-primary italic"
+        >
+          Katering Nusantara
+        </BlurReveal>
+      </h2>
 
       <div className="shrink-0">
         <BlurReveal

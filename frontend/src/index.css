@@ -274,7 +274,7 @@
 }
 
 @utility container {
-  @apply px-4 md:px-6  max-w-5xl m-auto;
+  @apply px-4  md:px-8  max-w-5xl m-auto;
 }
 
 /* Marquee — the hourly infinite strip used by the Momen gallery (#momentum).

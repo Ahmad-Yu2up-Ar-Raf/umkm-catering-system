@@ -1,11 +1,10 @@
-import * as React from "react"
 import type { SVGProps } from "react"
 const ShoppingCart = (props: SVGProps<SVGSVGElement>) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="0.2em"
     height="0.2em"
-    fill="none"
+    fill="var(--primary-foreground)"
     stroke="currentColor"
     strokeLinecap="round"
     strokeLinejoin="round"

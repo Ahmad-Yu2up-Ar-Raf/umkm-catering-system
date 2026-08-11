@@ -96,7 +96,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
 
           {/* Judul besar tengah */}
           <div className="flex h-fit w-full items-center justify-center">
-            <h1 className="relative   h-30 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-63 lg:text-[13.6em]">
+            <h1 className="relative   h-30 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[24lvw] tracking-[-0.10em] text-transparent select-none lg:h-75 lg:text-[16em]">
               Nusantara
             </h1>
           </div>

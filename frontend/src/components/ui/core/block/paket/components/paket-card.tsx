@@ -23,6 +23,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowUpRight01FreeIcons,
   Heart,
+  Like,
   Package,
   Star,
 } from "@hugeicons/core-free-icons"
@@ -76,11 +77,24 @@ export function PaketCard({
     >
       <CardHeader
         className={cn(
-          "group relative min-h-[16em] overflow-hidden rounded-xl bg-background px-0 md:min-h-[22em]",
+          "group relative min-h-[16em] overflow-hidden rounded-lg bg-background px-0 md:min-h-[22em]",
           className
         )}
       >
-        <Badge
+        {paket.is_best_seller && (
+          <Badge
+            icon={Like}
+            variant={"outline"}
+            className={cn(
+              "absolute top-2.5 left-2.5 z-30 w-fit gap-3 rounded-full border-0 text-accent-foreground shadow-none lg:text-xs [&_svg]:size-4",
+              "[&_svg]:text-primary",
+              "bg-background"
+            )}
+          >
+            <span className="font-semibold">Best Seller</span>
+          </Badge>
+        )}
+        {/* <Badge
           icon={IconProduct}
           variant="outline"
           className={cn(
@@ -90,8 +104,8 @@ export function PaketCard({
           )}
         >
           {category}
-        </Badge>
-        <CardAction className="absolute right-0 bottom-0 flex h-full flex-col justify-between pt-1.5 md:pt-0">
+        </Badge> */}
+        {/* <CardAction className="absolute right-0 bottom-0 flex h-full flex-col justify-between pt-1.5 md:pt-0">
           <Tooltip>
             <TooltipTrigger>
               <Button
@@ -139,7 +153,7 @@ export function PaketCard({
               />
             </svg>
           </div>
-        </CardAction>
+        </CardAction> */}
 
         <Link
           to={href}
@@ -150,7 +164,7 @@ export function PaketCard({
             webViewLink={`${paket.thumbnail}`}
 
             className={cn(
-              "h-full w-full rounded-xl object-cover object-center opacity-100 transition-all duration-700 ease-out",
+              "h-full w-full rounded-2xl object-cover object-center opacity-100 transition-all duration-700 ease-out",
 
               showcase_images &&
                 showcase_images.length > 0 &&
@@ -169,7 +183,20 @@ export function PaketCard({
         </Link>
       </CardHeader>
       <Link className="space-y-3 lg:space-y-4" to={href}>
-        <CardContent className="mt-3 bg-background py-0 pr-2.5 pl-0">
+        <CardContent className="mt-2 space-y-2 bg-background py-0 pr-2.5 pl-0">
+          <Badge
+            icon={IconProduct}
+            variant={"outline"}
+            className={cn(
+              "w-fit gap-3 border-0 text-accent-foreground shadow-none lg:text-xs [&_svg]:size-4",
+
+              ColorProduct,
+
+              "hover: hover:bg-transparent"
+            )}
+          >
+            <span className="font-medium">{paket.kategori_paket}</span>
+          </Badge>
           {/* JUDUL PRODUK - Menggunakan Fraunces (Premium Vibe) */}
           <CardTitle className="line-clamp-1 font-heading text-base font-semibold tracking-tight text-foreground lg:text-lg">
             {paket.nama_paket}

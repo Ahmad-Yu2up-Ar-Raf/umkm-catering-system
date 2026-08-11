@@ -2,7 +2,7 @@
 
 import { motion, useMotionValueEvent, useScroll } from "framer-motion"
 import { Link, useMatches } from "react-router"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import type { VariantProps } from "class-variance-authority"
 
@@ -55,30 +55,25 @@ function useIsDesktop() {
 }
 
 export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
-  const ref = useRef<HTMLDivElement>(null)
-  // `isDesktop` gates the hide-on-scroll translation: the mobile header never
-  // slides away, but the glass/shrink signal (`visible`) still flows to kids on
-  // every viewport.
+  // Hide-on-scroll + glass signals, both from the WINDOW scroll position.
+  // A target-scoped `useScroll({ target: ref })` dies on route change: the
+  // `motion.nav` that owns `ref` only renders on the non-paket branch, so the
+  // hook's one-shot ref-resolution gives up while the ref is detached and
+  // never re-attaches when it hydrates later — `visible` stays false forever
+  // and the glass/padding never appears. Window scroll works on every route
+  // and survives the branch unmount/remount (this is the same mechanism that
+  // already drives the hide-on-scroll `visiblee` signal).
   const isDesktop = useIsDesktop()
-  const { scrollY } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  })
-  const [visible, setVisible] = useState<boolean>(false)
-
-  useMotionValueEvent(scrollY, "change", (latest) => {
-    if (latest > 100) {
-      setVisible(true)
-    } else {
-      setVisible(false)
-    }
-  })
-
-  const { scrollYProgress } = useScroll()
+  const { scrollY, scrollYProgress } = useScroll()
+  const [visible, setVisible] = useState<boolean>(
+    () => typeof window !== "undefined" && window.scrollY > 100
+  )
   const [visiblee, setVisiblee] = useState(true)
   const [delay, setDelay] = useState(true)
 
-  // Handle initial visibility when path changes
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setVisible(latest > 100)
+  })
 
   useMotionValueEvent(scrollYProgress, "change", (current) => {
     // Check if current is not undefined and is a number
@@ -98,7 +93,7 @@ export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
     return (
       <nav
         className={cn(
-          "relative top-3 z-40 w-full bg-background px-4 transition-all duration-300 ease-out md:top-4 md:px-0",
+          "relative top-3 z-40 w-full bg-background px-4 transition-all duration-300 ease-out md:top-4 md:px-6",
 
           // paths != '/' && visible == false ? '   ' : ' sticky',
           className
@@ -116,7 +111,6 @@ export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
     )
   return (
     <motion.nav
-      ref={ref}
       initial={{
         opacity: 1,
         y: -100,
@@ -132,7 +126,7 @@ export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
         delay: delay ? 2 : 0,
       }}
       className={cn(
-        "fixed top-3 z-40 w-full px-4 transition-all duration-300 ease-out md:top-4 md:px-0",
+        "fixed top-3 z-40 w-full transition-all duration-300 ease-out md:top-4 ",
         !visible ? "pt-2" : "mt-0",
         // paths != '/' && visible == false ? '   ' : ' sticky',
         className
@@ -193,7 +187,7 @@ export const NavBody = ({
         // padding: "0px"
       }}
       className={cn(
-        "relative z-60 container mx-auto hidden w-full max-w-5xl flex-row items-center justify-between self-start rounded-full py-2 transition-all duration-300 ease-out lg:flex",
+        "relative z-60 container mx-auto hidden w-full max-w-[60rem] flex-row items-center justify-between self-start rounded-full py-2 transition-all duration-300 ease-out lg:flex",
         visible && "border bg-background/80",
         className
       )}

@@ -80,7 +80,7 @@ export function MengapaBlock() {
           className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_90%)]"
         />
 
-        <div className="relative container mx-auto p-0">
+        <div className="relative container mx-auto ">
           <div data-mengapa-header>
             <MengapaHeader />
           </div>

@@ -1,8 +1,13 @@
 "use client"
 
+import { Link } from "react-router"
 import { motion } from "framer-motion"
 
 import { BlurReveal } from "@/components/motion/blur-reveal"
+
+/** The CTA is a react-router Link (client-side nav), wrapped as a motion
+ *  component so the reveal animation carries over. */
+const MotionLink = motion.create(Link)
 
 /**
  * MomentHeader — eyebrow + display headline (single italic accent word) +
@@ -32,8 +37,8 @@ export function MomentHeader() {
         </h2>
       </div>
 
-      <motion.a
-        href="#momentum"
+      <MotionLink
+        to="/galeri"
         initial={{ opacity: 0, y: 14 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.5 }}
@@ -47,7 +52,7 @@ export function MomentHeader() {
         >
           →
         </span>
-      </motion.a>
+      </MotionLink>
     </div>
   )
 }

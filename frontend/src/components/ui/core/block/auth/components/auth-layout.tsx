@@ -13,7 +13,7 @@ import {
 
 import { buttonVariants } from "@/components/ui/fragments/shadcn-ui/button"
 import { Link } from "react-router"
-import AppLogo, { NavbarLogo } from "../../../layout/nav/app-logo"
+import { NavbarLogo } from "../../../layout/nav/app-logo"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 
 type AuthLayoutProps = {

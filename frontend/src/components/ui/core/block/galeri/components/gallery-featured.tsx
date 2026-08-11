@@ -1,0 +1,237 @@
+"use client"
+
+import { useRef } from "react"
+
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { gsap, useGSAP } from "@/components/motion/gsap"
+import { cn } from "@/lib/utils"
+import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
+import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
+import { AUTO_ADVANCE_MS, getCategoryById } from "../galeri-data"
+import type { GalleryItem } from "../types/gallery-types"
+
+/** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
+const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
+
+/** Crossfade window for the image blend (s) — incoming/outgoing share it. */
+const CROSSFADE = 0.9
+
+/** Builds the meta strip parts (venue · date · guests), honest "—" fallback. */
+function metaParts(item: GalleryItem): string[] {
+  return [
+    item.meta.venue,
+    item.meta.tanggal,
+    item.meta.jumlahTamu != null ? `${item.meta.jumlahTamu} tamu` : undefined,
+  ].filter((part): part is string => Boolean(part))
+}
+
+/**
+ * GalleryFeatured — the signature crossfade display (adapts MomentFeatured).
+ *
+ * Motion (per activeIndex change, via its own useGSAP — mirrors moment/menu
+ * galleries):
+ *  - TRUE CROSSFADE: incoming photo fades IN while the outgoing fades OUT over
+ *    the same ~CROSSFADE window (no snap — frames overlap mid-blend).
+ *  - KEN-BURNS (REVERSE): incoming starts at scale 1.08 and settles to 1.0 over
+ *    the full AUTO_ADVANCE_MS window (ease: none).
+ *  - Caption (category/title/meta) staggers up with y + opacity; pagination
+ *    pills are plain CSS.
+ *  - `prefers-reduced-motion` → active frame only, static.
+ *
+ * Extensions over MomentFeatured: category Badge (top-left), a real expand
+ * button (top-right) that opens the lightbox scoped to `items`, and a
+ * `GalleryEventMeta` strip (venue · date · guests) under the title.
+ * Photos are `opacity-0` in the base class so nothing flashes before GSAP
+ * claims the frame.
+ */
+export function GalleryFeatured({
+  items,
+  activeIndex,
+  onSelect,
+  onExpand,
+}: {
+  items: GalleryItem[]
+  activeIndex: number
+  onSelect: (index: number) => void
+  onExpand: (index: number) => void
+}) {
+  const ref = useRef<HTMLDivElement>(null)
+  const tlRef = useRef<gsap.core.Timeline | null>(null)
+  const prevIndexRef = useRef(0)
+  const reduced = useReducedMotion()
+
+  const active = items[activeIndex]
+  const category = getCategoryById(active.category)
+  const meta = metaParts(active)
+
+  useGSAP(
+    () => {
+      const el = ref.current
+      if (!el) return
+
+      const q = gsap.utils.selector(el)
+      const photos = q("[data-gallery-photo]")
+      const captions = q("[data-gallery-caption]")
+      if (!photos.length) return
+
+      const prevIndex = prevIndexRef.current
+      prevIndexRef.current = activeIndex
+
+      if (reduced) {
+        // Static: show only the active frame + its caption (no zoom/fade).
+        gsap.set(photos, { autoAlpha: 0, scale: 1 })
+        gsap.set(photos[activeIndex], { autoAlpha: 1 })
+        gsap.set(captions, { autoAlpha: 1, y: 0 })
+        return
+      }
+
+      // Manual timeline ownership — the outgoing frame MUST keep its inline
+      // opacity (set by the previous run) so the crossfade can fade it OUT.
+      // `revertOnUpdate: false` keeps those inline styles alive.
+      tlRef.current?.kill()
+      const incoming = photos[activeIndex]
+      const outgoing = photos[prevIndex] as Element | undefined
+
+      const tl = gsap.timeline()
+
+      // INCOMING — fade in over the crossfade window, settling the whole time.
+      tl.fromTo(
+        incoming,
+        { autoAlpha: 0, scale: 1.08 },
+        { autoAlpha: 1, duration: CROSSFADE, ease: "power2.inOut" },
+        0
+      ).fromTo(
+        incoming,
+        { scale: 1.08 },
+        { scale: 1.0, duration: AUTO_ADVANCE_MS / 1000, ease: "none" },
+        0
+      )
+
+      // OUTGOING — fades out over the SAME window (concurrent crossfade).
+      if (outgoing && prevIndex !== activeIndex) {
+        tl.to(
+          outgoing,
+          {
+            autoAlpha: 0,
+            scale: 1.06,
+            duration: CROSSFADE,
+            ease: "power2.inOut",
+          },
+          0
+        )
+      }
+
+      // CAPTION — staggered fade-up, staged slightly behind the blend.
+      tl.fromTo(
+        captions,
+        { y: 20, autoAlpha: 0 },
+        { y: 0, autoAlpha: 1, duration: 0.7, ease: LUXURY_EASE, stagger: 0.08 },
+        0.12
+      )
+
+      tlRef.current = tl
+    },
+    {
+      scope: ref,
+      dependencies: [activeIndex, reduced, items],
+      // Keep the PREVIOUS run's inline styles alive so the outgoing frame can
+      // fade out (see timeline docblock above).
+      revertOnUpdate: false,
+    }
+  )
+
+  return (
+    <div
+      ref={ref}
+      className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(50vh,520px)]"
+    >
+      {/* Stacked photos — only the active one is visible at any time. */}
+      {items.map((item, index) => (
+        <div
+          key={item.id}
+          data-gallery-photo
+          aria-hidden={index !== activeIndex}
+          className="absolute inset-0 opacity-0 will-change-transform"
+        >
+          <MediaItem
+            webViewLink={item.gambar_acara}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        </div>
+      ))}
+
+      {/* Readability scrim — warm brown, limited to the lower half. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-gradient-to-b from-transparent via-foreground/20 to-foreground/85"
+      />
+
+      {/* Category Badge — top-left. */}
+      <div className="absolute top-4 left-4 z-10 sm:top-6 sm:left-6">
+        <Badge
+          variant="outline"
+          size="sm"
+          className="border-background/30 bg-foreground/40 text-[10px] tracking-[0.2em] text-background uppercase backdrop-blur-sm"
+        >
+          {category.label}
+        </Badge>
+      </div>
+
+      {/* Expand trigger — top-right, opens the lightbox (real button). */}
+      <button
+        type="button"
+        aria-label={`Lihat ${active.nama_acara}`}
+        onClick={() => onExpand(activeIndex)}
+        className="absolute top-4 right-4 z-10 grid size-11 place-items-center rounded-full border border-background/30 bg-foreground/40 text-lg text-background/90 backdrop-blur-sm transition-colors duration-300 hover:bg-foreground/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:top-6 sm:right-6"
+      >
+        <span aria-hidden="true" className="translate-y-[-1px]">
+          ⤢
+        </span>
+        <span className="sr-only">Perbesar</span>
+      </button>
+
+      {/* Caption + meta + pagination pills. */}
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-6 text-left sm:p-9 md:pb-8">
+        <div className="min-w-0">
+          <p
+            data-gallery-caption
+            className="text-[10px] tracking-[0.3em] text-accent uppercase"
+          >
+            {category.label}
+          </p>
+          <p
+            data-gallery-caption
+            className="mt-2 max-w-[560px] font-heading text-[clamp(20px,3vw,36px)] leading-tight font-light text-background"
+          >
+            {active.nama_acara}
+          </p>
+          <p
+            data-gallery-caption
+            className="mt-2 text-[11px] tracking-[0.08em] text-background/85 uppercase"
+          >
+            {meta.length > 0 ? meta.join(" · ") : "—"}
+          </p>
+        </div>
+
+        {/* Pagination pills — hidden on mobile, clickable to jump. */}
+        <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
+          {items.map((item, index) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-label={`Lihat ${item.nama_acara}`}
+              aria-current={index === activeIndex}
+              onClick={() => onSelect(index)}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-500",
+                index === activeIndex
+                  ? "w-8 bg-accent"
+                  : "w-1.5 bg-background/30 hover:bg-background/60"
+              )}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

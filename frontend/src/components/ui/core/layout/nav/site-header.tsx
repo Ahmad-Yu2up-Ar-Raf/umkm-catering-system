@@ -11,7 +11,7 @@ import { NavbarLogo } from "./app-logo"
 import { NavBody, NavItems, Navbar } from "./components/navbar"
 
 import { cn } from "@/lib/utils"
-import { teleportToHash } from "@/lib/hash-scroll"
+import { scrollToHash } from "@/lib/hash-scroll"
 
 import { Link, useLocation, useNavigate } from "react-router"
 import { WhatsappIcon } from "@hugeicons/core-free-icons"
@@ -198,19 +198,20 @@ export function SiteHeader({ className }: { className?: string }) {
   /** Owns every `#section` jump — instant, so section links feel like a raw
    *  anchor jump, but routed through Lenis so the pinned #cara-pesan timeline
    *  can't hijack the position.
-   *  - same page   → pushState the URL + `teleportToHash` (no React Router
-   *    re-render, so the homepage's mount teleport never refires).
+   *  - same page   → pushState the URL + `scrollToHash` (no React Router
+   *    re-render, so the homepage's mount teleport never refires — and no
+   *    mid-scroll `ScrollTrigger.refresh()`, so the target coordinates stay
+   *    valid).
    *  - other route → navigate back to `/` with the hash; the homepage's mount
-   *    effect reads it and teleports once the layout is stable. */
+   *    effect refreshes ONCE and then teleports once the layout is stable. */
   const jumpToSection = (raw: string) => {
     setMenuOpen(false)
     const section = raw.replace(/^\/+/, "") // "/#faq" → "#faq"
     if (location.pathname === "/") {
       window.history.pushState(null, "", `/${section}`)
-      // Pin-safe instant teleport — same code path as the homepage's cross-
-      // route landing: ScrollTriggers are disarmed during the jump so the
-      // pinned #cara-pesan can't snap the viewport back to its boundary.
-      teleportToHash(section, lenis)
+      // Pin-safe instant scroll — same code path as the homepage's cross-route
+      // landing: Lenis' native resolution + a `ScrollTrigger.update()` sync.
+      scrollToHash(section, lenis)
       return
     }
     navigate({ pathname: "/", hash: section })

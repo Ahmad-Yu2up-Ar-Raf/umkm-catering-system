@@ -7,7 +7,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { ScrollTrigger } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
-import { teleportToHash } from "@/lib/hash-scroll"
+import { scrollToHash } from "@/lib/hash-scroll"
 import { HeroBlock } from "@/components/ui/core/block/home/hero/hero-block"
 import { Preloader } from "@/components/motion/preloader"
 import AboutBlock from "@/components/ui/core/block/home/about/about-block"
@@ -19,13 +19,6 @@ import TestimonialBlock from "@/components/ui/core/block/home/testimonial/testim
 import { MomentBlock } from "@/components/ui/core/block/home/momen/moment-block"
 
 const PRELOADER_FLAG = "hasSeenPreloader"
-
-/**
- * Max rAF retries (≈2s) waiting for the pinned `#cara-pesan` layout to settle
- * before a cross-route hash teleport. After this the mask is revealed without
- * jumping rather than teleporting into a half-built layout.
- */
-const MAX_SETTLE_ATTEMPTS = 120
 
 /** Run-once-per-session gate — read lazily at mount so a repeat visit never
  *  flashes the curtain (no useEffect, no paint of a preloader that will be skipped). */
@@ -76,15 +69,15 @@ function HomePage() {
     }
     // Hard-reset to the very top so the HERO (never the footer) is in frame,
     // UNLESS a `#hash` alignment is pending — that effect owns the viewport
-    // and would fight the reset. Then re-measure every ScrollTrigger after the
-    // lock is released.
+    // (single refresh + jump) and would fight the reset.
     const hash = location.hash
     if (!hash || hash === "#") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" })
       document.documentElement.scrollTop = 0
       document.body.scrollTop = 0
+      // Re-measure every ScrollTrigger after the lock is released.
+      requestAnimationFrame(() => ScrollTrigger.refresh())
     }
-    requestAnimationFrame(() => ScrollTrigger.refresh())
   }, [preloaderDone, location.hash])
 
   // Broadcast preloader state to the layout chrome (header + footer): while a
@@ -94,17 +87,20 @@ function HomePage() {
     usePreloaderStore.getState().setDone(preloaderDone)
   }, [preloaderDone])
 
-  // Align to a `#section` hash ONLY once GSAP's layout is GUARANTEED stable —
-  // the pinned #cara-pesan section reserves ~3000px of document height via its
-  // `.pin-spacer`. Until that spacer's height EXISTS IN THE DOM and stops
-  // changing between frames, every section AFTER it (#testimoni, #faq) is still
-  // at its PRE-pin document position — measuring now would teleport into the
-  // pin and strand the viewport inside it. Sequence:
-  //   1. POLL (with a forced `ScrollTrigger.refresh()` each retry) until the
-  //      spacer height is applied and stable across 2 consecutive frames.
-  //   2. TELEPORT via the shared `teleportToHash` (force-refresh → disarm →
-  //      instant Lenis jump → re-arm).
-  //   3. REVEAL the landing mask.
+  // Align to a `#section` hash — DETERMINISTIC cross-route landing, gated on
+  // a TWO-FRAME settle so the layout is stable before anything is measured:
+  //   Frame 1: `ScrollTrigger.refresh()` inflates the pinned #cara-pesan
+  //            spacer (+~3000px) and recalibrates every trigger, then
+  //            `lenis.resize()` re-syncs Lenis' internal scroll to the native
+  //            scroll (refresh may have adjusted it to preserve content) and
+  //            recomputes its scroll limit from the now-inflated document.
+  //   Frame 2: `scrollToHash` measures the live bounding box and jumps via a
+  //            numeric Lenis destination — scroll-independent, so it cannot
+  //            land short by the spacer delta and get caught in the pin.
+  //   Then: reveal the landing mask.
+  // No polling, no repeated refreshes. Same-page header clicks use `pushState`,
+  // never a React Router hash change, so they never re-enter this effect (and
+  // never trigger a mid-scroll refresh).
   useEffect(() => {
     // No pending hash → nothing to land on; ensure the mask stays gone.
     if (!location.hash || location.hash === "#") {
@@ -116,81 +112,42 @@ function HomePage() {
     // Every pending hash landing runs this sequence unconditionally — cross-
     // route arrivals, back/forward, re-visits — as soon as the preloader's
     // scroll lock is released. Nothing guards it away: a hash MUST teleport.
-    // (The header's same-page clicks use `pushState`, never a React Router
-    // hash change, so they never re-enter this effect.)
     if (!preloaderDone) return
 
     const hash = location.hash
-    const listenTarget = document.querySelector<HTMLElement>(hash)
-
     const revealMask = () => {
       maskRef.current?.classList.replace("opacity-100", "opacity-0")
       window.setTimeout(() => setIsMaskVisible(false), 500)
     }
 
-    if (!listenTarget) {
-      // Section didn't render (defensive): reveal the page anyway.
+    // Guard against a section that never rendered (defensive) — reveal the
+    // page instead of sitting under an opaque mask.
+    if (!document.querySelector(hash)) {
       revealMask()
       return
     }
 
+    // Mask up before the jump so the hero never flashes mid-teleport.
     setIsMaskVisible(true)
 
     let cancelled = false
-    let attempts = 0
-    let prevSpacerHeight = -1
-    let stableFrames = 0
-
-    const tryTeleport = () => {
+    requestAnimationFrame(() => {
       if (cancelled) return
-
-      // Desktop PINS #cara-pesan; mobile + reduced-motion render it static
-      // (no `.pin-spacer` at all), so there is nothing to wait for.
-      const pinEnabled = window.matchMedia("(min-width: 768px)").matches
-      const pinnedExpected = pinEnabled && !reduced
-
-      // Read the spacer's APPLIED height (a forced layout read — the only way
-      // to know GSAP actually reserved the pin travel in the DOM).
-      const spacerHeight =
-        document.querySelector<HTMLElement>(".pin-spacer")?.offsetHeight ?? -1
-      if (spacerHeight === prevSpacerHeight && spacerHeight > 100) {
-        stableFrames++
-      } else {
-        stableFrames = 0
-      }
-      prevSpacerHeight = spacerHeight
-
-      const settled = !pinnedExpected || stableFrames >= 2
-
-      if (!settled && attempts < MAX_SETTLE_ATTEMPTS) {
-        attempts++
-        // Force GSAP to measure the shifting layout on every retry, so the
-        // spacer height converges instead of stalling.
-        ScrollTrigger.refresh()
-        requestAnimationFrame(tryTeleport)
-        return
-      }
-
-      if (!settled) {
-        // Give up gracefully rather than teleporting into a half-built layout.
+      // Frame 1 — measure the stable layout ONCE and re-sync Lenis.
+      ScrollTrigger.refresh()
+      lenis?.resize()
+      requestAnimationFrame(() => {
+        if (cancelled) return
+        // Frame 2 — jump (numeric, scroll-independent) and fade the mask.
+        scrollToHash(hash, lenis)
         revealMask()
-        return
-      }
-
-      // Layout is stable — teleport (force-refresh → disarm → jump → re-arm)
-      // and fade the mask.
-      teleportToHash(hash, lenis)
-      revealMask()
-    }
-
-    requestAnimationFrame(tryTeleport)
+      })
+    })
 
     return () => {
       cancelled = true
-      // Safety: re-enable everything if we unmount mid-bypass.
-      ScrollTrigger.getAll().forEach((st) => st.enable())
     }
-  }, [preloaderDone, location.hash, lenis, reduced])
+  }, [preloaderDone, location.hash, lenis])
 
   return (
     <>
