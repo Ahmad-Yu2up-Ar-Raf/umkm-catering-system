@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 
 import type { Paket } from "../types/paket-types"
 import { PaketCard } from "./paket-card"
+import { CatalogLayoutToggle, type LayoutMode } from "./catalog-layout-toggle"
 
 const SKELETON_COUNT = 6
 
@@ -40,6 +41,8 @@ export function PaketGrid({
   isFetchingNextPage,
   kategori,
   search,
+  layoutMode = "horizontal",
+  onLayoutModeChange: (mode: LayoutMode) => void,
   onLoadMore,
   onRetry,
   onReset,
@@ -53,6 +56,8 @@ export function PaketGrid({
   isFetchingNextPage: boolean
   kategori: string
   search: string
+  layoutMode: LayoutMode
+  onLayoutModeChange: (mode: LayoutMode) => void
   onLoadMore: () => void
   onRetry: () => void
   onReset: () => void
@@ -99,11 +104,14 @@ export function PaketGrid({
 
   return (
     <div className="flex flex-col gap-8">
-      {total > 0 && !isLoading && (
-        <p className="text-xs tracking-widest text-muted-foreground uppercase">
-          {total} paket
-        </p>
-      )}
+      <div className="flex items-center justify-between">
+        {total > 0 && !isLoading && (
+          <p className="text-xs tracking-widest text-muted-foreground uppercase">
+            {total} paket
+          </p>
+        )}
+        <CatalogLayoutToggle current={layoutMode} onChange={onLayoutModeChange} />
+      </div>
 
       {isError ? (
         <div className="flex flex-col items-center gap-4 py-20 text-center">
@@ -113,17 +121,27 @@ export function PaketGrid({
           </Button>
         </div>
       ) : isLoading ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={cn("flex flex-col gap-8", 
+            layoutMode === "grid-2" && "grid grid-cols-1 md:grid-cols-2",
+            layoutMode === "grid-3" && "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+        )}>
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (
             <div
               key={i}
-              className="flex flex-col gap-10 overflow-hidden rounded-lg p-0"
+              className={cn(
+                  "flex w-full overflow-hidden rounded-3xl bg-card p-6",
+                  layoutMode === "horizontal" ? "flex-col sm:flex-row gap-6" : "flex-col gap-4"
+              )}
             >
-              <Skeleton className="group relative min-h-[16em] overflow-hidden rounded-xl px-0 md:min-h-[20em]" />
-              <div className="flex flex-col gap-2 p-0">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-1/2" />
+              <Skeleton className={cn("h-64 w-full shrink-0 rounded-2xl", layoutMode === "horizontal" ? "sm:w-80" : "")} />
+              <div className="flex flex-1 flex-col gap-4 py-2">
+                <Skeleton className="h-6 w-1/3" />
+                <Skeleton className="h-8 w-2/3" />
+                {layoutMode !== "grid-3" && <Skeleton className="h-4 w-full" />}
+                {layoutMode !== "grid-3" && <Skeleton className="h-4 w-5/6" />}
+                <div className="mt-auto flex items-center justify-between pt-4">
+                  <Skeleton className="h-8 w-1/4" />
+                </div>
               </div>
             </div>
           ))}
@@ -158,12 +176,17 @@ export function PaketGrid({
                 transition: { staggerChildren: reduced ? 0 : STAGGER_S },
               },
             }}
-            className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-3"
+            className={cn(
+              "flex flex-col gap-8",
+              layoutMode === "grid-2" && "grid grid-cols-1 md:grid-cols-2",
+              layoutMode === "grid-3" && "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+            )}
           >
             {pakets.map((paket) => (
               <motion.div key={paket.id} variants={cardVariants}>
                 <PaketCard
                   paket={paket}
+                  layoutMode={layoutMode}
                   className={cn(
                     isPlaceholderData && "opacity-60",
                     "min-h-[14em]"
@@ -177,7 +200,7 @@ export function PaketGrid({
           )}
           {isFetchingNextPage && (
             <div className="flex min-h-[120px] w-full items-center justify-center py-6">
-              <Spinner className="size-5 lg:size-14 text-muted-foreground" />
+              <Spinner className="size-5 text-muted-foreground lg:size-14" />
             </div>
           )}
         </>

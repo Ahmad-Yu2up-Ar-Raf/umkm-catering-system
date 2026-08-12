@@ -194,7 +194,7 @@ export function FaqsSection() {
       <section
         ref={sectionRef}
         id="faq"
-        className="container min-h-lvh content-center space-y-10 px-0 py-20 md:space-y-10 md:pt-25  "
+        className="container min-h-lvh content-center space-y-10 py-20 md:space-y-10 md:pt-25"
       >
         <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-5 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
           <div className="flex w-full flex-col gap-y-1">
@@ -228,7 +228,7 @@ export function FaqsSection() {
 
           <BlurReveal
             as="p"
-            className=" leading-relaxed text-muted-foreground sm:w-1/2 text-sm"
+            className="text-sm leading-relaxed text-muted-foreground sm:w-1/2"
             amount={0.3}
           >
             Semua yang perlu Anda tahu sebelum merayakan momen bersama kami —
