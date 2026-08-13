@@ -42,7 +42,7 @@ export function PaketGrid({
   kategori,
   search,
   layoutMode = "horizontal",
-  onLayoutModeChange: (mode: LayoutMode) => void,
+  onLayoutModeChange,
   onLoadMore,
   onRetry,
   onReset,
@@ -102,13 +102,63 @@ export function PaketGrid({
     },
   } as const
 
+  const gridContainerClass = cn(
+    layoutMode === "horizontal" && "flex flex-col gap-8",
+    layoutMode === "grid-2" && "grid grid-cols-1 gap-15 md:grid-cols-2",
+    layoutMode === "grid-3" &&
+      "grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
+  )
+
+  /** Skeleton grouped to mirror the exact footprint of the active layout mode. */
+  const PaketSkeleton = () => (
+    <div
+      className={cn(
+        "animate-pulse",
+        layoutMode === "horizontal" &&
+          "flex w-full flex-col gap-6 md:flex-row md:items-stretch md:gap-8"
+      )}
+    >
+      {/* <Skeleton
+        className={cn(
+          "w-full rounded-2xl",
+          layoutMode === "horizontal"
+            ? "aspect-[16/10] md:aspect-[16/13] md:h-full md:w-[40%] md:max-w-sm xl:w-[35%]"
+            : "min-h-[16em] md:min-h-[20em]"
+        )}
+      /> */}
+      <div
+        className={cn(
+          "flex flex-1 flex-col gap-3",
+          layoutMode === "horizontal" ? "justify-center py-2" : "py-2"
+        )}
+      >
+        <Skeleton className="h-6 w-1/3 rounded-full" />
+        <Skeleton className="h-7 w-3/4" />
+        {layoutMode !== "grid-3" && (
+          <>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+          </>
+        )}
+        <div className="pt-4">
+          <Skeleton className="h-6 w-1/4" />
+          <Skeleton className="mt-2 h-4 w-2/3" />
+        </div>
+      </div>
+    </div>
+  )
+
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
-        {total > 0 && !isLoading && (
-          <p className="text-xs tracking-widest text-muted-foreground uppercase">
-            {total} paket
-          </p>
+        {isLoading ? (
+          <Skeleton className="h-6 w-24 rounded-md" />
+        ) : (
+          total > 0 && (
+            <p className="text-xs tracking-widest text-muted-foreground uppercase">
+              {total} paket
+            </p>
+          )
         )}
         <CatalogLayoutToggle current={layoutMode} onChange={onLayoutModeChange} />
       </div>
@@ -121,29 +171,9 @@ export function PaketGrid({
           </Button>
         </div>
       ) : isLoading ? (
-        <div className={cn("flex flex-col gap-8", 
-            layoutMode === "grid-2" && "grid grid-cols-1 md:grid-cols-2",
-            layoutMode === "grid-3" && "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-        )}>
+        <div className={gridContainerClass}>
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (
-            <div
-              key={i}
-              className={cn(
-                  "flex w-full overflow-hidden rounded-3xl bg-card p-6",
-                  layoutMode === "horizontal" ? "flex-col sm:flex-row gap-6" : "flex-col gap-4"
-              )}
-            >
-              <Skeleton className={cn("h-64 w-full shrink-0 rounded-2xl", layoutMode === "horizontal" ? "sm:w-80" : "")} />
-              <div className="flex flex-1 flex-col gap-4 py-2">
-                <Skeleton className="h-6 w-1/3" />
-                <Skeleton className="h-8 w-2/3" />
-                {layoutMode !== "grid-3" && <Skeleton className="h-4 w-full" />}
-                {layoutMode !== "grid-3" && <Skeleton className="h-4 w-5/6" />}
-                <div className="mt-auto flex items-center justify-between pt-4">
-                  <Skeleton className="h-8 w-1/4" />
-                </div>
-              </div>
-            </div>
+            <PaketSkeleton key={i} />
           ))}
         </div>
       ) : pakets.length === 0 ? (
@@ -167,7 +197,7 @@ export function PaketGrid({
       ) : (
         <>
           <motion.div
-            key={revealKey}
+            key={`${revealKey}-${layoutMode}`}
             initial="hidden"
             animate="show"
             variants={{
@@ -176,21 +206,14 @@ export function PaketGrid({
                 transition: { staggerChildren: reduced ? 0 : STAGGER_S },
               },
             }}
-            className={cn(
-              "flex flex-col gap-8",
-              layoutMode === "grid-2" && "grid grid-cols-1 md:grid-cols-2",
-              layoutMode === "grid-3" && "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-            )}
+            className={gridContainerClass}
           >
             {pakets.map((paket) => (
               <motion.div key={paket.id} variants={cardVariants}>
                 <PaketCard
                   paket={paket}
                   layoutMode={layoutMode}
-                  className={cn(
-                    isPlaceholderData && "opacity-60",
-                    "min-h-[14em]"
-                  )}
+                  className={cn(isPlaceholderData && "opacity-60")}
                 />
               </motion.div>
             ))}
@@ -199,8 +222,8 @@ export function PaketGrid({
             <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
           )}
           {isFetchingNextPage && (
-            <div className="flex min-h-[120px] w-full items-center justify-center py-6">
-              <Spinner className="size-5 text-muted-foreground lg:size-14" />
+            <div className="flex min-h-[150px] w-full items-center justify-center py-6">
+              <Spinner className="size-5 text-muted-foreground lg:size-10" />
             </div>
           )}
         </>

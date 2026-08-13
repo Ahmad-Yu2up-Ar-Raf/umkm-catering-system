@@ -1,16 +1,29 @@
-import { motion } from "framer-motion"
+"use client"
+
 import { Link } from "react-router"
 
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
-import { cn } from "@/lib/utils"
+import {
+  Card,
+  CardTitle,
+  CardHeader,
+  CardFooter,
+  CardContent,
+} from "@/components/ui/fragments/shadcn-ui/card"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
+import { cn } from "@/lib/utils"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { HeartIcon, Package01Icon } from "@hugeicons/core-free-icons"
 import type { Paket } from "../types/paket-types"
 import {
   getCategoryColor,
   getCategoryIcon,
 } from "../utils/paket-kategori-utils.ts"
-import { batasiKata } from "@/hooks/use-word.ts"
 
+/**
+ * Rupiah formatting — `harga_per_porsi` is a `decimal:2` string from the API,
+ * so it must be Number()-ed first. Single purpose, lives with its one consumer.
+ */
 const formatIDR = (value: string | number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -18,6 +31,23 @@ const formatIDR = (value: string | number) =>
     maximumFractionDigits: 0,
   }).format(Number(value))
 
+export type PaketLayoutMode = "horizontal" | "grid-2" | "grid-3"
+
+/**
+ * PaketCard — one package in the catalog, adapting to three layout modes:
+ *
+ * - `horizontal` (1-col editorial): media left, full content right,
+ *   `md:flex-row md:items-center`.
+ * - `grid-2` (balanced showcase): vertical stack, `min-h-[16em] md:min-h-[20em]`
+ *   media, full content.
+ * - `grid-3` (compact catalog): vertical stack, description omitted so card
+ *   heights stay aligned.
+ *
+ * Base container is deliberately undecorated (`border-none bg-background p-0
+ * shadow-none ring-0 outline-0`) — the typography and imagery carry the
+ * premium feel. Hover crossfades the primary thumbnail into the first
+ * showcase image.
+ */
 export function PaketCard({
   paket,
   className,
@@ -25,83 +55,144 @@ export function PaketCard({
 }: {
   paket: Paket
   className?: string
-  layoutMode?: "horizontal" | "grid-2" | "grid-3"
+  layoutMode?: PaketLayoutMode
 }) {
   const href = `/paket/${paket.id}`
+  const showcase_images = paket.images
   const category = paket.kategori_paket
   const IconProduct = getCategoryIcon(category)
   const ColorProduct = getCategoryColor(category)
-  const title = batasiKata(paket.nama_paket, 3)
 
   const isHorizontal = layoutMode === "horizontal"
   const isCompact = layoutMode === "grid-3"
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+    <Card
       className={cn(
-        "group relative w-full overflow-hidden rounded-3xl bg-secondary/40 p-5 transition-shadow hover:shadow-2xl",
-        isHorizontal ? "sm:flex-row" : "flex-col",
+        "group m-auto h-full w-full border-none bg-background p-0 shadow-none ring-0 outline-0 dark:bg-background",
+        isHorizontal
+          ? "mb-4 gap-6 md:flex-row md:items-stretch md:gap-9"
+          : "flex-col gap-3",
         className
       )}
     >
-      <Link to={href} className={cn("flex relative gap-4 z-30 h-full w-full", isHorizontal ? "flex-col sm:flex-row" : "flex-col")}>
-        {/* Thumbnail */}
-        <div className={cn(
-          "relative h-64 rounded-2xl w-full shrink-0 overflow-hidden",
-          isHorizontal ? "sm:w-80" : "w-full"
-        )}>
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="h-full w-full"
+      {/* Media — horizontal: width-constrained (35–40%), height follows the
+          content column so the card is shaped by its copy, never the image.
+          Grid modes: full-width with a calibrated aspect floor. */}
+      <CardHeader
+        className={cn(
+          "relative w-full shrink-0 overflow-hidden rounded-2xl bg-background p-0",
+          isHorizontal
+            ? "aspect-[16/10] md:aspect-[16/13] md:h-full md:w-[40%] md:max-w-sm xl:w-[35%]"
+            : "min-h-[16em] md:min-h-[20em]"
+        )}
+      >
+        {paket.is_best_seller && (
+          <Badge
+            icon={HeartIcon}
+            variant="outline"
+            className={cn(
+              "absolute top-3 left-3 z-30 w-fit gap-2 rounded-full border-0 bg-background px-3 py-1 text-accent-foreground shadow-none lg:text-xs",
+              "[&_svg]:size-3.5 [&_svg]:text-primary"
+            )}
           >
-            <MediaItem
-              webViewLink={`${paket.thumbnail}`}
-              className="h-full w-full object-cover object-center"
-            />
-          </motion.div>
-        </div>
+            <span className="font-semibold">Best Seller</span>
+          </Badge>
+        )}
 
-        {/* Content */}
-        <div className={cn("relative flex flex-1 flex-col", isHorizontal ? "justify-between p-6 sm:px-7" : "p-4")}>
-          <div className="Z-30 max-w-sm space-y-4">
-            <Badge
-              icon={IconProduct}
-              variant="outline"
+        <Link
+          to={href}
+          aria-label={paket.nama_paket}
+          className="absolute inset-0 block cursor-zoom-in"
+        >
+          <MediaItem
+            webViewLink={paket.thumbnail}
+            className={cn(
+              "h-full w-full object-cover object-center transition-opacity duration-700 ease-out",
+              showcase_images.length > 0 && "group-hover:opacity-0"
+            )}
+          />
+          {showcase_images.length > 0 && (
+            <MediaItem
+              webViewLink={showcase_images[1]}
+              className="absolute inset-0 h-full w-full object-cover object-center opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-100"
+            />
+          )}
+        </Link>
+      </CardHeader>
+
+      {/* Content */}
+      <CardContent
+        className={cn(
+          "flex flex-1 flex-col bg-background p-0",
+          isHorizontal ? "gap-5 md:justify-center md:py-6" : "gap-4"
+        )}
+      >
+        <div className={cn("flex flex-col gap-4", isHorizontal ? "md:gap-3" : "mt-3")}>
+          <Badge
+            icon={IconProduct}
+            variant="outline"
+            className={cn(
+              "w-fit gap-2 border-0 text-accent-foreground shadow-none lg:text-xs [&_svg]:size-4",
+              ColorProduct,
+              "hover:bg-transparent"
+            )}
+          >
+            <span className="font-medium">{category}</span>
+          </Badge>
+
+          <CardTitle
+            className={cn(
+              "line-clamp-1 font-heading font-semibold tracking-tight text-foreground",
+              isHorizontal
+                ? "text-lg md:text-xl xl:text-2xl"
+                : "text-xl"
+            )}
+          >
+            {paket.nama_paket}
+          </CardTitle>
+
+          {!isCompact && (
+            <p
               className={cn(
-                "w-fit gap-2 border-none text-accent-foreground shadow-none lg:text-xs",
-                ColorProduct
+                "line-clamp-2 leading-relaxed text-muted-foreground",
+                isHorizontal ? "max-w-xl text-sm md:text-base" : "text-sm"
               )}
             >
-              <span className="font-medium">{category}</span>
-            </Badge>
-            <h3 className={cn("font-heading font-semibold tracking-tight text-foreground", isCompact ? "text-lg" : "text-xl md:text-3xl")}>
-              {title}
-            </h3>
-            {!isCompact && (
-              <p className="line-clamp-2 text-base leading-relaxed text-muted-foreground">
-                {paket.deskripsi}
-              </p>
-            )}
-          </div>
-
-          <div className="relative z-30 mt-8 flex items-center justify-end">
-            <p className="font-sans text-xl font-semibold text-foreground">
-              {formatIDR(paket.harga_per_porsi)}
-              <span className="text-xs font-normal text-muted-foreground">
-                {" "}
-                / porsi
-              </span>
+              {paket.deskripsi}
             </p>
-          </div>
+          )}
         </div>
-      </Link>
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-20 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_90%)]"
-      />
-    </motion.div>
+
+        <CardFooter
+          className={cn(
+            "bg-background p-0 text-left",
+            isHorizontal ? "mt-auto" : "mt-1"
+          )}
+        >
+          <div className="flex w-full flex-col gap-1.5">
+            <h2
+              className={cn(
+                "font-sans font-semibold text-foreground",
+                isHorizontal ? "text-lg md:text-xl" : "text-base md:text-lg"
+              )}
+            >
+              {formatIDR(paket.harga_per_porsi)}
+              <span className="font-sans text-xs font-normal text-muted-foreground">
+                {" "}
+                / Porsi
+              </span>
+            </h2>
+            <div className="flex items-center gap-1.5 font-sans text-xs text-muted-foreground md:text-sm">
+              <HugeiconsIcon
+                icon={Package01Icon}
+                className="size-3.5 shrink-0 text-muted-foreground"
+              />
+              <p className="line-clamp-1">{paket.jenis_kemasan}</p>
+            </div>
+          </div>
+        </CardFooter>
+      </CardContent>
+    </Card>
   )
 }

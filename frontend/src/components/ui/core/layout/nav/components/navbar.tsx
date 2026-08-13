@@ -13,14 +13,14 @@ import { cn } from "@/lib/utils"
 interface NavbarProps {
   children: React.ReactNode
   className?: string
-  isPaketPage: boolean
+  isHomePage: boolean
 }
 
 interface NavBodyProps {
   children: React.ReactNode
   className?: string
   visible?: boolean
-  isPaketPage: boolean
+  isHomePage: boolean
 }
 
 interface NavItemsProps {
@@ -54,7 +54,7 @@ function useIsDesktop() {
   return isDesktop
 }
 
-export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
+export const Navbar = ({ children, className, isHomePage }: NavbarProps) => {
   // Hide-on-scroll + glass signals, both from the WINDOW scroll position.
   // A target-scoped `useScroll({ target: ref })` dies on route change: the
   // `motion.nav` that owns `ref` only renders on the non-paket branch, so the
@@ -89,7 +89,7 @@ export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
     }
   })
 
-  if (!isPaketPage)
+  if (!isHomePage)
     return (
       <nav
         className={cn(
@@ -126,7 +126,7 @@ export const Navbar = ({ children, className, isPaketPage }: NavbarProps) => {
         delay: delay ? 2 : 0,
       }}
       className={cn(
-        "fixed top-3 z-40 w-full transition-all duration-300 ease-out md:top-4 ",
+        "fixed top-3 z-40 w-full transition-all duration-300 ease-out md:top-4",
         !visible ? "pt-2" : "mt-0",
         // paths != '/' && visible == false ? '   ' : ' sticky',
         className
@@ -148,9 +148,9 @@ export const NavBody = ({
   children,
   className,
   visible,
-  isPaketPage,
+  isHomePage,
 }: NavBodyProps) => {
-  if (!isPaketPage)
+  if (!isHomePage)
     return (
       <div
         className={cn(

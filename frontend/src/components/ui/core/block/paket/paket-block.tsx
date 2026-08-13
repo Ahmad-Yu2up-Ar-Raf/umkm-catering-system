@@ -78,8 +78,6 @@ export function PaketBlock() {
         search={search}
         onKategoriChange={setKategori}
         onSearchChange={setSearch}
-        layoutMode={layoutMode}
-        onLayoutModeChange={setLayoutMode}
       />
 
       {/* pb-24 / md:pb-32 — breathing room below the grid so the infinite
