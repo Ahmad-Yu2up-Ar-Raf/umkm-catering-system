@@ -4,6 +4,7 @@ import { router } from "./router"
 import { Toaster } from "./components/ui/fragments/shadcn-ui/sonner"
 
 import { TooltipProvider } from "./components/ui/fragments/shadcn-ui/tooltip"
+import GlobalImageModal from "./components/ui/core/visual/global-image-modal"
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -20,6 +21,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster position="top-center" />
         <RouterProvider router={router} />
+        <GlobalImageModal />
       </TooltipProvider>
     </QueryClientProvider>
   )

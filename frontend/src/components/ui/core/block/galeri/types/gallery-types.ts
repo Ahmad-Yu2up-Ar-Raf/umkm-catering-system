@@ -1,27 +1,29 @@
 import type { IconSvgElement } from "@hugeicons/react"
 
 /**
- * URL value for `?kategori=` — "" = "Semua" (param omitted). Matches the
- * category set in `galeri-data.ts`, NOT the backend `KategoriAcaraEnum`
- * (see docs/specs/galeri-page-spec.md §4.4 — contract decision pending).
+ * URL value for `?kategori_acara=` — "" = "Semua" (param omitted).
+ *
+ * Values are the raw backend `GaleriKategoriEnum` strings (architectural
+ * blueprint §2.1). Kept as the API contract so `?kategori_acara=Pernikahan`
+ * round-trips cleanly with no slug↔enum mapping that can drift.
  */
 export type GalleryCategoryId =
   | ""
-  | "pernikahan"
-  | "korporat"
-  | "prasmanan"
-  | "tumpeng-syukuran"
-  | "perayaan"
-  | "hampers"
-  | "di-balik-dapur"
+  | "Pernikahan"
+  | "Korporat"
+  | "Tumpeng & Syukuran"
+  | "Perayaan"
+  | "Hampers"
+  | "Di Balik Dapur"
+  | "Lainnya"
 
 /** A concrete category a gallery entry can belong to (never "Semua"). */
 export type GalleryItemCategory = Exclude<GalleryCategoryId, "">
 
 export interface GalleryCategory {
-  /** URL slug value; "" = "Semua" (the no-filter entry). */
+  /** URL value; "" = "Semua" (the no-filter entry). */
   id: GalleryCategoryId
-  /** Pill label, e.g. "Pernikahan". */
+  /** Pill label. */
   label: string
   /** HugeIcons icon — verified present in @hugeicons/core-free-icons v4.2.3. */
   icon: IconSvgElement
@@ -29,37 +31,34 @@ export interface GalleryCategory {
   description: string
 }
 
-/** Meta strip on the featured display, cards (peek), and lightbox footer. */
+/** Meta strip on the featured display, cards (peek), and global modal. */
 export interface GalleryEventMeta {
-  /** ISO date ("2024-06-15") or free text ("Juni 2024"). Optional. */
+  /** ISO date ("2026-06-15") or free text. Optional. */
   tanggal?: string
-  /** Venue / city, e.g. "Bogor". Optional — never fabricate. */
+  /** Venue / city (API: lokasi). Optional. */
   venue?: string
-  /** Number of guests served. Optional — never fabricate. */
+  /** Number of guests served (API: jumlah_tamu). Optional. */
   jumlahTamu?: number
 }
 
 /**
- * One gallery entry.
- * Wire fields (`nama_acara`, `deskripsi_acara`, `gambar_acara`) mirror the
- * backend `GaleriResource` (../backend/app/Http/Resources/GaleriResource.php)
- * so the static loader can be swapped for React Query + Ky without touching
- * components. Presentation fields (`category`, `meta`, `hover_gambar_acara`)
- * are local enrichment — see docs/specs/galeri-page-spec.md §4.4.
+ * One gallery entry — the normalized presentation model.
+ * Wire fields (`nama_acara`, `deskripsi_acara`, `gambar_acara`,
+ * `tanggal_acara`, `kategori_acara`, `lokasi`, `jumlah_tamu`,
+ * `is_featured`) mirror `GaleriResource`.
  */
 export interface GalleryItem {
-  /** Stable slug, e.g. "pernikahan-1". */
   id: string
-  /** Category slug — groups items into clusters (never ""). */
+  /** Category value (API: kategori_acara). */
   category: GalleryItemCategory
-  /** Event name, e.g. "Resepsi pernikahan yang hangat" (wire: nama_acara). */
+  /** Event name (API: nama_acara). */
   nama_acara: string
-  /** One-to-two line editorial caption (wire: deskripsi_acara). */
+  /** One-to-two line editorial caption (API: deskripsi_acara). */
   deskripsi_acara?: string
-  /** Public asset path served from /assets/images/... (wire: gambar_acara). */
+  /** Public asset path or Cloudinary URL (API: gambar_acara). */
   gambar_acara: string
   /** Event meta strip. */
   meta: GalleryEventMeta
-  /** Optional second media for the hover cross-swap (mirrors PaketCard). */
-  hover_gambar_acara?: string
+  /** Signature event for the hero (API: is_featured). */
+  is_featured?: boolean
 }

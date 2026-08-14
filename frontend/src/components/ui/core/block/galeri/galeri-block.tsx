@@ -1,164 +1,163 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { MotionConfig, motion } from "framer-motion"
 
-import { useReducedMotion } from "@/hooks/use-reduced-motion"
-import { gsap, useGSAP } from "@/components/motion/gsap"
-import { useGaleriQuery } from "@/services/galeri/use-galeri-query"
+import { useGaleriQuery, useGaleriFeaturedQuery } from "@/services/galeri/use-galeri-query"
+import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
+import { useImageModalStore } from "@/store/image-modal-store"
+import { useGaleriStore } from "@/store/galeri-store"
 
-import { AUTO_ADVANCE_MS, FEATURED_ITEMS } from "./galeri-data"
-import type { GalleryItem } from "./types/gallery-types"
+import { AUTO_ADVANCE_MS } from "./galeri-data"
 import { GalleryHero } from "./components/gallery-hero"
 import { GalleryFeatured } from "./components/gallery-featured"
 import { GalleryFilterBar } from "./components/gallery-filter-bar"
 import { GalleryRails } from "./components/gallery-rails"
 import { GalleryGrid } from "./components/gallery-grid"
-import { GalleryLightbox } from "./components/gallery-lightbox"
 import { useGalleryParams } from "./hooks/use-gallery-params"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
+/** Loading skeleton for the "Semua" rails — heading + carousel rows. */
+function RailsSkeleton() {
+  return (
+    <div className="flex flex-col gap-16 md:gap-20">
+      {Array.from({ length: 3 }, (_, i) => (
+        <div key={i} className="flex flex-col gap-5">
+          <div className="flex items-baseline justify-between gap-2">
+            <Skeleton className="h-7 w-40 rounded-full" />
+            <Skeleton className="h-4 w-24 rounded-full" />
+          </div>
+          <div className="flex gap-3">
+            {Array.from({ length: 4 }, (_, j) => (
+              <Skeleton
+                key={j}
+                className="aspect-[16/10] basis-[72%] shrink-0 rounded-2xl sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 /**
  * Galeri Perayaan — the public gallery (sitemap /galeri).
  *
- * Composition: editorial hero → featured signature crossfade (warm secondary
- * wash band) → sticky category filter bar (`?kategori=` URL-driven) → rails
- * ("Semua") or grid (single category) → fullscreen lightbox.
+ * Pure composition (no animation code): editorial hero (self-contained
+ * reveal) → container-bound featured crossfade (warm secondary wash band,
+ * blur-fade slide swap) → sticky category filter bar (`?kategori=` URL-
+ * driven) → rails ("Semua", Shadcn Carousel) or Pinterest masonry grid
+ * (single category, vertical infinite scroll). Category filtering is
+ * SERVER-SIDE via the infinite query; `useGaleriFeaturedQuery` powers the
+ * hero band independently of browsing.
  *
- * Motion: ONE GSAP reveal on the hero only (same grammar as /paket). The
- * featured crossfade owns its own tiny GSAP timeline (interactive carousel);
- * everything else is declarative Framer transitions over transform/opacity.
- * `MotionConfig reducedMotion="user"` → all declarative reveals render
- * instantly; the featured timeline falls back to a static active frame.
+ * Motion: the featured crossfade is Framer `AnimatePresence mode="wait"`
+ * (keyed blur-fade — rapid clicks can never overlap or freeze);
+ * `MotionConfig reducedMotion="user"` renders all declarative reveals
+ * instantly.
  *
- * Lightbox scope = the set the user clicked from (featured or visible list);
- * the featured auto-advance is PAUSED while the lightbox is open.
+ * Chrome gate: flips `useGaleriStore.ready` once the query settles so
+ * `LayoutWrapper` defers the CTA band + footer past the loading skeleton.
  */
 export function GalleryBlock() {
-  const headerRef = useRef<HTMLDivElement>(null)
-  const reduced = useReducedMotion()
-
   const { kategori, setKategori } = useGalleryParams()
-  const query = useGaleriQuery()
+  const query = useGaleriQuery({ kategori })
+  const featuredQuery = useGaleriFeaturedQuery()
+  const isModalOpen = useImageModalStore((s) => s.isOpen)
 
   const [featuredIndex, setFeaturedIndex] = useState(0)
-  const [lightbox, setLightbox] = useState<{
-    items: GalleryItem[]
-    index: number
-  } | null>(null)
 
-  const items = query.data ?? []
-  const visibleItems = kategori
-    ? items.filter((item) => item.category === kategori)
-    : items
-
-  const openFrom = useCallback((scope: GalleryItem[], index: number) => {
-    setLightbox({ items: scope, index })
-  }, [])
-
-  // Hero reveal — the page's one GSAP moment (matches /paket grammar).
-  useGSAP(
-    () => {
-      const el = headerRef.current
-      if (!el) return
-
-      const targets = gsap.utils.selector(el)("[data-gallery-reveal]")
-
-      if (reduced) {
-        gsap.set(targets, { autoAlpha: 1, y: 0 })
-        return
-      }
-
-      gsap.set(targets, { autoAlpha: 0, y: 24 })
-      gsap.to(targets, {
-        autoAlpha: 1,
-        y: 0,
-        duration: 0.7,
-        ease: "power3.out",
-        stagger: 0.08,
-      })
-    },
-    { scope: headerRef }
+  const items = useMemo(
+    () => query.data?.pages.flatMap((page) => page.items) ?? [],
+    [query.data]
   )
+  const total = query.data?.pages[0]?.pagination.total ?? 0
+  const featured = useMemo(() => {
+    const curated = featuredQuery.data ?? []
+    return curated.length > 0 ? curated : items.slice(0, 6)
+  }, [featuredQuery.data, items])
 
-  // Featured auto-advance — continuous; resets on manual selection, and is
-  // paused while the lightbox is open (never advances behind the viewer).
+  // Chrome gate — CTA + footer render only after the gallery has loaded.
   useEffect(() => {
-    if (lightbox) return
+    if (query.isSuccess || query.isError) {
+      useGaleriStore.getState().setReady(true)
+    }
+  }, [query.isSuccess, query.isError])
+
+  // Featured auto-advance — continuous; paused while the global image modal
+  // is open (never advances behind the viewer).
+  useEffect(() => {
+    if (isModalOpen || featured.length < 2) return
     const id = window.setInterval(
-      () => setFeaturedIndex((i) => (i + 1) % FEATURED_ITEMS.length),
+      () => setFeaturedIndex((i) => (i + 1) % featured.length),
       AUTO_ADVANCE_MS
     )
     return () => window.clearInterval(id)
-  }, [lightbox, featuredIndex])
+  }, [isModalOpen, featured.length])
 
   return (
     <MotionConfig reducedMotion="user">
       <section id="galeri" className="flex flex-col">
-        {/* 1 — editorial hero (one GSAP reveal). */}
-        <div ref={headerRef} className="container m-auto w-full">
+        {/* 1 — editorial hero (self-contained reveal). */}
+        <div className="container m-auto w-full">
           <GalleryHero />
         </div>
 
-        {/* 2 — featured signature event, on the warm secondary wash band. */}
-        <div className="bg-secondary/60">
-          <div className="container m-auto w-full py-10 md:py-14">
-            <motion.div
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.8, ease: LUXURY_EASE, delay: 0.1 }}
-            >
-              <GalleryFeatured
-                items={FEATURED_ITEMS}
-                activeIndex={featuredIndex}
-                onSelect={setFeaturedIndex}
-                onExpand={(index) => openFrom(FEATURED_ITEMS, index)}
-              />
-            </motion.div>
+        {/* 2 — featured signature event, container-bound on the wash band. */}
+        <div className="bg-secondary/30">
+          <div className="container m-auto w-full pt-6 pb-12 md:pt-8 md:pb-16">
+            {featuredQuery.isLoading ? (
+              <Skeleton className="aspect-[3/2] w-full rounded-2xl sm:aspect-[2/1] lg:h-[min(50vh,520px)]" />
+            ) : (
+              featured.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 28 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ duration: 0.8, ease: LUXURY_EASE, delay: 0.1 }}
+                >
+                  <GalleryFeatured
+                    items={featured}
+                    activeIndex={featuredIndex % featured.length}
+                    onSelect={setFeaturedIndex}
+                  />
+                </motion.div>
+              )
+            )}
           </div>
         </div>
 
         {/* 3 — sticky category pill bar (URL-driven). */}
         <GalleryFilterBar
           kategori={kategori}
-          count={visibleItems.length}
+          count={total}
           onKategoriChange={setKategori}
         />
 
-        {/* 4 — showcase: cluster rails ("Semua") or a filtered grid. */}
-        <div className="container m-auto w-full pt-10 pb-24 md:pt-14 md:pb-32">
+        {/* 4 — showcase: cluster rails ("Semua") or masonry + infinite scroll. */}
+        <div className="container m-auto w-full pt-12 pb-24 md:pt-16 md:pb-32">
           {kategori ? (
             <GalleryGrid
-              items={visibleItems}
+              items={items}
+              total={total}
               isLoading={query.isLoading}
               isError={query.isError}
+              hasNextPage={query.hasNextPage}
+              isFetchingNextPage={query.isFetchingNextPage}
+              onLoadMore={query.fetchNextPage}
               onRetry={() => query.refetch()}
               onReset={() => setKategori("")}
-              onSelect={(index) => openFrom(visibleItems, index)}
             />
+          ) : query.isLoading ? (
+            <RailsSkeleton />
           ) : (
-            <GalleryRails
-              items={visibleItems}
-              onSelect={(index) => openFrom(visibleItems, index)}
-            />
+            <GalleryRails items={items} />
           )}
         </div>
-
-        {/* 5 — fullscreen lightbox, scoped to the clicked set. */}
-        {lightbox && (
-          <GalleryLightbox
-            items={lightbox.items}
-            index={lightbox.index}
-            onIndexChange={(index) =>
-              setLightbox((lb) => (lb ? { ...lb, index } : lb))
-            }
-            onClose={() => setLightbox(null)}
-          />
-        )}
       </section>
     </MotionConfig>
   )

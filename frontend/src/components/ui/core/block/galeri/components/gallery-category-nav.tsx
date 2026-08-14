@@ -39,7 +39,7 @@ export function GalleryCategoryNav({
   return (
     <nav
       aria-label="Kategori galeri"
-      className="flex flex-wrap items-center justify-center gap-1 md:justify-start"
+      className="no-scrollbar flex min-w-0 flex-nowrap items-center gap-1 overflow-x-auto"
     >
       {GALLERY_CATEGORIES.map(({ id, label, icon }) => {
         const isActive = active === id

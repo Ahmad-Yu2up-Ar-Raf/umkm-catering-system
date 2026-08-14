@@ -27,11 +27,9 @@ export function GalleryFilterBar({
       style={{ top }}
       className="sticky z-40 py-2.5 border-b border-border bg-background/90 backdrop-blur-sm"
     >
-      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-6 md:flex-row md:items-center md:gap-6">
+      <div className="mx-auto flex w-full max-w-5xl flex-nowrap items-center gap-4 px-6">
         <GalleryCategoryNav active={kategori} onSelect={onKategoriChange} />
-        <p className="shrink-0 text-[11px] tracking-[0.2em] text-muted-foreground uppercase md:ml-auto">
-          {count} momen
-        </p>
+    
       </div>
     </div>
   )

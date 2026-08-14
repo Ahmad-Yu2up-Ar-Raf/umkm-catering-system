@@ -277,6 +277,16 @@
   @apply px-4  md:px-8  max-w-5xl m-auto;
 }
 
+/* Hide scrollbars on single-row scrollers (filter bar, rail strips) while
+   keeping the track functional (drag/swipe + keyboard scrolling still work). */
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* Marquee — the hourly infinite strip used by the Momen gallery (#momentum).
    Track is rendered twice and translated -50% for a seamless loop; the track
    class pauses via `[animation-play-state:paused]` on hover. */

@@ -2,28 +2,29 @@
 
 import { Fragment } from "react"
 
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/fragments/shadcn-ui/carousel"
 import { GALLERY_CATEGORIES } from "../galeri-data"
 import type { GalleryItem } from "../types/gallery-types"
 import { GalleryCard } from "./gallery-card"
 
 /**
- * GalleryRails — the "Semua" view: one horizontal cluster rail per category
- * (marquee-card anatomy, spec §3.1 step 4). Native `overflow-x-auto snap-x`
- * scrolling with both-edge gradient masks — no JS carousel in v1. Each tile
- * carries its global index in `items` so the lightbox navigates across the
- * whole visible set in order.
+ * GalleryRails — the "Semua" view: one Shadcn `Carousel` (Embla) per category
+ * (blueprint §5.3). Compact `aspect-[16/10]` tiles with a mobile peek;
+ * Prev/Next round buttons on desktop, native swipe + edge drag on touch.
+ * The lightbox scope = the full visible set, so navigation flows across every
+ * category in order.
  */
-export function GalleryRails({
-  items,
-  onSelect,
-}: {
-  items: GalleryItem[]
-  onSelect: (index: number) => void
-}) {
+export function GalleryRails({ items }: { items: GalleryItem[] }) {
   const indexById = new Map(items.map((item, index) => [item.id, index]))
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-16 md:gap-20">
       {GALLERY_CATEGORIES.filter((c) => c.id !== "").map((category) => {
         const categoryItems = items.filter((i) => i.category === category.id)
         if (categoryItems.length === 0) return null
@@ -31,7 +32,7 @@ export function GalleryRails({
         return (
           <Fragment key={category.id}>
             <section aria-labelledby={`galeri-rail-${category.id}`}>
-              <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+              <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
                 <h2
                   id={`galeri-rail-${category.id}`}
                   className="font-heading text-[clamp(20px,2.6vw,28px)] leading-tight font-light tracking-[-0.01em] text-foreground"
@@ -43,19 +44,28 @@ export function GalleryRails({
                 </p>
               </div>
 
-              {/* Native scroll rail with both-edge gradient masks. */}
-              <div className="overflow-x-auto pb-2 pt-2 [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
-                <div className="flex w-max snap-x gap-4">
+              <Carousel
+                opts={{ align: "start", containScroll: "trimSnaps" }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-3">
                   {categoryItems.map((item) => (
-                    <GalleryCard
+                    <CarouselItem
                       key={item.id}
-                      item={item}
-                      index={indexById.get(item.id) ?? 0}
-                      onSelect={onSelect}
-                    />
+                      className="basis-[72%] pl-3 sm:basis-[40%] md:basis-[30%] lg:basis-[24%] xl:basis-[20%]"
+                    >
+                      <GalleryCard
+                        item={item}
+                        index={indexById.get(item.id) ?? 0}
+                        scope={items}
+                        className="aspect-[16/10] w-full"
+                      />
+                    </CarouselItem>
                   ))}
-                </div>
-              </div>
+                </CarouselContent>
+                <CarouselPrevious className="hidden -left-4 border-border bg-background text-foreground shadow-sm hover:bg-muted sm:flex" />
+                <CarouselNext className="hidden -right-4 border-border bg-background text-foreground shadow-sm hover:bg-muted sm:flex" />
+              </Carousel>
             </section>
           </Fragment>
         )

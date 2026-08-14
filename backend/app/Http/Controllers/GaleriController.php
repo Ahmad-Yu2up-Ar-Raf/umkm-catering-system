@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\GaleriKategoriEnum;
 use App\Http\Requests\Galeri\GaleriStoreRequest;
 use App\Http\Requests\Galeri\GaleriUpdateRequest;
 use App\Http\Resources\GaleriResource;
@@ -36,7 +37,16 @@ class GaleriController extends Controller
         }
 
         if ($kategori) {
-            $query->where('kategori_acara', $kategori);
+            // "Lainnya" = uncategorized rows (kategori_acara IS NULL) OR rows
+            // explicitly tagged Lainnya — one filter catches both.
+            if ($kategori === GaleriKategoriEnum::Lainnya->value) {
+                $query->where(function ($q) use ($kategori) {
+                    $q->whereNull('kategori_acara')
+                        ->orWhere('kategori_acara', $kategori);
+                });
+            } else {
+                $query->where('kategori_acara', $kategori);
+            }
         }
 
         if ($featured) {
