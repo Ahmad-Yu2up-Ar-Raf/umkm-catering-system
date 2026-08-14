@@ -17,9 +17,13 @@ class GaleriResource extends JsonResource
         return [
             'id' => $this->id,
             'nama_acara' => $this->nama_acara,
+            'kategori_acara' => $this->kategori_acara?->value ?? $this->kategori_acara,
             'deskripsi_acara' => $this->deskripsi_acara,
             'gambar_acara' => $this->gambar_acara,
             'tanggal_acara' => $this->tanggal_acara,
+            'lokasi' => $this->lokasi,
+            'jumlah_tamu' => $this->jumlah_tamu,
+            'is_featured' => $this->is_featured,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

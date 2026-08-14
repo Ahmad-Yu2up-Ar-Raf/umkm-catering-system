@@ -12,10 +12,15 @@ class GaleriController extends Controller
 {
     /**
      * Display a paginated listing of the resource (public).
+     *
+     * Filters mirror PaketController: ?search, ?kategori_acara (event enum),
+     * ?featured=1 (signature hero set).
      */
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $kategori = $request->input('kategori_acara');
+        $featured = $request->boolean('featured');
         $page = $request->integer('page', 1);
         $perPage = $request->integer('perPage', 10);
 
@@ -25,14 +30,25 @@ class GaleriController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('nama_acara', 'like', "%{$search}%")
                     ->orWhere('deskripsi_acara', 'like', "%{$search}%")
+                    ->orWhere('lokasi', 'like', "%{$search}%")
                     ->orWhere('tanggal_acara', 'like', "%{$search}%");
             });
+        }
+
+        if ($kategori) {
+            $query->where('kategori_acara', $kategori);
+        }
+
+        if ($featured) {
+            $query->where('is_featured', true);
         }
 
         $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
 
         $filters = array_filter([
             'search' => $search,
+            'kategori_acara' => $kategori,
+            'featured' => $featured || null,
         ], fn ($value) => ! is_null($value) && $value !== '');
 
         return response()->json($this->respondWithPagination(

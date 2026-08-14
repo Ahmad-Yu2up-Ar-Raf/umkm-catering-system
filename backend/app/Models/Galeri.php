@@ -2,17 +2,22 @@
 
 namespace App\Models;
 
-use App\Enums\KategoriAcaraEnum;
+use App\Enums\GaleriKategoriEnum;
 use Database\Factories\GaleriFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'nama_acara',
+    'kategori_acara',
     'deskripsi_acara',
     'gambar_acara',
     'tanggal_acara',
+    'lokasi',
+    'jumlah_tamu',
+    'is_featured',
 ])]
 class Galeri extends Model
 {
@@ -33,7 +38,25 @@ class Galeri extends Model
     {
         return [
             'tanggal_acara' => 'date',
-            'kategori_acara' => KategoriAcaraEnum::class,
+            'kategori_acara' => GaleriKategoriEnum::class,
+            'jumlah_tamu' => 'integer',
+            'is_featured' => 'boolean',
         ];
+    }
+
+    /**
+     * Signature events for the gallery hero (is_featured = true).
+     */
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true);
+    }
+
+    /**
+     * Filter by event category.
+     */
+    public function scopeKategori(Builder $query, GaleriKategoriEnum $kategori): Builder
+    {
+        return $query->where('kategori_acara', $kategori);
     }
 }

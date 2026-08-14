@@ -6,9 +6,10 @@ import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
 import { LayoutWrapper } from "@/components/provider/layout-wrapper"
 import ContactPage from "@/pages/contact-page"
 import LoginBlock from "@/components/ui/core/block/auth/login-block"
-import PaketPage from "@/pages/paket-page"
+import PaketPage from "@/pages/paket/paket-page"
 import { AppShell } from "@/components/ui/core/layout/dashboard/app-shell"
 import GaleryPage from "@/pages/galery-page"
+import PaketDetail from "@/pages/paket/paket-detail"
 
 export const router = createBrowserRouter([
   {
@@ -33,7 +34,16 @@ export const router = createBrowserRouter([
       },
       {
         path: "/paket",
-        element: <PaketPage />,
+        children: [
+          {
+            index: true,
+            element: <PaketPage />,
+          },
+          {
+            path: ":id",
+            element: <PaketDetail />, // Buat komponen page baru untuk detail poli
+          },
+        ],
       },
       {
         path: "/galeri",

@@ -118,14 +118,14 @@ export function PaketGrid({
           "flex w-full flex-col gap-6 md:flex-row md:items-stretch md:gap-8"
       )}
     >
-      {/* <Skeleton
+      <Skeleton
         className={cn(
           "w-full rounded-2xl",
           layoutMode === "horizontal"
             ? "aspect-[16/10] md:aspect-[16/13] md:h-full md:w-[40%] md:max-w-sm xl:w-[35%]"
             : "min-h-[16em] md:min-h-[20em]"
         )}
-      /> */}
+      />
       <div
         className={cn(
           "flex flex-1 flex-col gap-3",
@@ -152,7 +152,7 @@ export function PaketGrid({
     <div className="flex flex-col gap-8">
       <div className="flex items-center justify-between">
         {isLoading ? (
-          <Skeleton className="h-6 w-24 rounded-md" />
+          <Skeleton className="h-6 w-24 rounded-full" />
         ) : (
           total > 0 && (
             <p className="text-xs tracking-widest text-muted-foreground uppercase">
