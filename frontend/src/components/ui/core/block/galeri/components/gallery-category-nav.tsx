@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 
 import { GALLERY_CATEGORIES } from "../galeri-data"
-import type { GalleryCategoryId } from "../types/gallery-types"
 
 /**
  * Tiska motion grammar — the pill glide. Deliberately a tween (never a
@@ -21,34 +20,35 @@ const GLIDE_TWEEN = {
 
 /**
  * GalleryCategoryNav — "Semua · Pernikahan · Korporat · …".
- * Adapted from the /paket CategoryNav: the ACTIVE item is a sliding pill — a
- * `layoutId` shared element that GLIDES in real-time to the clicked tab
- * (`initial={false}` → pure projection morph). Inactive items stay hairline-
- * calm. Clicking calls `onSelect`, which writes `?kategori=` to the URL —
- * this nav never owns filter state. Touch targets are ≥44px (`min-h-11`).
+ * Slug-driven category pivot inside `/galeri/:kategori` or the storefront's
+ * rail jump. The ACTIVE item is a sliding pill — a `layoutId` shared element
+ * that GLIDES in real-time to the clicked tab (`initial={false}` → pure
+ * projection morph). Inactive items stay hairline-calm. Clicking calls
+ * `onSelect` with the target SLUG ("" = `/galeri` storefront); this nav
+ * never owns route state. Touch targets are ≥44px (`min-h-11`).
  */
 export function GalleryCategoryNav({
-  active,
+  activeSlug,
   onSelect,
 }: {
-  active: GalleryCategoryId
-  onSelect: (value: GalleryCategoryId) => void
+  activeSlug: string
+  onSelect: (slug: string) => void
 }) {
   const reduced = useReducedMotion()
 
   return (
     <nav
       aria-label="Kategori galeri"
-      className="no-scrollbar flex min-w-0 flex-nowrap items-center gap-1 overflow-x-auto"
+      className="no-scrollbar justify-between m-auto flex min-w-0 flex-nowrap items-center gap-3 overflow-x-auto"
     >
-      {GALLERY_CATEGORIES.map(({ id, label, icon }) => {
-        const isActive = active === id
+      {GALLERY_CATEGORIES.map(({ slug, label, icon }) => {
+        const isActive = activeSlug === slug
         return (
           <button
-            key={id || "__all__"}
+            key={slug || "__all__"}
             type="button"
             aria-pressed={isActive}
-            onClick={() => onSelect(id)}
+            onClick={() => onSelect(slug)}
             className={cn(
               "relative flex min-h-11 items-center gap-1.5 px-3 text-[11px] uppercase tracking-[0.08em] transition-colors duration-300",
               isActive

@@ -5,17 +5,11 @@ import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
-import { Card } from "@/components/ui/fragments/shadcn-ui/card"
 import { useImageModalStore } from "@/store/image-modal-store"
-import { getCategoryById } from "../galeri-data"
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { getCategoryById, AUTO_ADVANCE_MS } from "../galeri-data"
 import type { GalleryItem } from "../types/gallery-types"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
-
-/** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
-const LUXURY_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
-
-/** Slide blend window (s) — a calm, premium cross-fade with a subtle blur. */
-const CROSSFADE = 0.7
 
 /** Builds the meta strip parts (venue · date · guests) — honest "—" fallback. */
 function metaParts(item: GalleryItem): string[] {
@@ -27,18 +21,20 @@ function metaParts(item: GalleryItem): string[] {
 }
 
 /**
- * GalleryFeatured — the signature crossfade display (adapts MomentFeatured).
+ * GalleryFeatured — the signature crossfade + cinematic zoom-out display
+ * (adapts MomentFeatured exactly: same media surface, same motion language).
  *
- * Framer `AnimatePresence mode="wait"`: each slide exits fully before the
- * next enters (keyed by item), so rapid clicking can never stack/linger
- * frames or race a shared timeline. The blend is an ultra-smooth
- * CROSS-FADE + subtle BLUR (opacity 0→1 with a soft 6px blur settle) — no
- * scale zoom, no bounce. `MotionConfig reducedMotion="user"` (block root)
- * renders this instantly.
+ * Motion (per activeIndex):
+ *  - TRUE CROSSFADE + blur settle (opacity/blur 0→1 over 0.7s; easeInOut).
+ *  - SLOW CINEMATIC ZOOM-OUT (Ken Burns, reverse): incoming starts at
+ *    scale 1.08 and settles to 1.0 over the FULL auto-advance window
+ *    (`AUTO_ADVANCE_MS`, linear) — subtle, never exaggerated.
+ *  - `MotionConfig reducedMotion="user"` (storefront block root) collapses
+ *    transforms to opacity-only.
  *
- * Base = Shadcn `Card` flattened to a media surface; the parent constrains
- * the width (container boundary) while the image fills the card exactly
- * (`w-full h-full object-cover`).
+ * The media is a BARE surface (no Card wrapper) — flattening the Card is what
+ * removes the horizontal whitespace: image is absolutely positioned, fills
+ * the aspect box edge-to-edge with object-cover.
  */
 export function GalleryFeatured({
   items,
@@ -49,30 +45,39 @@ export function GalleryFeatured({
   activeIndex: number
   onSelect: (index: number) => void
 }) {
+  const reduced = useReducedMotion()
   const active = items[activeIndex]
   const category = getCategoryById(active.category)
   const meta = metaParts(active)
 
   return (
-    <Card className="gap-0 overflow-hidden rounded-2xl border-border bg-transparent p-0 shadow-none dark:bg-transparent">
-      <div className="relative aspect-[3/2] w-full overflow-hidden sm:aspect-[2/1] lg:aspect-auto lg:h-[min(60vh,520px)]">
-        {/* Keyed slide — the ONLY frame rendered; exit completes before enter
-            (mode="wait"), so overlaps and stuck states are impossible. */}
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={active.id}
-            initial={{ opacity: 0, filter: "blur(6px)" }}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            exit={{ opacity: 0, filter: "blur(6px)" }}
-            transition={{ duration: CROSSFADE, ease: LUXURY_EASE }}
-            className="absolute inset-0"
-          >
-            <MediaItem
-              webViewLink={active.gambar_acara}
-              className="h-full w-full object-cover"
-            />
-          </motion.div>
-        </AnimatePresence>
+    <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(60vh,520px)]">
+      {/* Keyed slide — incoming crossfades in while scaling out; exit is the
+          outgoing blend (mode="wait" keeps overlapping frames impossible). */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={active.id}
+          initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.08, filter: "blur(6px)" }}
+          animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={reduced ? { opacity: 0 } : { opacity: 0, filter: "blur(6px)" }}
+          transition={{
+            opacity: { duration: 0.7, ease: "easeInOut" },
+            scale: reduced
+              ? { duration: 0 }
+              : { duration: AUTO_ADVANCE_MS / 1000, ease: "linear" },
+            filter: { duration: 0.7, ease: "easeInOut" },
+          }}
+          className="absolute inset-0"
+        >
+          <MediaItem
+            webViewLink={active.gambar_acara}
+            className="absolute inset-0 h-full w-full"
+            imageClassName="h-full w-full object-cover"
+            width={2400}
+            height={1350}
+          />
+        </motion.div>
+      </AnimatePresence>
 
         {/* Readability scrim — warm brown, limited to the lower half. */}
         <div
@@ -149,6 +154,5 @@ export function GalleryFeatured({
           </div>
         </div>
       </div>
-    </Card>
   )
 }

@@ -22,15 +22,16 @@ export function LayoutWrapper() {
 
   // On /paket, the CTA band + footer stay hidden until the infinite catalog
   // reaches its end (`useCatalogStore.ended`), so they never appear while the
-  // grid is still scrollable. On /galeri they defer until the gallery query
-  // settles (`useGaleriStore.ready`) so they never appear under the loading
-  // skeleton. Everywhere else they render as usual.
+  // grid is still scrollable. On /galeri (+ /galeri/:kategori) they defer
+  // until the gallery query reaches its terminal state
+  // (`useGaleriStore.ready`) — the masonry's last page is loaded before the
+  // footer enters. Everywhere else they render as usual.
   const catalogEnded = useCatalogStore((s) => s.ended)
   const galeriReady = useGaleriStore((s) => s.ready)
   const showChrome =
     pathname === "/paket"
       ? catalogEnded
-      : pathname === "/galeri"
+      : pathname.startsWith("/galeri")
         ? galeriReady
         : true
 

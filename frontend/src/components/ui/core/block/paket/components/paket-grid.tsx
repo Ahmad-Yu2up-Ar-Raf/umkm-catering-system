@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
-import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { cn } from "@/lib/utils"
 
@@ -14,6 +13,10 @@ import { PaketCard } from "./paket-card"
 import { CatalogLayoutToggle, type LayoutMode } from "./catalog-layout-toggle"
 
 const SKELETON_COUNT = 6
+
+/** Next-page skeleton batch — enough to fill one more page per active layout.
+ *  Grid-3 shows 3 (fills a → row), grid-2 shows 2, horizontal shows 1. */
+const NEXT_SKELETON_COUNT = 3
 
 /** Stagger between product cards on a fresh-filter reveal (index × 50ms). */
 const STAGGER_S = 0.05
@@ -221,9 +224,14 @@ export function PaketGrid({
           {hasNextPage && (
             <div ref={sentinelRef} aria-hidden="true" className="h-px w-full" />
           )}
+          {/* Next-page loading — SKELETON CARDS in the active layout, not a
+              bare spinner. Same responsive container as the real grid, so the
+              "load more" state mirrors the geometry of the incoming batch. */}
           {isFetchingNextPage && (
-            <div className="flex min-h-[150px] w-full items-center justify-center py-6">
-              <Spinner className="size-5 text-muted-foreground lg:size-10" />
+            <div className={gridContainerClass}>
+              {Array.from({ length: NEXT_SKELETON_COUNT }, (_, i) => (
+                <PaketSkeleton key={`next-${i}`} />
+              ))}
             </div>
           )}
         </>

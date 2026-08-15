@@ -7,6 +7,13 @@ const BASE_API =
 export const api = ky.create({
   baseUrl: BASE_API,
 
+  // Dev backend is a single-threaded `php artisan serve` + Neon serverless;
+  // every request takes ~5s and requests SERIALIZE server-side. ky's 10s
+  // default kills the tail of any parallel batch (the storefront's 7
+  // category previews + featured → only the first survives). 30s gives a
+  // serialized batch room without hiding real failures.
+  timeout: 30000,
+
   hooks: {
     beforeRequest: [
       ({ request }) => {

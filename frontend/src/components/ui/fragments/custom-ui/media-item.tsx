@@ -12,6 +12,11 @@ const MediaItem = ({
   mediaType = "image",
   onClick,
   style,
+  onImageLoaded,
+  width = 800,
+  height = 600,
+  objectFit = "cover",
+  unstyled = false,
 }: {
   webViewLink: string
   mediaType?: "image" | "video"
@@ -19,6 +24,29 @@ const MediaItem = ({
   imageClassName?: string
   onClick?: () => void
   style?: React.CSSProperties
+  /** Report the image's NATURAL dimensions once loaded (used by masonry
+   *  layout to size cards to the real intrinsic ratio, not a forced box). */
+  onImageLoaded?: (width: number, height: number) => void
+  /**
+   * Media box for @unpic's `constrained` layout. Default 800×600 caps the
+   * rendered `<img>` with inline max-width/max-height — pass LARGER values
+   * from full-bleed media (Featured card, modal) so the photo never gets a
+   * synthetic ceiling and fills its container edge-to-edge.
+   */
+  width?: number
+  height?: number
+  /**
+   * `object-fit` — forwarded into @unpic's computed style (inline wins over
+   * the `imageClassName` classes). "cover" fills a box (cards), "contain"
+   * preserves the full frame (lightbox).
+   */
+  objectFit?: "cover" | "contain"
+  /**
+   * Skip @unpic's inline layout styles (max-width/max-height/object-fit) so
+   * the `imageClassName` classes fully control the element. Use for layouts
+   * that need precise class-driven sizing (the lightbox).
+   */
+  unstyled?: boolean
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isInView, setIsInView] = useState(false)
@@ -94,8 +122,12 @@ const MediaItem = ({
     }
   }, [isInView])
 
-  const handleImageLoad = () => {
+  const handleImageLoad = (
+    e: React.SyntheticEvent<HTMLImageElement>
+  ) => {
     setImageLoaded(true)
+    const img = e.currentTarget
+    onImageLoaded?.(img.naturalWidth, img.naturalHeight)
   }
 
   if (mediaType === "video") {
@@ -150,8 +182,10 @@ const MediaItem = ({
           imageClassName
         )}
         onClick={onClick}
-        width={800}
-        height={600}
+        width={width}
+        height={height}
+        objectFit={objectFit}
+        unstyled={unstyled}
         role="img"
         loading="lazy"
         onLoad={handleImageLoad}

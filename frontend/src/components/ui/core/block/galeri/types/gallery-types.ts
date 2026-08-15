@@ -23,6 +23,8 @@ export type GalleryItemCategory = Exclude<GalleryCategoryId, "">
 export interface GalleryCategory {
   /** URL value; "" = "Semua" (the no-filter entry). */
   id: GalleryCategoryId
+  /** Route slug — the deep-linkable `/galeri/:kategori` segment. */
+  slug: string
   /** Pill label. */
   label: string
   /** HugeIcons icon — verified present in @hugeicons/core-free-icons v4.2.3. */

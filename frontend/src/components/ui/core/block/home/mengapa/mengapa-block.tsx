@@ -72,7 +72,7 @@ export function MengapaBlock() {
       <section
         ref={sectionRef}
         id="mengapa"
-        className="relative overflow-hidden bg-secondary/60   py-20 md:py-20"
+        className="relative overflow-hidden bg-secondary/60   py-20 md:pt-18"
       >
         {/* Warm glow from the top — token-driven, never a raw color. */}
         <div

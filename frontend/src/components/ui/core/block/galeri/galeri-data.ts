@@ -9,10 +9,7 @@ import {
   SparklesIcon,
 } from "@hugeicons/core-free-icons"
 
-import type {
-  GalleryCategory,
-  GalleryCategoryId,
-} from "./types/gallery-types"
+import type { GalleryCategory, GalleryCategoryId } from "./types/gallery-types"
 
 /**
  * Galeri Perayaan — category catalog + shared helpers.
@@ -26,14 +23,70 @@ import type {
 export const AUTO_ADVANCE_MS = 6000
 
 export const GALLERY_CATEGORIES: GalleryCategory[] = [
-  { id: "", label: "Semua", icon: LayoutGridIcon, description: "Semua momen perayaan" },
-  { id: "Pernikahan", label: "Pernikahan", icon: Diamond01Icon, description: "Resepsi yang anggun dan hangat" },
-  { id: "Korporat", label: "Korporat", icon: Building04Icon, description: "Gathering dan acara kantor" },
-  { id: "Tumpeng & Syukuran", label: "Tumpeng & Syukuran", icon: PyramidIcon, description: "Tumpeng untuk syukuran" },
-  { id: "Perayaan", label: "Perayaan", icon: BalloonIcon, description: "Ulang tahun, arisan, dan lainnya" },
-  { id: "Hampers", label: "Hampers", icon: GiftIcon, description: "Bingkisan istimewa" },
-  { id: "Di Balik Dapur", label: "Di Balik Dapur", icon: CookingPotIcon, description: "Ketelatenan di dapur" },
-  { id: "Lainnya", label: "Lainnya", icon: SparklesIcon, description: "Momen lainnya" },
+  {
+    id: "",
+    slug: "semua",
+    label: "Semua",
+    icon: LayoutGridIcon,
+    description:
+      "Seluruh koleksi momen perayaan, dari pernikahan hingga hampers, dalam satu galeri yang hidup.",
+  },
+  {
+    id: "Pernikahan",
+    slug: "pernikahan",
+    label: "Pernikahan",
+    icon: Diamond01Icon,
+    description:
+      "Resepsi dan syukuran pernikahan dengan tata saji hangat — hidangan Nusantara yang mempersatukan dua keluarga di hari paling berkesan.",
+  },
+  {
+    id: "Korporat",
+    slug: "korporat",
+    label: "Korporat",
+    icon: Building04Icon,
+    description:
+      "Prasmanan dan katering profesional untuk gathering, seminar, hingga perayaan perusahaan — rapi, tepat waktu, dan berkelas.",
+  },
+  {
+    id: "Tumpeng & Syukuran",
+    slug: "tumpeng-syukuran",
+    label: "Syukuran",
+    icon: PyramidIcon,
+    description:
+      "Tumpeng nasi kuning khas untuk momen syukuran — simbol rasa syukur yang disajikan dengan tata krama tradisional yang istimewa.",
+  },
+  {
+    id: "Perayaan",
+    slug: "perayaan",
+    label: "Perayaan",
+    icon: BalloonIcon,
+    description:
+      "Ulang tahun, arisan, khitanan, hingga perayaan keluarga lainnya — sajian meriah yang membuat setiap momen terasa istimewa.",
+  },
+  {
+    id: "Hampers",
+    slug: "hampers",
+    label: "Hampers",
+    icon: GiftIcon,
+    description:
+      "Bingkisan istimewa berisi aneka kue dan hidangan pilihan — hadiah yang menyampaikan perhatian dengan penuh cita rasa.",
+  },
+  {
+    id: "Di Balik Dapur",
+    slug: "di-balik-dapur",
+    label: "Di Balik Dapur",
+    icon: CookingPotIcon,
+    description:
+      "Sekilas dunia dapur kami — ketelatenan menyiapkan hidangan segar, dari meracik bumbu hingga sajian siap dinikmati.",
+  },
+  {
+    id: "Lainnya",
+    slug: "lainnya",
+    label: "Lainnya",
+    icon: SparklesIcon,
+    description:
+      "Aneka momen di luar kategori — kisah pelanggan dari berbagai penjuru yang merayakan dengan cara mereka sendiri.",
+  },
 ]
 
 /**
@@ -45,9 +98,15 @@ export function getCategoryById(id: string): GalleryCategory {
   return (
     GALLERY_CATEGORIES.find((c) => c.id === id) ?? {
       id: id as GalleryCategoryId,
+      slug: "",
       label: id || "Semua",
       icon: SparklesIcon,
       description: "",
     }
   )
+}
+
+/** Category lookup by route slug; returns undefined for unknown slugs. */
+export function getCategoryBySlug(slug: string): GalleryCategory | undefined {
+  return GALLERY_CATEGORIES.find((c) => c.slug === slug)
 }

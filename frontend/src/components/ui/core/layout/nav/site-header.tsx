@@ -24,7 +24,7 @@ const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 const NAV_ITEMS = [
   { name: "Profil", link: "/#profil" },
   { name: "Paket", link: "/paket" },
-  { name: "Testimoni", link: "/#testimoni" },
+  { name: "Galeri", link: "/galeri" },
   { name: "FAQ", link: "/#faq" },
   { name: "Kontak", link: "/kontak" },
 ]

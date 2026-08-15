@@ -1,5 +1,7 @@
 "use client"
 
+import type { CSSProperties } from "react"
+
 import { cn } from "@/lib/utils"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import {
@@ -23,16 +25,23 @@ function metaText(item: GalleryItem): string {
 
 /**
  * GalleryCard — one gallery tile. CLEAN by default: category eyebrow + title
- * only, with a taller title. Location + guest count live in a Shadcn
- * `Tooltip` triggered on hover of the whole tile. Sizing is PARENT-DRIVEN via
- * `className` (grid passes the masonry aspect, rails the carousel basis).
- * Clicking opens the GLOBAL Zustand image modal scoped to `scope` at `index`.
+ * only. Location + guest count live in a Shadcn `Tooltip` triggered on hover.
+ *
+ * In the masonry grid the card's height comes from `aspectRatio` (the image's
+ * MEASURED natural ratio) → the tile matches its real proportion, so columns
+ * flow independently at natural heights. The carousel rails pass their own
+ * `className="aspect-[16/10]"` instead (uniform preview peeks). The card has
+ * NO baked-in aspect ratio itself — that baked box (`aspect-[4/3]` +
+ * `lg:h-[min(9em,520px)]`, from the earlier version) is exactly what made
+ * every image look like the same-size grid thumbnail.
  */
 export function GalleryCard({
   item,
   index,
   scope,
   className,
+  aspectRatio,
+  onImageLoaded,
 }: {
   item: GalleryItem
   index: number
@@ -40,8 +49,16 @@ export function GalleryCard({
   scope: GalleryItem[]
   /** Size/aspect override from the parent (rails vs masonry grid). */
   className?: string
+  /** Measured natural ratio (w/h) — sizes the card to the real image. */
+  aspectRatio?: number
+  /** Reports the image's natural dimensions back to the masonry layout. */
+  onImageLoaded?: (id: string, width: number, height: number) => void
 }) {
   const category = getCategoryById(item.category)
+  const ratioStyle =
+    aspectRatio && aspectRatio > 0
+      ? ({ aspectRatio: `${aspectRatio}` } as CSSProperties)
+      : undefined
 
   return (
     <TooltipProvider delayDuration={250}>
@@ -61,15 +78,17 @@ export function GalleryCard({
                 index
               )
             }
+            style={ratioStyle}
             className={cn(
-              "group/card relative block aspect-[4/3] w-full overflow-hidden rounded-2xl ring-1 ring-border transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-xl hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              "group/card relative block w-full overflow-hidden rounded-2xl ring-1 ring-border transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-xl hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aspect-[4/3]",
               className
             )}
           >
             <MediaItem
               webViewLink={item.gambar_acara}
-              className="absolute inset-0 h-full w-full object-cover"
-              imageClassName="transition-transform duration-[900ms] ease-out group-hover/card:scale-110"
+              className="absolute inset-0 h-full w-full"
+              imageClassName="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover/card:scale-110"
+              onImageLoaded={(w, h) => onImageLoaded?.(item.id, w, h)}
             />
 
             {/* Scrim — warm brown, caption area only. */}

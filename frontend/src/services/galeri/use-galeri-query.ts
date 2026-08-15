@@ -5,6 +5,7 @@ import type {
   GalleryItem,
   GalleryItemCategory,
 } from "@/components/ui/core/block/galeri/types/gallery-types"
+import { GALLERY_CATEGORIES } from "@/components/ui/core/block/galeri/galeri-data"
 
 /** Wire shape — mirrors `GaleriResource` (backend). */
 interface GaleriApiItem {
@@ -40,7 +41,11 @@ interface GaleriPage {
   pagination: GaleriPagination
 }
 
+/** Pages per category-filtered request (infinite scroll); Semua uses 500. */
 const GALERI_PER_PAGE = 8
+
+/** Preview cards per category on the storefront rail; no full dataset here. */
+const PREVIEW_PER_PAGE = 8
 
 /** Normalize `GaleriResource` → presentation `GalleryItem` (NULL → Lainnya). */
 function toGalleryItem(raw: GaleriApiItem): GalleryItem {
@@ -51,7 +56,7 @@ function toGalleryItem(raw: GaleriApiItem): GalleryItem {
     deskripsi_acara: raw.deskripsi_acara ?? undefined,
     gambar_acara: raw.gambar_acara,
     meta: {
-      tanggal: raw.tanggal_acara ?? undefined,
+      tanggal: raw.tanggal_acara?.slice(0, 10) ?? undefined,
       venue: raw.lokasi ?? undefined,
       jumlahTamu: raw.jumlah_tamu ?? undefined,
     },
@@ -61,22 +66,32 @@ function toGalleryItem(raw: GaleriApiItem): GalleryItem {
 
 /**
  * Gallery query — `useInfiniteQuery` over `GET /api/v1/galeri`.
- * - The page cursor derives from the server's `meta.pagination.hasMore`.
  * - Category filtering is SERVER-SIDE (`?kategori_acara=`) and lives in the
  *   queryKey, so a filter change refetches that key automatically.
- * - Deliberately NO `keepPreviousData`: a fast category switch resets to a
+ * - Deliberately NO `keepPreviousData`: a category switch resets to a
  *   fresh loading skeleton instead of flashing stale items.
+ * - `enabled:false` for an unknown slug — no request, category page renders
+ *   its not-found state without an empty API hit.
  */
-export function useGaleriQuery({ kategori }: { kategori: string }) {
+export function useGaleriQuery({
+  kategori,
+  enabled = true,
+}: {
+  kategori: string
+  enabled?: boolean
+}) {
+  const perPage = GALERI_PER_PAGE
+
   return useInfiniteQuery({
-    queryKey: ["galeri", kategori, GALERI_PER_PAGE],
+    queryKey: ["galeri", kategori, perPage],
+    enabled,
 
     queryFn: async ({ pageParam }): Promise<GaleriPage> => {
       const res = await api
         .get("galeri", {
           searchParams: {
             page: String(pageParam),
-            perPage: String(GALERI_PER_PAGE),
+            perPage: String(perPage),
             ...(kategori ? { kategori_acara: kategori } : {}),
           },
         })
@@ -99,9 +114,82 @@ export function useGaleriQuery({ kategori }: { kategori: string }) {
 }
 
 /**
- * Featured signature set — a dedicated small query (`?featured=1`,
- * `perPage=100`) so the hero band is stable and independent of the paginated
- * category browsing below it.
+ * Storefront data — ONE request, all records (`perPage=500`).
+ *
+ * WHY single-query instead of N parallel `useQueries`: the dev backend is a
+ * single-threaded `php artisan serve` against Neon serverless, where every
+ * request takes ~5s and requests SERIALIZE server-side. Firing 8 parallel
+ * queries (7 categories + featured) meant only the FIRST (pernikahan) beat
+ * ky's timeout — the rest returned empty and featured (dispatched last)
+ * came up missing too. With a single request the whole storefront loads in
+ * one round-trip, and per-category previews are grouped from the real
+ * payload — no per-category query to lose.
+ *
+ * The preview per category = first PREVIEW_PER_PAGE items of its group;
+ * totals stay truthful because the group count reflects the full response.
+ */
+export function useGaleriPreviews() {
+  const query = useQuery({
+    queryKey: ["galeri", "storefront", "all"],
+    staleTime: 1000 * 60 * 5,
+    queryFn: async (): Promise<GalleryItem[]> => {
+      const res = await api
+        .get("galeri", {
+          searchParams: { page: "1", perPage: "500" },
+        })
+        .json<GaleriListResponse>()
+      return res.data.map(toGalleryItem)
+    },
+  })
+
+  const categories = GALLERY_CATEGORIES.filter((c) => c.id !== "")
+  const all = query.data ?? []
+  const groups = new Map<string, GalleryItem[]>()
+  for (const item of all) {
+    const list = groups.get(item.category) ?? []
+    list.push(item)
+    groups.set(item.category, list)
+  }
+
+  // Featured — derived from the SAME single payload (is_featured flags ship
+  // in GaleriResource), so the storefront is exactly ONE request. Never
+  // coupled to a category: it's the union of all flagged items.
+  const featured = all.filter((item) => item.is_featured).slice(0, 7)
+
+  const results = categories.map((category) => {
+    const items = groups.get(category.id) ?? []
+    return {
+      data:
+        items.length > 0
+          ? {
+              items: items.slice(0, PREVIEW_PER_PAGE),
+              pagination: {
+                total: items.length,
+                currentPage: 1,
+                perPage: PREVIEW_PER_PAGE,
+                lastPage: 1,
+                hasMore: false,
+              },
+            }
+          : undefined,
+      isLoading: query.isLoading,
+      isError: query.isError,
+    }
+  })
+
+  return {
+    categories,
+    results,
+    featured,
+    isLoading: query.isLoading,
+    isError: query.isError,
+  }
+}
+
+/**
+ * Featured signature set — bundled into `useGaleriPreviews` (single storefront
+ * request). Kept exported for callers that want the raw featured filter
+ * (`?featured=1&perPage=100`) independently.
  */
 export function useGaleriFeaturedQuery() {
   return useQuery({

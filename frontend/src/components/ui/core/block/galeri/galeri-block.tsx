@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 
 import { MotionConfig, motion } from "framer-motion"
 
-import { useGaleriQuery, useGaleriFeaturedQuery } from "@/services/galeri/use-galeri-query"
+import { useGaleriPreviews } from "@/services/galeri/use-galeri-query"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import { useImageModalStore } from "@/store/image-modal-store"
 import { useGaleriStore } from "@/store/galeri-store"
@@ -12,15 +12,12 @@ import { useGaleriStore } from "@/store/galeri-store"
 import { AUTO_ADVANCE_MS } from "./galeri-data"
 import { GalleryHero } from "./components/gallery-hero"
 import { GalleryFeatured } from "./components/gallery-featured"
-import { GalleryFilterBar } from "./components/gallery-filter-bar"
-import { GalleryRails } from "./components/gallery-rails"
-import { GalleryGrid } from "./components/gallery-grid"
-import { useGalleryParams } from "./hooks/use-gallery-params"
+import { GalleryCategorySection } from "./components/gallery-category-section"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
 
-/** Loading skeleton for the "Semua" rails — heading + carousel rows. */
+/** Loading skeleton for the storefront's category rails. */
 function RailsSkeleton() {
   return (
     <div className="flex flex-col gap-16 md:gap-20">
@@ -45,48 +42,29 @@ function RailsSkeleton() {
 }
 
 /**
- * Galeri Perayaan — the public gallery (sitemap /galeri).
+ * Galeri Perayaan — the public gallery STOREFRONT (sitemap /galeri).
  *
- * Pure composition (no animation code): editorial hero (self-contained
- * reveal) → container-bound featured crossfade (warm secondary wash band,
- * blur-fade slide swap) → sticky category filter bar (`?kategori=` URL-
- * driven) → rails ("Semua", Shadcn Carousel) or Pinterest masonry grid
- * (single category, vertical infinite scroll). Category filtering is
- * SERVER-SIDE via the infinite query; `useGaleriFeaturedQuery` powers the
- * hero band independently of browsing.
+ * Curated discovery, NOT a dataset browser: editorial hero → signature
+ * featured crossfade → one horizontal preview rail per category, each with a
+ * "Lihat Semua" CTA that deep-links into `/galeri/:kategori` (where the
+ * heavy infinite-scroll masonry lives). Data is LIGHTWEIGHT — every rail is a
+ * dedicated 8-item preview query, never a 500-item dump.
  *
- * Motion: the featured crossfade is Framer `AnimatePresence mode="wait"`
- * (keyed blur-fade — rapid clicks can never overlap or freeze);
- * `MotionConfig reducedMotion="user"` renders all declarative reveals
- * instantly.
- *
- * Chrome gate: flips `useGaleriStore.ready` once the query settles so
- * `LayoutWrapper` defers the CTA band + footer past the loading skeleton.
+ * Chrome gate: flips `useGaleriStore.ready` once the preview queries settle
+ * so `LayoutWrapper` defers the CTA band + footer past the loading skeleton.
  */
 export function GalleryBlock() {
-  const { kategori, setKategori } = useGalleryParams()
-  const query = useGaleriQuery({ kategori })
-  const featuredQuery = useGaleriFeaturedQuery()
+  const { categories, results, featured, isLoading, isError } = useGaleriPreviews()
   const isModalOpen = useImageModalStore((s) => s.isOpen)
 
   const [featuredIndex, setFeaturedIndex] = useState(0)
 
-  const items = useMemo(
-    () => query.data?.pages.flatMap((page) => page.items) ?? [],
-    [query.data]
-  )
-  const total = query.data?.pages[0]?.pagination.total ?? 0
-  const featured = useMemo(() => {
-    const curated = featuredQuery.data ?? []
-    return curated.length > 0 ? curated : items.slice(0, 6)
-  }, [featuredQuery.data, items])
+  const previewsSettled = !isLoading && !isError
 
-  // Chrome gate — CTA + footer render only after the gallery has loaded.
+  // Chrome gate — CTA + footer render only after the storefront has loaded.
   useEffect(() => {
-    if (query.isSuccess || query.isError) {
-      useGaleriStore.getState().setReady(true)
-    }
-  }, [query.isSuccess, query.isError])
+    useGaleriStore.getState().setReady(previewsSettled)
+  }, [previewsSettled])
 
   // Featured auto-advance — continuous; paused while the global image modal
   // is open (never advances behind the viewer).
@@ -107,55 +85,48 @@ export function GalleryBlock() {
           <GalleryHero />
         </div>
 
-        {/* 2 — featured signature event, container-bound on the wash band. */}
-        <div className="bg-secondary/30">
-          <div className="container m-auto w-full pt-6 pb-12 md:pt-8 md:pb-16">
-            {featuredQuery.isLoading ? (
-              <Skeleton className="aspect-[3/2] w-full rounded-2xl sm:aspect-[2/1] lg:h-[min(50vh,520px)]" />
-            ) : (
-              featured.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 28 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.8, ease: LUXURY_EASE, delay: 0.1 }}
-                >
-                  <GalleryFeatured
-                    items={featured}
-                    activeIndex={featuredIndex % featured.length}
-                    onSelect={setFeaturedIndex}
-                  />
-                </motion.div>
-              )
-            )}
-          </div>
+        {/* 2 — featured signature event (premium viewport reveal: blur +
+            fade-up, once, fast — the first piece below the hero). */}
+        <div className="container m-auto w-full pt-6   pb-8 md:pt-8  ">
+          {isLoading ? (
+            <Skeleton className="aspect-[3/2] w-full rounded-2xl sm:aspect-[2/1] lg:h-[min(50vh,520px)]" />
+          ) : (
+            featured.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+                whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                viewport={{ once: true, amount: 0.25 }}
+                transition={{ duration: 0.7, ease: LUXURY_EASE, delay: 0.1 }}
+              >
+                <GalleryFeatured
+                  items={featured}
+                  activeIndex={featuredIndex % featured.length}
+                  onSelect={setFeaturedIndex}
+                />
+              </motion.div>
+            )
+          )}
         </div>
 
-        {/* 3 — sticky category pill bar (URL-driven). */}
-        <GalleryFilterBar
-          kategori={kategori}
-          count={total}
-          onKategoriChange={setKategori}
-        />
-
-        {/* 4 — showcase: cluster rails ("Semua") or masonry + infinite scroll. */}
+        {/* 3 — category previews: one editorial rail per category. */}
         <div className="container m-auto w-full pt-12 pb-24 md:pt-16 md:pb-32">
-          {kategori ? (
-            <GalleryGrid
-              items={items}
-              total={total}
-              isLoading={query.isLoading}
-              isError={query.isError}
-              hasNextPage={query.hasNextPage}
-              isFetchingNextPage={query.isFetchingNextPage}
-              onLoadMore={query.fetchNextPage}
-              onRetry={() => query.refetch()}
-              onReset={() => setKategori("")}
-            />
-          ) : query.isLoading ? (
-            <RailsSkeleton />
+          {previewsSettled ? (
+            <div className="flex flex-col gap-16 md:gap-20">
+              {results.map((result, index) => {
+                const category = categories[index]
+                if (!category) return null
+                return (
+                  <GalleryCategorySection
+                    key={category.slug}
+                    category={category}
+                    items={result.data?.items ?? []}
+                    isLoading={result.isLoading}
+                  />
+                )
+              })}
+            </div>
           ) : (
-            <GalleryRails items={items} />
+            <RailsSkeleton />
           )}
         </div>
       </section>
