@@ -6,6 +6,7 @@ import { Outlet, useLocation } from "react-router"
 import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
 import { useCatalogStore } from "@/store/catalog-store"
+import { useDetailStore } from "@/store/detail-store"
 import { useGaleriStore } from "@/store/galeri-store"
 import CTABlock from "../ui/core/layout/cta-block"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -25,11 +26,23 @@ export function LayoutWrapper() {
   // grid is still scrollable. On /galeri (+ /galeri/:kategori) they defer
   // until the gallery query reaches its terminal state
   // (`useGaleriStore.ready`) — the masonry's last page is loaded before the
-  // footer enters. Everywhere else they render as usual.
+  // footer enters. On /paket/:id they defer until the detail query settles
+  // (`useDetailStore.ready` — reset by the block on every id change, so a
+  // stale flag never flashes chrome under the next paket's skeleton).
+  // Everywhere else they render as usual.
   const catalogEnded = useCatalogStore((s) => s.ended)
+  const detailReady = useDetailStore((s) => s.ready)
   const galeriReady = useGaleriStore((s) => s.ready)
-  const showChrome =
-    pathname === "/paket"
+
+  // Segment-based distinction (not `startsWith("/paket/")`): also survives a
+  // trailing-slash `/paket/` without misrouting it into the detail branch.
+  const segments = pathname.split("/").filter(Boolean)
+  const isCatalogPaket = segments[0] === "paket" && segments.length === 1
+  const isDetailPaket = segments[0] === "paket" && segments.length > 1
+
+  const showChrome = isDetailPaket
+    ? detailReady
+    : isCatalogPaket
       ? catalogEnded
       : pathname.startsWith("/galeri")
         ? galeriReady

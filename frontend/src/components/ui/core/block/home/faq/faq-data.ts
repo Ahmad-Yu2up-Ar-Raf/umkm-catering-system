@@ -24,7 +24,7 @@ export type FaqItem = {
   content: string
 }
 
-export const WHATSAPP_URL = "https://wa.me/628561155113"
+export const WHATSAPP_URL = "https://wa.me/6287870306031"
 
 export const FAQ_CATEGORIES: FaqCategory[] = [
   {

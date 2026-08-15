@@ -1,5 +1,4 @@
-import PaketDetailBlock from "@/components/ui/core/block/paket/paket-detail/paket-detail-block"
-import React from "react"
+import PaketDetailBlock from "@/components/ui/core/block/detail/detail-block"
 import { Navigate, useParams } from "react-router"
 
 function PaketDetail() {

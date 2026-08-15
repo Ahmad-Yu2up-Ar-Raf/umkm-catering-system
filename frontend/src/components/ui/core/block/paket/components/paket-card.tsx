@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/card"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { cn } from "@/lib/utils"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { HeartIcon, Package01Icon } from "@hugeicons/core-free-icons"
+import { HeartIcon } from "@hugeicons/core-free-icons"
 import type { Paket } from "../types/paket-types"
 import {
   getCategoryColor,
@@ -30,6 +29,10 @@ const formatIDR = (value: string | number) =>
     currency: "IDR",
     maximumFractionDigits: 0,
   }).format(Number(value))
+
+/** Brand placeholder for a package that has no thumbnail yet — a generic
+ *  utility fallback, never presented as the package's own photograph. */
+const FALLBACK_IMG = "/assets/images/banners/hero-banner-tumpeng.png"
 
 export type PaketLayoutMode = "horizontal" | "grid-2" | "grid-3"
 
@@ -103,7 +106,7 @@ export function PaketCard({
 
           <div className="absolute inset-0 block">
             <MediaItem
-              webViewLink={paket.thumbnail}
+              webViewLink={paket.thumbnail ?? FALLBACK_IMG}
               className={cn(
                 "h-full w-full object-cover object-center transition-opacity duration-700 ease-out",
                 showcase_images.length > 0 && "group-hover:opacity-0"
@@ -127,8 +130,8 @@ export function PaketCard({
         >
           <div
             className={cn(
-              "flex flex-col gap-4",
-              isHorizontal ? "md:gap-3" : "mt-3"
+              "flex flex-col gap-3",
+              isHorizontal ? "md:gap-3" : "mt-2"
             )}
           >
             <Badge
@@ -170,7 +173,7 @@ export function PaketCard({
               isHorizontal ? "mt-auto" : "mt-1"
             )}
           >
-            <div className="flex w-full flex-col gap-1.5">
+            <div className="flex w-full flex-col gap-1">
               <h2
                 className={cn(
                   "font-sans font-semibold text-foreground",
@@ -184,10 +187,10 @@ export function PaketCard({
                 </span>
               </h2>
               <div className="flex items-center gap-1.5 font-sans text-xs text-muted-foreground md:text-sm">
-                <HugeiconsIcon
+                {/* <HugeiconsIcon
                   icon={Package01Icon}
                   className="size-3.5 shrink-0 text-muted-foreground"
-                />
+                /> */}
                 <p className="line-clamp-1">{paket.jenis_kemasan}</p>
               </div>
             </div>

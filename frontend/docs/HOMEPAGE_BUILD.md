@@ -16,7 +16,7 @@
 | -------------- | -------------------------------------------------------------------------------------------------------- |
 | Nama Usaha     | Catering Nusantara · Pemilik: **Eva Rudianti** · Berdiri: **2024**                                       |
 | Alamat         | Jln. Kapten Yusuf gang Purnama, Taman Sari, Bogor <!-- TODO: sub-district pending owner verification --> |
-| Kontak (HP/WA) | 08561155113 → `https://wa.me/628561155113`                                                               |
+| Kontak (HP/WA) | 08561155113 → `https://wa.me/6287870306031`                                                              |
 | Email          | Waroengpecelayam99@gmail.com                                                                             |
 
 ---
@@ -109,7 +109,7 @@
 | `PillHeader`                                       | custom                 | fixed, `rounded-full border`, scroll → `bg-card/90 backdrop-blur`, `transition-[top,padding,background-color] duration-500`                   |
 | `WordReveal`                                       | custom (GSAP)          | word spans, inner `translateY(110%)` → 0                                                                                                      |
 | `SectionEyebrow`                                   | custom                 | `text-[11px] uppercase tracking-[0.5em] text-primary` + gradient hairline `h-px bg-gradient-to-r from-transparent via-primary to-transparent` |
-| `WhatsAppButton`                                   | `Button`               | primary; link to `https://wa.me/628561155113`                                                                                                 |
+| `WhatsAppButton`                                   | `Button`               | primary; link to `https://wa.me/6287870306031`                                                                                                |
 | `PackageCard` / `CategoryCard` / `TestimonialCard` | `Card` + `CardContent` | `rounded-2xl bg-card border-border shadow-sm p-6 md:p-8`                                                                                      |
 | `SmartImage`                                       | custom                 | `object-cover aspect-[4/3] rounded-2xl`, lazy, hover `scale-105 duration-500 ease-out`                                                        |
 | `CountUp`                                          | custom (GSAP)          | —                                                                                                                                             |

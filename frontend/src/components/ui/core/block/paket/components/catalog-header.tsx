@@ -6,7 +6,7 @@ import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-but
 import { ScrollRotatingVisual } from "@/components/ui/core/visual/scroll-rotating-visual"
 
 /** Real client WhatsApp chat (also hard-coded in site-footer / faq-data). */
-const WHATSAPP_URL = "https://wa.me/628561155113"
+const WHATSAPP_URL = "https://wa.me/6287870306031"
 
 /** Brand hero object — reuses the About block's top-down Tumpeng. */
 const HERO_IMAGE = "/assets/images/about/tumpeng-from-top.png"
@@ -36,9 +36,8 @@ export function CatalogHeader() {
         >
           Dari dapur kami,
           <br />
-          untuk <span className="font-accent text-primary italic">
-            perayaan
-          </span>{" "}
+          untuk{" "}
+          <span className="font-accent text-primary italic">perayaan</span>{" "}
           Anda.
         </h1>
 

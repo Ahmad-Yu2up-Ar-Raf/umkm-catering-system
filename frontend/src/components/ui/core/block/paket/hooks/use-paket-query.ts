@@ -5,11 +5,7 @@ import {
   useQuery,
 } from "@tanstack/react-query"
 
-import type {
-  Paket,
-  PaketDetailResponse,
-  PaketListResponse,
-} from "../types/paket-types"
+import type { Paket, PaketListResponse } from "../types/paket-types"
 
 const PAKET_PER_PAGE = 9
 
@@ -53,12 +49,5 @@ export function usePaketQuery({ kategori, search }: UsePaketQueryParams) {
 
     staleTime: 5000,
     placeholderData: keepPreviousData,
-  })
-}
-
-export const FetchPaketDetail = (id: string) => {
-  return useQuery({
-    queryKey: ["paket", id, `paket-${id}`],
-    queryFn: async () => api.get(`paket/${id}`).json<PaketDetailResponse>(),
   })
 }

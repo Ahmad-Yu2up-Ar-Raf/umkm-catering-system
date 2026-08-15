@@ -13,6 +13,8 @@ const MediaItem = ({
   onClick,
   style,
   onImageLoaded,
+  onError,
+  alt,
   width = 800,
   height = 600,
   objectFit = "cover",
@@ -27,6 +29,11 @@ const MediaItem = ({
   /** Report the image's NATURAL dimensions once loaded (used by masonry
    *  layout to size cards to the real intrinsic ratio, not a forced box). */
   onImageLoaded?: (width: number, height: number) => void
+  /** Optional accessible label — falls back to the src URL (current default).
+   *  Pass an empty string for purely decorative imagery. */
+  alt?: string
+  /** Image load failure handler (fallback UX). */
+  onError?: () => void
   /**
    * Media box for @unpic's `constrained` layout. Default 800×600 caps the
    * rendered `<img>` with inline max-width/max-height — pass LARGER values
@@ -176,7 +183,8 @@ const MediaItem = ({
     >
       <Image
         src={webViewLink}
-        alt={webViewLink}
+        alt={alt ?? webViewLink}
+        onError={onError}
         className={cn(
           "h-full w-full overflow-hidden object-cover",
           imageClassName

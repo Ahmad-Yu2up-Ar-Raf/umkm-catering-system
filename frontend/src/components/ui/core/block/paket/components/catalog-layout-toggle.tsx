@@ -21,15 +21,18 @@ const LUXE_EASE = [0.16, 1, 0.3, 1] as const
 
 const MODES: { mode: LayoutMode; icon: typeof Menu01Icon; label: string }[] = [
   { mode: "horizontal", icon: Menu01Icon, label: "1 kolom" },
-  { mode: "grid-2", icon: DashboardSquare01Icon, label: "2 kolom" },
-  { mode: "grid-3", icon: SquareIcon, label: "3 kolom" },
+
+  { mode: "grid-3", icon: DashboardSquare01Icon, label: "3 kolom" },
 ]
 
 /**
  * CatalogLayoutToggle — pill-shaped 1/2/3-column switcher with a Framer
  * `layoutId` sliding active background (same grammar as `category-nav`).
  */
-export function CatalogLayoutToggle({ current, onChange }: CatalogLayoutToggleProps) {
+export function CatalogLayoutToggle({
+  current,
+  onChange,
+}: CatalogLayoutToggleProps) {
   return (
     <div
       role="group"

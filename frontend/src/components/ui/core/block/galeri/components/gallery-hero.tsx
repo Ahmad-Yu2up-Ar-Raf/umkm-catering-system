@@ -38,7 +38,7 @@ export function GalleryHero() {
           korporat, hingga bingkisan istimewa.
         </BlurReveal>
       </p>
-      <BlurReveal
+      {/* <BlurReveal
         as="span"
         onMount
         blur={6}
@@ -59,7 +59,7 @@ export function GalleryHero() {
             />
           </OriginButton>
         </Link>
-      </BlurReveal>
+      </BlurReveal> */}
     </div>
   )
 }

@@ -107,7 +107,6 @@ export function PaketGrid({
 
   const gridContainerClass = cn(
     layoutMode === "horizontal" && "flex flex-col gap-8",
-    layoutMode === "grid-2" && "grid grid-cols-1 gap-15 md:grid-cols-2",
     layoutMode === "grid-3" &&
       "grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
   )
@@ -163,7 +162,10 @@ export function PaketGrid({
             </p>
           )
         )}
-        <CatalogLayoutToggle current={layoutMode} onChange={onLayoutModeChange} />
+        <CatalogLayoutToggle
+          current={layoutMode}
+          onChange={onLayoutModeChange}
+        />
       </div>
 
       {isError ? (
