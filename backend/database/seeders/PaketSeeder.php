@@ -284,7 +284,9 @@ class PaketSeeder extends Seeder
      * 1. Purge the Cloudinary `catering-nusantara/products/` namespace
      *    (clean slate — no stale assets or duplicates).
      * 2. Upload 2–3 images per folder (max 3, all files used up to the cap).
-     * 3. `thumbnail` = 1st upload's secure_url; all uploads → `paket_images`.
+     * 3. `thumbnail` = 1st upload's canonical (original, untransformed) asset
+     *    URL; all uploads → `paket_images`. Delivery transformations happen
+     *    at render time in the frontend — never baked into the stored URL.
      * 4. Data is the exact client spec for the 5 main packages and the
      *    hand-curated inference for the other 10 — no Faker.
      *
@@ -395,7 +397,13 @@ class PaketSeeder extends Seeder
 
     /**
      * Upload a local image to Cloudinary using the native Http client
-     * (Basic Auth — no SDK required) and return the secure URL.
+     * (Basic Auth — no SDK required) and return its CANONICAL (original,
+     * untransformed) URL.
+     *
+     * The DB is the asset-identity layer: it stores the original Cloudinary
+     * reference only. Delivery optimization (responsive width, f_auto,
+     * aspect-fit) happens at render time in the frontend (@unpic), never in
+     * the stored URL.
      */
     private function uploadToCloudinary(string $path, string $folder): string
     {
@@ -409,7 +417,25 @@ class PaketSeeder extends Seeder
             throw new \RuntimeException('Cloudinary upload failed for '.$path.': '.$response->body());
         }
 
-        return $response->json('secure_url');
+        return $this->canonicalUrl($response->json());
+    }
+
+    /**
+     * Build the canonical asset URL from the upload response's own metadata
+     * (`public_id` + `version` + `format`). Rebuilding instead of copying the
+     * raw `secure_url` GUARANTEES no delivery transformation (e.g.
+     * `w_640,h_480,f_auto,c_lfill`) can ever leak into the database — the
+     * stable URL shape is always the original asset.
+     */
+    private function canonicalUrl(array $upload): string
+    {
+        return sprintf(
+            'https://res.cloudinary.com/%s/image/upload/v%s/%s.%s',
+            env('CLOUDINARY_CLOUD_NAME'),
+            $upload['version'],
+            $upload['public_id'],
+            $upload['format'],
+        );
     }
 
     /**

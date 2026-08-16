@@ -37,6 +37,11 @@
 - **Design gate:** before finishing any UI work, run `npm run lint:design` (`impeccable detect src/`) — it must stay clean. Never ship output that trips its rules (Inter/system fonts, purple gradients, card-in-card, gray-on-colored, bounce easing).
 - **Forms are custom/user-owned:** do NOT use the shadcn `form` wrapper or react-hook-form/zod. Bespoke forms are built by the user under `src/components/ui/core/block/`.
 
+### Image delivery (Cloudinary + @unpic)
+
+- The API (`thumbnail`, `images[]`, `gambar_acara`) returns **canonical original Cloudinary URLs** — never URLs with baked transformations (`w_*,h_*,f_auto,c_lfill` before `/v<version>/`). Never store or send transformed URLs as data.
+- `MediaItem` (@unpic) is the only render path: use `layout="constrained"` (default, `width`/`height` props) for intentionally ratio-locked boxes (package cards, carousels) and `layout="fullWidth"` for surfaces that must keep the image's natural composition (gallery masonry, global lightbox). Pass `sizes` where the image footprint differs from a card.
+
 ## 5. Code Quality
 
 - Run `npm run typecheck` and `npm run lint` before finishing. TypeScript is strict (`noUnusedLocals`).

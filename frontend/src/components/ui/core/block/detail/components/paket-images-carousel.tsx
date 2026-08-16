@@ -1,29 +1,16 @@
 "use client"
 
-import { useEffect } from "react"
-import type { EmblaOptionsType } from "embla-carousel"
-
-import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  ArrowLeft02Icon,
-  ArrowRight02Icon,
-  MaximizeIcon,
-} from "@hugeicons/core-free-icons"
+import { useEffect, useMemo } from "react"
 
 import { cn } from "@/lib/utils"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
+import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import { useImageModalStore } from "@/store/image-modal-store"
 
 import {
   Carousel,
   Slider,
   SliderContainer,
-  SliderDotButton,
-  SliderNextButton,
-  SliderPrevButton,
-  SliderSnapDisplay,
   ThumbsSlider,
   useCarousel,
 } from "./image-carousel"
@@ -40,27 +27,13 @@ interface PaketImagesCarouselProps {
   className?: string
 }
 
-/** Glass edge pill — same language as the GlobalImageModal controls. */
-const edgeButtonClass =
-  "pointer-events-auto absolute top-1/2 z-20 size-11 -translate-y-1/2 rounded-full border border-border bg-background/85 text-foreground shadow-sm backdrop-blur-sm hover:bg-background"
-
 /**
- * Fullscreen trigger + carousel↔lightbox index sync.
- * - Opens the GLOBAL lightbox (single instance) at the current slide with a
- *   scope built ONLY from this package's gallery.
- * - While the lightbox is open, subscribes to its index and scrolls the
- *   carousel to match — so closing returns to the last-viewed slide.
+ * Carousel ↔ lightbox index sync: while the GLOBAL lightbox is open, the
+ * carousel follows whatever index the modal lands on — so closing returns
+ * the slider to the last-viewed image.
  */
-function FullscreenControl({
-  gallery,
-  modalTitle,
-  modalCategory,
-}: {
-  gallery: string[]
-  modalTitle: string
-  modalCategory?: string
-}) {
-  const { emblaApi, selectedIndex } = useCarousel()
+function LightboxSync() {
+  const { emblaApi } = useCarousel()
   const isModalOpen = useImageModalStore((s) => s.isOpen)
   const modalIndex = useImageModalStore((s) => s.index)
 
@@ -68,49 +41,58 @@ function FullscreenControl({
     if (isModalOpen && emblaApi) emblaApi.scrollTo(modalIndex)
   }, [isModalOpen, modalIndex, emblaApi])
 
-  const scope = gallery.map((src) => ({
-    src,
-    title: modalTitle,
-    ...(modalCategory ? { category: modalCategory } : {}),
-  }))
-
-  return (
-    <Button
-      type="button"
-      size="icon"
-      aria-label="Perbesar gambar"
-      onClick={() =>
-        useImageModalStore.getState().open(scope, Math.min(selectedIndex, gallery.length - 1))
-      }
-      className="absolute top-4 right-4 z-20 grid size-11 place-items-center rounded-full border border-border bg-background/85 text-foreground shadow-sm backdrop-blur-sm transition-colors duration-300 hover:bg-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-    >
-      <HugeiconsIcon icon={MaximizeIcon} className="size-5" />
-    </Button>
-  )
+  return null
 }
 
-/** Desktop overlay: prev/next pills + centered counter. */
-function DesktopNav() {
+/** One slide — the image itself IS the lightbox trigger (keyboard-accessible
+ *  button) with a subtle hover scale. High-res, responsive `fullWidth`
+ *  delivery (natural aspect, width candidates) is gracefully fitted into the
+ *  fixed hero box by `object-cover`. */
+function LightboxSlide({
+  src,
+  alt,
+  index,
+  scope,
+}: {
+  src: string
+  alt: string
+  index: number
+  scope: { src: string; title: string; category?: string }[]
+}) {
   return (
-    <>
-      <SliderPrevButton className={edgeButtonClass}>
-        <HugeiconsIcon icon={ArrowLeft02Icon} className="size-5" />
-      </SliderPrevButton>
-      <SliderNextButton className={edgeButtonClass}>
-        <HugeiconsIcon icon={ArrowRight02Icon} className="size-5" />
-      </SliderNextButton>
-      <SliderSnapDisplay className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-full bg-background/85 px-3.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm" />
-    </>
+    <button
+      type="button"
+      aria-label="Perbesar gambar"
+      onClick={() => useImageModalStore.getState().open(scope, index)}
+      className="group relative block size-full cursor-zoom-in focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+    >
+      <MediaItem
+        webViewLink={src}
+        alt={alt}
+        className="size-full"
+        imageClassName="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+        layout="fullWidth"
+        sizes="(min-width: 1024px) 50rem, 90vw"
+        loading={
+          <Skeleton className="absolute inset-0 h-full w-full rounded-none bg-secondary" />
+        }
+      />
+    </button>
   )
 }
 
 /**
  * The breakpoint-aware image gallery surface for the Paket Detail page.
  *
- * Desktop (lg+): vertical main column + left vertical thumbnail rail,
- * prev/next edge pills, counter, fullscreen. Vertical axis, NO rtl.
+ * Minimalist: main image slider on top, horizontal thumbnail rail directly
+ * BELOW it (one layout for every breakpoint). The main image itself opens
+ * the global lightbox; navigation relies on swipe/drag + thumb clicks —
+ * no on-image prev/next chrome.
  *
- * Mobile: horizontal swipe, dots + counter, fullscreen — no crowded rail.
+ * Layout stability: the hero container is a STRICT fixed ratio (`4:3` mobile,
+ * `16:10` desktop). Slides of any source aspect ratio are delivered at high
+ * resolution (`fullWidth`) and `object-cover`-fitted into that box, so the
+ * page never jumps or reflows when navigating between photos.
  */
 export function PaketImagesCarousel({
   gallery,
@@ -119,64 +101,47 @@ export function PaketImagesCarousel({
   modalCategory,
   className,
 }: PaketImagesCarouselProps) {
-  const isMobile = useIsMobile()
-  const options: EmblaOptionsType = isMobile ? {} : { axis: "y" }
+  const scope = useMemo(
+    () =>
+      gallery.map((src) => ({
+        src,
+        title: modalTitle,
+        ...(modalCategory ? { category: modalCategory } : {}),
+      })),
+    [gallery, modalTitle, modalCategory]
+  )
 
   return (
     <Carousel
-      options={options}
-      className={cn(
-        "relative overflow-hidden ",
-        className
-      )}
+      options={{ axis: "x" }}
+      className={cn("relative w-full", className)}
     >
-      {/* <FullscreenControl
-        gallery={gallery}
-        modalTitle={modalTitle}
-        modalCategory={modalCategory}
-      /> */}
+      <LightboxSync />
 
-      {isMobile ? (
-        <div className="relative aspect-[4/3] w-full">
+      <div className="flex w-full flex-col gap-3">
+        {/* main slider — FIXED aspect container, never reflows between slides */}
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl lg:aspect-[16/18]">
           <SliderContainer className="h-full">
             {gallery.map((src, index) => (
               <Slider key={index} className="h-full basis-full">
-                <MediaItem
-                  webViewLink={src}
+                <LightboxSlide
+                  src={src}
                   alt={alt}
-                  className="size-full"
-                  imageClassName="size-full object-cover"
+                  index={index}
+                  scope={scope}
                 />
               </Slider>
             ))}
           </SliderContainer>
-          <SliderSnapDisplay className="absolute right-4 bottom-3 z-20 rounded-full bg-background/85 px-3.5 py-1 text-xs font-medium text-foreground backdrop-blur-sm" />
-          <SliderDotButton className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full bg-background/60 px-2 py-1 backdrop-blur-sm" />
         </div>
-      ) : (
-        <div className="flex h-[min(42em,70svh)] items-stretch gap-3 ">
-          <ThumbsSlider
-            gallery={gallery}
-            className="h-full w-16 md:w-20"
-            thumbsClassName="h-full "
-          />
-          <div className="relative min-w-0 flex-1 overflow-hidden rounded-xl">
-            <SliderContainer className="h-full">
-              {gallery.map((src, index) => (
-                <Slider key={index} className="h-full">
-                  <MediaItem
-                    webViewLink={src}
-                    alt={alt}
-                    className="size-full"
-                    imageClassName="size-full object-cover"
-                  />
-                </Slider>
-              ))}
-            </SliderContainer>
-            {/* <DesktopNav /> */}
-          </div>
-        </div>
-      )}
+
+        {/* horizontal thumbnail rail — directly below the main slider */}
+        <ThumbsSlider
+          gallery={gallery}
+          className="w-full"
+          thumbsClassName="h-16 md:h-26"
+        />
+      </div>
     </Carousel>
   )
 }

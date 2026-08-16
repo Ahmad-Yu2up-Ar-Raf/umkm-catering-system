@@ -50,7 +50,7 @@ export function DetailGallery({
   }
 
   return (
-    <div className={cn("lg:sticky lg:top-24 lg:self-start", className)}>
+    <div className={cn("lg:sticky lg:top-9 lg:self-start", className)}>
       <PaketImagesCarousel
         gallery={gallery}
         alt={alt}

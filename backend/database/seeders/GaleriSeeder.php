@@ -163,6 +163,9 @@ class GaleriSeeder extends Seeder
             ->slice(0, self::MAX_IMAGES_PER_CATEGORY);
     }
 
+    /** Upload one local image with retry/backoff and return its CANONICAL
+     *  (original, untransformed) Cloudinary URL. The DB stores the asset
+     *  identity; responsive delivery runs in the frontend (@unpic). */
     private function uploadToCloudinary(string $path, string $folder): ?string
     {
         $endpoint = 'https://api.cloudinary.com/v1_1/'.env('CLOUDINARY_CLOUD_NAME').'/image/upload';
@@ -176,7 +179,7 @@ class GaleriSeeder extends Seeder
                     ->post($endpoint, ['folder' => self::CLOUDINARY_PREFIX.'/'.$folder]);
 
                 if ($response->successful()) {
-                    return $response->json('secure_url');
+                    return $this->canonicalUrl($response->json());
                 }
 
                 $lastError = 'HTTP '.$response->status().': '.substr($response->body(), 0, 200);
@@ -195,5 +198,22 @@ class GaleriSeeder extends Seeder
         $this->command?->warn("  SKIP {$path}: {$lastError}");
 
         return null;
+    }
+
+    /**
+     * Build the canonical asset URL from the upload response's metadata
+     * (`public_id` + `version` + `format`) so the DB is GUARANTEED to hold the
+     * original asset reference — never a delivery transformation (e.g.
+     * `w_640,h_480,f_auto,c_lfill`).
+     */
+    private function canonicalUrl(array $upload): string
+    {
+        return sprintf(
+            'https://res.cloudinary.com/%s/image/upload/v%s/%s.%s',
+            env('CLOUDINARY_CLOUD_NAME'),
+            $upload['version'],
+            $upload['public_id'],
+            $upload['format'],
+        );
     }
 }

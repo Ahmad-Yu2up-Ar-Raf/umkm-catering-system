@@ -60,7 +60,7 @@ export function toDetailViewModel(paket: Paket): DetailViewModel {
 
   const metaRows: DetailMetaRow[] = []
   if (paket.kategori_acara)
-    metaRows.push({ label: "Untuk", value: paket.kategori_acara })
+    metaRows.push({ label: "Acara", value: paket.kategori_acara })
   if (paket.jenis_kemasan)
     metaRows.push({ label: "Kemasan", value: paket.jenis_kemasan })
   if (paket.kapasitas_produksi != null && paket.kapasitas_produksi > 0)

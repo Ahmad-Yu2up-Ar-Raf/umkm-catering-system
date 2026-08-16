@@ -12,9 +12,18 @@ images (`paket.thumbnail` + `paket_images`).
 **How it works in one paragraph:** the seeder (1) **purges** every asset already uploaded
 under the Cloudinary `catering-nusantara/products/` namespace, (2) scans the 15 product
 folders, (3) uploads 2–3 images per folder via Laravel's native `Http` client (HTTP Basic
-Auth — no SDK), (4) writes `paket.thumbnail` = the 1st upload's `secure_url` and stores that
+Auth — no SDK), (4) writes `paket.thumbnail` = the 1st upload's **canonical original URL**
+(rebuilt from the upload response's `public_id` + `version` + `format`) and stores that
 same URL **first** in `paket_images`, and (5) uses `updateOrCreate(nama_paket)` so re-runs
 are idempotent.
+
+> **Canonical vs. delivery:** the database only ever stores the ORIGINAL Cloudinary asset
+> reference — never a baked transformation like `w_640,h_480,f_auto,c_lfill`. Responsive
+> delivery (width `srcset`, `f_auto`, aspect-fit) is applied at **render time** by the
+> frontend's @unpic image component. If you ever see a transformation inside a stored URL
+> (e.g. `/image/upload/w_640,h_480,f_auto,c_lfill/v…/`), the DB rows were written by a
+> process that confused delivery URLs with asset identity — re-run the seeder (§2/§4.1) to
+> repair them.
 
 > All commands run from the **`backend/`** directory with your PHP CLI (e.g. Laravel Herd's
 > `php.exe` on Windows). The public catalog and gallery consume the outcome via
@@ -100,7 +109,41 @@ php artisan tinker --execute '
 '
 ```
 
-## 5. Troubleshooting & Notes
+## 5. Canonical Image URLs & Repairing Transformed Values
+
+The seeder enforces **asset identity = canonical original URL**:
+
+```
+https://res.cloudinary.com/<cloud>/image/upload/v<version>/catering-nusantara/products/<slug>/<public-id>.<format>
+```
+
+The upload response's `secure_url` is already canonical, but `PaketSeeder`/`GaleriSeeder`
+**rebuild** it from `public_id` + `version` + `format` so a transformation can never be
+persisted — even if the account's upload settings ever change. Stored-values must never
+look like:
+
+```
+…/image/upload/w_640,h_480,f_auto,c_lfill/v<version>/…     ❌ (delivery URL stored as identity)
+```
+
+> These `w_*,h_*,f_auto,c_lfill` shapes are @unpic srcset candidates generated at render
+> time. If the DB was seeded by a process that copied such URLs, the images render as
+> fixed low-resolution crops (portrait/landscape sources forced into one 4:3 box). Re-seed
+> to repair — both seeders purge the Cloudinary namespace and rewrite every row with fresh
+> canonical URLs (see §2 and §4.1 below).
+
+```bash
+# Verify: production URLs must contain NO transformation segment before /v<version>/
+php artisan tinker --execute '
+    echo "paket poisoned: ".\App\Models\Paket::where("thumbnail", "like", "%/upload/%w\\_%")->count();
+    echo "galeri poisoned: ".\App\Models\Galeri::where("gambar_acara", "like", "%/upload/%w\\_%")->count();
+'
+```
+
+Delivery optimization is the **frontend's** job (MediaItem + @unpic: responsive `srcset`,
+`f_auto`, natural-aspect `fullWidth` layout for gallery masonry and the lightbox).
+
+## 6. Troubleshooting & Notes
 
 - **Cloudinary purge fails with** `"Parameter all=true cannot coexist with other criteria"`:
   the seeder uses prefix + `next_cursor` pagination — never combine `all=true` with `prefix`.

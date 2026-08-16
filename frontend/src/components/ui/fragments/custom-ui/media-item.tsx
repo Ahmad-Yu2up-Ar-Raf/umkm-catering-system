@@ -15,10 +15,13 @@ const MediaItem = ({
   onImageLoaded,
   onError,
   alt,
-  width = 800,
-  height = 600,
+  width = 1280,
+  height = 960,
+  layout = "constrained",
   objectFit = "cover",
   unstyled = false,
+  loading,
+  sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
 }: {
   webViewLink: string
   mediaType?: "image" | "video"
@@ -35,12 +38,18 @@ const MediaItem = ({
   /** Image load failure handler (fallback UX). */
   onError?: () => void
   /**
-   * Media box for @unpic's `constrained` layout. Default 800×600 caps the
-   * rendered `<img>` with inline max-width/max-height — pass LARGER values
-   * from full-bleed media (Featured card, modal) so the photo never gets a
-   * synthetic ceiling and fills its container edge-to-edge.
+   * @unpic layout. `constrained` (default) lets @unpic bake a `w_,h_` Cloudinary
+   * pre-crop — use it for intentionally ratio-locked boxes (package cards,
+   * fixed-ratio carousels). `fullWidth` delivers width-responsive candidates
+   * that PRESERVE the image's natural aspect ratio (no `h_`, no `c_lfill`
+   * crop) — use it for surfaces that must keep the original composition
+   * (gallery masonry, lightbox). In `fullWidth` the `width`/`height` props
+   * are ignored and the `sizes` hint decides which candidate loads.
    */
+  layout?: "constrained" | "fullWidth"
+  /** Media box width for the `constrained` layout (srcset "1x" size). Default 1280. */
   width?: number
+  /** Media box height for the `constrained` layout (aspect of the pre-crop). Default 960. */
   height?: number
   /**
    * `object-fit` — forwarded into @unpic's computed style (inline wins over
@@ -54,11 +63,38 @@ const MediaItem = ({
    * that need precise class-driven sizing (the lightbox).
    */
   unstyled?: boolean
+  /**
+   * Browser `sizes` hint (srcset candidate selection). Override for surfaces
+   * where the image occupies more than the default card footprint — e.g. the
+   * fullscreen lightbox (`"90vw"`).
+   */
+  sizes?: string
+  /**
+   * Replace the default loading overlay (dark panel + spinner). Pass a
+   * container from the project primitives (e.g. a `Skeleton`) that fills the
+   * image box — `false` hides the overlay entirely for surfaces that render
+   * their own loading UI (the lightbox).
+   */
+  loading?: React.ReactNode | false
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isInView, setIsInView] = useState(false)
   const [isBuffering, setIsBuffering] = useState(true)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [errored, setErrored] = useState(false)
+
+  // Per-image loading lifecycle: when `webViewLink` changes (carousel slides,
+  // lightbox prev/next, gallery row reuse) the previous image's ready/error
+  // state MUST NOT leak into the new image. Reset synchronously during render
+  // (React's "adjust state from previous render" pattern) so the loading UI
+  // reflects the CURRENT asset only — an effect would let the stale state
+  // paint for one frame.
+  const [prevLink, setPrevLink] = useState(webViewLink)
+  if (prevLink !== webViewLink) {
+    setPrevLink(webViewLink)
+    setImageLoaded(false)
+    setErrored(false)
+  }
 
   // Intersection Observer untuk video
   useEffect(() => {
@@ -137,6 +173,13 @@ const MediaItem = ({
     onImageLoaded?.(img.naturalWidth, img.naturalHeight)
   }
 
+  const handleImageError = () => {
+    // Stop the spinner/skeleton: a failed image must not LOOK like a loading
+    // image forever. The consumer's `onError` decides what replaces it.
+    setErrored(true)
+    onError?.()
+  }
+
   if (mediaType === "video") {
     return (
       <div
@@ -184,26 +227,27 @@ const MediaItem = ({
       <Image
         src={webViewLink}
         alt={alt ?? webViewLink}
-        onError={onError}
+        onError={handleImageError}
         className={cn(
           "h-full w-full overflow-hidden object-cover",
           imageClassName
         )}
         onClick={onClick}
-        width={width}
-        height={height}
+        {...(layout === "fullWidth"
+          ? { layout: "fullWidth" as const }
+          : { width, height, layout: "constrained" as const })}
         objectFit={objectFit}
         unstyled={unstyled}
         role="img"
         loading="lazy"
         onLoad={handleImageLoad}
-        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        sizes={sizes}
       />
-      {!imageLoaded && (
+      {!imageLoaded && !errored && (loading ?? (
         <div className="absolute inset-0 flex items-center justify-center bg-accent-foreground">
           <Spinner className="h-6 w-6 rounded-xl text-accent" />
         </div>
-      )}
+      ))}
     </div>
   )
 }

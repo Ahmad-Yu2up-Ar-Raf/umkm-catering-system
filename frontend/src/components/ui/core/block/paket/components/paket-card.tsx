@@ -34,7 +34,7 @@ const formatIDR = (value: string | number) =>
  *  utility fallback, never presented as the package's own photograph. */
 const FALLBACK_IMG = "/assets/images/banners/hero-banner-tumpeng.png"
 
-export type PaketLayoutMode = "horizontal" | "grid-2" | "grid-3"
+export type PaketLayoutMode = "horizontal" | "grid-3"
 
 /**
  * PaketCard — one package in the catalog, adapting to three layout modes:

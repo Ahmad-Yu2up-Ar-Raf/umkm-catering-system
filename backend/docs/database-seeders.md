@@ -14,7 +14,8 @@
 ## 1. Overview & Scope
 
 - **Tables seeded:** `paket` + `paket_images`. One folder under `frontend/public/assets/images/products` = one package (exactly 15 folders on disk). `users` (admin test user) via `DatabaseSeeder`.
-- **Image strategy:** Local product photography is uploaded to **Cloudinary** during seeding via Laravel's native `Http` client (`POST /v1_1/{cloud}/image/upload`, HTTP **Basic Auth** with `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET`) — **zero SDK dependencies**. **2–3 images per folder** (min 2, max 3; a folder with exactly 2 uses both). The 1st upload's `secure_url` → `paket.thumbnail`; **all** uploaded `secure_url`s → `paket_images.image_url`.
+- **Image strategy:** Local product photography is uploaded to **Cloudinary** during seeding via Laravel's native `Http` client (`POST /v1_1/{cloud}/image/upload`, HTTP **Basic Auth** with `CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET`) — **zero SDK dependencies**. **2–3 images per folder** (min 2, max 3; a folder with exactly 2 uses both). The 1st upload's **canonical original URL** → `paket.thumbnail`; **all** uploaded canonical URLs → `paket_images.image_url`.
+- **Canonical storage (no baked transformations):** the seeder stores the ORIGINAL Cloudinary asset reference — rebuilt from the upload response's `public_id` + `version` + `format` (`https://res.cloudinary.com/<cloud>/image/upload/v<version>/<public_id>.<format>`). Delivery transformations (responsive width, `f_auto`, aspect-fit) happen at **render time in the frontend** (@unpic), never in the stored URL. A value like `w_640,h_480,f_auto,c_lfill` is a *delivery* URL and must never appear in the DB.
 - **Clean slate:** the seeder first **purges** every asset under `catering-nusantara/products/` (Admin API delete-by-prefix, paginated via `next_cursor`) so re-seeding never duplicates or accumulates stale assets.
 - **Data source:** no Faker. The 5 documented packages below keep their exact client data; the other 10 folders use hand-curated inference (names/descriptions/prices derived from each folder's name and photography).
 - **Cloudinary layout:** images upload to folder `catering-nusantara/products/{folder-slug}` — never the Cloudinary root.
@@ -39,10 +40,10 @@ Seeder writes the exact columns of `database/migrations/2026_08_01_040803_create
 | `harga_per_porsi` | decimal(12,2) | Sheet "Harga/Porsi" |
 | `kapasitas_produksi` | int | Sheet "Kapasitas Produksi" |
 | `deskripsi` | text | Sheet "Deskripsi" |
-| `thumbnail` | string (Cloudinary secure_url) | 1st uploaded image |
+| `thumbnail` | string (Cloudinary canonical original URL) | 1st uploaded image |
 | `is_best_seller` | boolean | Sheet "Best Seller" |
 
-`paket_images`: `paket_id` (FK → `paket.id`, cascade on delete), `image_url` (Cloudinary secure_url).
+`paket_images`: `paket_id` (FK → `paket.id`, cascade on delete), `image_url` (Cloudinary canonical original URL — never a transformed/delivery URL).
 
 ## 3. Full Package Data Table
 
@@ -115,7 +116,7 @@ Every product folder under `frontend/public/assets/images/products` is uploaded 
 - **Transport:** Laravel `Http::attach('file', fopen($path, 'r'), basename($path))` (multipart).
 - **Organized in:** `folder => 'catering-nusantara/products/{folder-slug}'`.
 - **Limit:** **2–3** image files (`.jpg`/`.jpeg`/`.png`/`.webp`) per folder, sorted by name — min 2 (skip the folder otherwise), max 3.
-- **Persisted:** 1st upload `secure_url` → `paket.thumbnail`; **all** uploads → `paket_images.image_url`.
+- **Persisted:** 1st upload **canonical original URL** → `paket.thumbnail`; **all** uploads → `paket_images.image_url`. The seeder rebuilds the canonical URL from the upload response metadata (`public_id` + `version` + `format`) so no delivery transformation can leak into the database.
 - **Cleanup:** before uploading, the seeder purges the whole `catering-nusantara/products/` prefix via `DELETE /v1_1/{cloud}/resources/image/upload?prefix=...` (Admin API, paginated with `next_cursor`) — a clean slate on every run.
 
 Example of a stored `thumbnail` / `image_url`:
@@ -219,7 +220,14 @@ php artisan tinker --execute 'echo \App\Models\PaketImage::count();'     # 39 (2
 php artisan tinker --execute 'dump(\App\Models\Paket::first()->menu_utama);'
 ```
 
-**Expected:** `Paket::count()` → `15` (one per image folder), `PaketImage::count()` → `39` (2–3 per paket), every `thumbnail`/`image_url` begins `https://res.cloudinary.com/`. The seeder purges the Cloudinary prefix first, so the asset count in Cloudinary equals the `paket_images` row count. Re-running `db:seed` twice does NOT duplicate `paket`, `paket_images`, or Cloudinary assets.
+**Expected:** `Paket::count()` → `15` (one per image folder), `PaketImage::count()` → `39` (2–3 per paket), every `thumbnail`/`image_url` is a **canonical** Cloudinary URL — i.e. starts `https://res.cloudinary.com/` and contains **NO transformation segment** (`w_*`, `h_*`, `c_fill`, `c_lfill`, `f_auto` BEFORE the `/v<version>/` part). The seeder purges the Cloudinary prefix first, so the asset count in Cloudinary equals the `paket_images` row count. Re-running `db:seed` twice does NOT duplicate `paket`, `paket_images`, or Cloudinary assets.
+
+```bash
+# Confirm NO delivery transformations are stored (expect 0 rows)
+php artisan tinker --execute '
+    echo \App\Models\Paket::where("thumbnail", "like", "%/upload/%w_%")->orWhere("thumbnail", "like", "%/upload/%h_%")->count();
+'
+```
 
 ## 10. Business-Rule Checklist (enforced)
 

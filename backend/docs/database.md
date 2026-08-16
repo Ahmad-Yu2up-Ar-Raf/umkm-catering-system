@@ -43,7 +43,7 @@ Table paket {
   harga_per_porsi decimal(12,2) [not null]
   kapasitas_produksi int
   deskripsi text
-  thumbnail varchar                        // Cloudinary secure_url (1st gallery image)
+  thumbnail varchar                        // Cloudinary CANONICAL original URL (1st gallery image) — never a transformed delivery URL
   is_best_seller boolean [default: false]
   created_at timestamp
   updated_at timestamp
@@ -52,7 +52,7 @@ Table paket {
 Table paket_images {
   id int [pk, increment]
   paket_id int [ref: > paket.id, not null] // cascade delete
-  image_url varchar [not null]             // Cloudinary secure_url
+  image_url varchar [not null]             // Cloudinary CANONICAL original URL (delivery transforms applied at render time, not stored)
   created_at timestamp
   updated_at timestamp
 }
@@ -61,7 +61,7 @@ Table galeri {
   id int [pk, increment]
   nama_acara varchar [not null]
   deskripsi_acara text
-  gambar_acara varchar [not null]
+  gambar_acara varchar [not null]    // Cloudinary CANONICAL original URL — no baked transformation
   tanggal_acara date
   created_at timestamp
   updated_at timestamp

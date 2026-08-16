@@ -88,6 +88,7 @@ export function GalleryCard({
               webViewLink={item.gambar_acara}
               className="absolute inset-0 h-full w-full"
               imageClassName="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover/card:scale-110"
+              layout="fullWidth"
               onImageLoaded={(w, h) => onImageLoaded?.(item.id, w, h)}
             />
 
