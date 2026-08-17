@@ -120,7 +120,7 @@ export function PaketImagesCarousel({
 
       <div className="flex w-full flex-col gap-3">
         {/* main slider — FIXED aspect container, never reflows between slides */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl lg:aspect-[16/18]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl lg:aspect-[16/17]">
           <SliderContainer className="h-full">
             {gallery.map((src, index) => (
               <Slider key={index} className="h-full basis-full">
@@ -139,7 +139,7 @@ export function PaketImagesCarousel({
         <ThumbsSlider
           gallery={gallery}
           className="w-full"
-          thumbsClassName="h-16 md:h-26"
+          thumbsClassName="h-16 md:h-24"
         />
       </div>
     </Carousel>

@@ -51,12 +51,15 @@ export function PaketDetailBlock({ id }: { id: string }) {
 
   useSeo({
     title: query.data
-      ? `${query.data.nama_paket} | Catering Nusantara`
+      ? query.data.nama_paket
       : isNotFound
-        ? "Paket tidak ditemukan | Catering Nusantara"
-        : "Paket Catering | Catering Nusantara",
-    description: query.data?.deskripsi?.slice(0, 160) ?? undefined,
+        ? "Paket tidak ditemukan"
+        : "Paket Catering",
+    description:
+      query.data?.deskripsi?.slice(0, 160) ??
+      "Detail paket katering Catering Nusantara — menu, harga per porsi, dan fasilitas.",
     path: `/paket/${id}`,
+    image: query.data?.thumbnail ?? undefined,
   })
 
   if (query.isLoading) {

@@ -15,7 +15,7 @@ function GaleriCategoryPage() {
   const label = category?.label ?? "Galeri"
 
   useSeo({
-    title: `Galeri ${label} — Catering Nusantara`,
+    title: `Galeri ${label}`,
     description: category
       ? `${category.description}. Lihat momen ${category.label} dari Catering Nusantara.`
       : "Galeri momen perayaan bersama Catering Nusantara.",

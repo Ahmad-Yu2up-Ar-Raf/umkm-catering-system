@@ -206,7 +206,7 @@ export const ThumbsSlider = forwardRef<HTMLDivElement, ThumbsSliderProps>(
               aria-label={`Lihat gambar ${index + 1}`}
               aria-current={index === selectedIndex}
               className={cn(
-                "relative aspect-[4/3] h-full shrink-0 overflow-hidden rounded-lg transition-[opacity,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                "relative aspect-[4/3] h-full shrink-0 overflow-hidden rounded-xl transition-[opacity,box-shadow] duration-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                 index === selectedIndex
                   ? "opacity-100 ring-primary"
                   : "opacity-55 ring-border hover:opacity-90"

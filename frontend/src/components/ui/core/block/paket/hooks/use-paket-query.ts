@@ -1,11 +1,7 @@
 import { api } from "@/api/client"
-import {
-  keepPreviousData,
-  useInfiniteQuery,
-  useQuery,
-} from "@tanstack/react-query"
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query"
 
-import type { Paket, PaketListResponse } from "../types/paket-types"
+import type { PaketListResponse } from "../types/paket-types"
 
 const PAKET_PER_PAGE = 9
 

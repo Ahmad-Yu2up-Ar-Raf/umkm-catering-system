@@ -6,23 +6,37 @@ import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
 import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowRight02Icon } from "@hugeicons/core-free-icons"
-import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
+import {
+  HeartIcon,
+  LeafIcon,
+  Party,
+  PlateIcon,
+  ServingFoodFreeIcons,
+  Share,
+  Share02Icon,
+  Share08FreeIcons,
+  WhatsappIcon,
+} from "@hugeicons/core-free-icons"
 
-import type { DetailViewModel } from "../utils/detail-view-model"
+import type { DetailViewModel, DetailMetaRow } from "../utils/detail-view-model"
 import { DetailMenu } from "./detail-menu"
 import { DetailFacilities } from "./detail-facilities"
-
-/** Canonical business WhatsApp number — identical across faq-data, catalog
- *  header and footer (see plan §13.1). */
-const WHATSAPP_URL = "https://wa.me/6287870306031"
+import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
+import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
+import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 
 /** Premium ease — Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 
-/** Grouped reveal — each section animates as ONE node (never per-line, per-
- *  badge or per-icon). Reduced motion → opacity only. */
+/** Meta row icons — Acara / Kemasan / Kapasitas, matched by the VM row key. */
+const META_ICONS: Record<DetailMetaRow["key"], IconSvgElement> = {
+  event: Party,
+  packaging: ServingFoodFreeIcons,
+  capacity: PlateIcon,
+}
+
+/** Grouped reveal — each section animates as ONE node. Reduced → opacity. */
 function itemVariant(reduced: boolean): Variants {
   return {
     hidden: reduced ? { opacity: 0 } : { opacity: 0, y: 16 },
@@ -37,17 +51,31 @@ function itemVariant(reduced: boolean): Variants {
 /**
  * DetailSummary — the full right rail of the two-column layout.
  *
- * Information hierarchy (top → bottom):
- *   identity + price + CTA → prominent description → metadata
- *   (packaging/capacity) → Menu list → Facilities.
- * Menu and Facilities live HERE (inside the rail), hairline-divided.
+ * Logical hierarchy, hairline-divided, consistent `gap-5/6` rhythm:
+ *   badges → bold title → price + full-width WhatsApp CTA → description →
+ *   Menu → Facilities & Ketentuan → Metadata (Acara/Kemasan/Kapasitas) →
+ *   Bahan & Alergen (flex-col, at the very bottom).
+ * Hugeicons on headers only; lists use bullet markers.
  */
 export function DetailSummary({ vm }: { vm: DetailViewModel }) {
   const reduced = useReducedMotion()
   const item = itemVariant(reduced)
+  const hasFacilities = Boolean(vm.facilities?.length)
+  const reveal = (amount = 0.2) =>
+    ({
+      initial: reduced ? { opacity: 0 } : { opacity: 0, y: 16 },
+      whileInView: reduced ? { opacity: 1 } : { opacity: 1, y: 0 },
+      viewport: { once: true, amount },
+      transition: { duration: 0.5, ease: LUXURY_EASE },
+    }) as const
+
+  // WhatsApp deep link — pre-filled with the package-specific message from
+  // the view model; phone number comes from `.env` (VITE_BUSINESS_NUMBER).
+  const whatsappHref = getWhatsAppLink(BUSINESS_NUMBER, vm.waMessage)
 
   return (
-    <div className="flex w-full flex-col gap-6 lg:py-2 lg:gap-7">
+    <div className="flex w-full flex-col gap-5 md:gap-6 lg:py-3">
+      {/* top decision block — grouped mount reveal */}
       <motion.div
         initial="hidden"
         animate="show"
@@ -55,103 +83,152 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
           hidden: {},
           show: { transition: { staggerChildren: 0.08 } },
         }}
-        className="flex flex-col gap-6 lg:gap-7"
+        className="flex w-full flex-col gap-5 md:gap-10"
       >
-        {/* identity + price + CTA */}
+        {/* badges + title */}
         <motion.div variants={item} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3">
-            <Badge
-              icon={vm.categoryIcon}
-              variant="outline"
-              className={cn(
-                "w-fit gap-2 border-0 text-accent-foreground shadow-none lg:text-xs [&_svg]:size-4",
-                vm.categoryColor,
-                "hover:bg-transparent"
-              )}
-            >
-              <span className="font-medium">{vm.categoryLabel}</span>
-            </Badge>
-            <h1 className="font-heading text-[clamp(30px,3.6vw,40px)] leading-tight tracking-tight text-foreground">
-              {vm.name}
-            </h1>
-            {vm.bestSeller && (
-              <Badge variant="secondary" size="lg" className="w-fit">
-                Best Seller
+          <div className="flex w-full justify-between">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Badge
+                icon={vm.categoryIcon}
+                variant="outline"
+                className={cn(
+                  "w-fit gap-2 border-0 text-accent-foreground shadow-none lg:text-xs [&_svg]:size-4",
+                  vm.categoryColor,
+                  "hover:bg-transparent"
+                )}
+              >
+                <span className="font-medium">{vm.categoryLabel}</span>
               </Badge>
-            )}
+              {/* {vm.bestSeller && (
+                <Badge
+                  icon={HeartIcon}
+                  variant="outline"
+                  className={cn(
+                    "top-3 left-3 z-30 w-fit gap-2 rounded-full border-0 bg-background px-3 py-1 text-accent-foreground shadow-none ring ring-ring/20 lg:text-xs",
+                    "[&_svg]:size-3.5 [&_svg]:fill-destructive [&_svg]:text-destructive"
+                  )}
+                >
+                  <span className="font-semibold">Best Seller</span>
+                </Badge>
+              )} */}
+            </div>
+            <Button
+              variant={"outline"}
+              className="bg-background"
+              size={"icon-lg"}
+            >
+              <HugeiconsIcon className="size-5" icon={Share08FreeIcons} />
+            </Button>
           </div>
 
-          {vm.hasPrice && (
-            <p className="font-sans text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-              {vm.priceLabel}
-              <span className="text-sm font-normal text-muted-foreground">
-                {" "}
-                / porsi
-              </span>
-              {vm.minOrderLabel && (
-                <span className="block pt-1 text-sm font-normal text-muted-foreground">
-                  {vm.minOrderLabel}
-                </span>
-              )}
-            </p>
-          )}
-
-          <OriginButton
-            intensity={0.8}
-            range={120}
-            onClick={() =>
-              window.open(
-                `${WHATSAPP_URL}?text=${encodeURIComponent(vm.waMessage)}`,
-                "_blank",
-                "noopener"
-              )
-            }
-            className="group w-full text-xs tracking-widest uppercase"
-          >
-            Pesan via WhatsApp
-            <HugeiconsIcon
-              icon={ArrowRight02Icon}
-              className="size-4 fill-none transition-transform duration-700 ease-out group-hover:translate-x-1"
-            />
-          </OriginButton>
+          <h1 className="font-heading text-[clamp(28px,3.4vw,40px)] leading-[1.08] font-semibold tracking-tight text-foreground">
+            {vm.name}
+          </h1>
         </motion.div>
 
-        {/* description — prominent, readable */}
-        {vm.description && (
-          <motion.div variants={item} className="flex flex-col gap-3">
-            <p className="max-w-2xl text-[16px] leading-relaxed text-foreground md:text-[17px]">
+        {/* price + full-width CTA */}
+        <motion.div variants={item} className="flex flex-col gap-5">
+          <div className="space-y-2">
+            {vm.hasPrice && (
+              <p className="font-sans text-3xl font-semibold tracking-tight text-foreground md:text-3xl">
+                {vm.priceLabel}
+                <span className="text-sm font-normal text-muted-foreground md:text-base">
+                  {" "}
+                  / porsi
+                </span>
+              </p>
+            )}
+            {vm.minOrderLabel && (
+              <p className="text-sm text-muted-foreground md:text-base">
+                {vm.minOrderLabel}
+              </p>
+            )}
+          </div>
+          <OriginButton
+            href={whatsappHref}
+            intensity={0.8}
+            range={120}
+            className="group w-full text-xs tracking-widest uppercase md:bg-secondary/20"
+          >
+            <HugeiconsIcon icon={WhatsappIcon} className="size-5" />
+            Pesan via WhatsApp
+          </OriginButton>
+          {/* <Button
+            type="button"
+            size="lg"
+            variant="default"
+            onClick={openWhatsApp}
+            className="h-12 w-full gap-2 rounded-full text-xs tracking-widest uppercase"
+          >
+            <HugeiconsIcon icon={WhatsappIcon} className="size-5" />
+            Pesan via WhatsApp
+          </Button> */}
+        </motion.div>
+        {/* description */}
+      </motion.div>
+      {vm.description && (
+        <>
+          <Separator />
+          <motion.div variants={item}>
+            <p className="max-w-2xl text-base leading-relaxed text-foreground/90 md:text-[17px]">
               {vm.description}
             </p>
           </motion.div>
-        )}
-
-        {/* metadata — packaging, capacity, event fit */}
-        {vm.metaRows.length > 0 && (
-          <motion.div variants={item} className="border-t border-border pt-5">
-            <dl className="flex flex-col gap-3">
-              {vm.metaRows.map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-baseline justify-between gap-6"
-                >
-                  <dt className="text-[11px] tracking-wider text-muted-foreground uppercase">
-                    {row.label}
-                  </dt>
-                  <dd className="text-right text-sm font-medium text-foreground">
-                    {row.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+        </>
+      )}
+      {vm.metaRows.length > 0 && (
+        <>
+          <Separator />
+          <motion.div {...reveal()} className="flex flex-col gap-3.5 md:gap-6">
+            {vm.metaRows.map((row) => (
+              <div key={row.key} className="flex items-center gap-3 md:gap-4">
+                {/* <HugeiconsIcon
+                  icon={META_ICONS[row.key]}
+                  className="size-[18px] shrink-0 text-primary/80 md:size-5"
+                /> */}
+                <dt className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase md:text-xs">
+                  {row.label}
+                </dt>
+                <dd className="ml-auto text-right text-sm font-medium text-foreground md:text-[15px]">
+                  {row.value}
+                </dd>
+              </div>
+            ))}
           </motion.div>
-        )}
-      </motion.div>
-
-      <Separator className="my-1" />
-
-      {/* menu + facilities — the lower half of the right rail */}
+        </>
+      )}
+      {/* hairline-divided lower sections */}
+      <Separator />
       <DetailMenu vm={vm} />
-      <DetailFacilities vm={vm} />
+
+      {hasFacilities && (
+        <>
+          <Separator />
+          <DetailFacilities vm={vm} />
+        </>
+      )}
+
+      {/* metadata — Acara → Kemasan → Kapasitas (moved below facilities) */}
+
+      {/* Bahan & Alergen — very bottom, flex-col */}
+      {vm.allergenNote && (
+        <>
+          <Separator />
+          <motion.div {...reveal()} className="flex gap-5">
+            <HugeiconsIcon icon={LeafIcon} className="size-5 text-primary/80" />
+            <div className="flex flex-col gap-2">
+              <h2 className="items-center font-sans text-sm font-semibold tracking-[0.2em] text-foreground uppercase">
+                Bahan & Alergen
+              </h2>
+              <p className="text-[15px] leading-relaxed text-muted-foreground md:text-base">
+                {vm.allergenNote}
+              </p>
+            </div>
+          </motion.div>
+        </>
+      )}
+      <Separator className="opacity-50" />
     </div>
   )
 }

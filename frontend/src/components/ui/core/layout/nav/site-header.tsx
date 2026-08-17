@@ -16,8 +16,15 @@ import { scrollToHash } from "@/lib/hash-scroll"
 import { Link, useLocation, useNavigate } from "react-router"
 import { WhatsappIcon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
+import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
 
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
+
+/** Header "Kontak" CTA — opens WhatsApp with a generic enquiry message. */
+const WHATSAPP_CONTACT_HREF = getWhatsAppLink(
+  BUSINESS_NUMBER,
+  "Halo, saya ingin bertanya mengenai layanan Anda."
+)
 
 /** Homepage section anchors (audited ids: hero / profil / cara-pesan /
  *  testimoni / faq / kontak). */
@@ -26,7 +33,7 @@ const NAV_ITEMS = [
   { name: "Paket", link: "/paket" },
   { name: "Galeri", link: "/galeri" },
   { name: "FAQ", link: "/#faq" },
-  { name: "Kontak", link: "/kontak" },
+  { name: "Testimoni", link: "/#testimoni" },
 ]
 
 /**
@@ -85,14 +92,12 @@ function MobileBar({
   onToggle,
   onClose,
   onNavigate,
-  onContact,
   visible,
 }: {
   open: boolean
   onToggle: () => void
   onClose: () => void
   onNavigate: (e: ReactMouseEvent<HTMLAnchorElement>, hash: string) => void
-  onContact: () => void
   visible?: boolean
 }) {
   const glassed = visible || open
@@ -169,9 +174,9 @@ function MobileBar({
                 }}
               >
                 <OriginButton
+                  href={WHATSAPP_CONTACT_HREF}
                   intensity={0.8}
                   range={120}
-                  onClick={onContact}
                   className="w-full text-[12px] tracking-widest uppercase"
                 >
                   Kontak
@@ -241,9 +246,9 @@ export function SiteHeader({ className }: { className?: string }) {
         <NavbarLogo />
         <NavItems items={NAV_ITEMS} onItemClick={handleNavClick} />
         <OriginButton
+          href={WHATSAPP_CONTACT_HREF}
           intensity={0.8}
           range={120}
-          onClick={() => jumpToSection("#kontak")}
           className="group h-fit px-5 py-3 text-[12px] tracking-widest uppercase"
         >
           Kontak
@@ -260,7 +265,6 @@ export function SiteHeader({ className }: { className?: string }) {
         onToggle={() => setMenuOpen((o) => !o)}
         onClose={() => setMenuOpen(false)}
         onNavigate={handleNavClick}
-        onContact={() => jumpToSection("#kontak")}
       />
     </Navbar>
   )

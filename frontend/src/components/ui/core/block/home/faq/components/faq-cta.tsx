@@ -9,7 +9,7 @@ import { gsap, useGSAP } from "@/components/motion/gsap"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { cn } from "@/lib/utils"
 
-import { WHATSAPP_URL } from "../faq-data"
+import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
 
 /**
  * FAQ CTA — "Masih ada yang ingin ditanyakan?" with a WhatsApp action.
@@ -62,9 +62,12 @@ export function FaqCta({ className }: { className?: string }) {
 
       <OriginButton
         data-faq-cta-line
+        href={getWhatsAppLink(
+          BUSINESS_NUMBER,
+          "Halo, saya ingin bertanya lebih lanjut mengenai layanan Anda."
+        )}
         intensity={0.8}
         range={120}
-        onClick={() => window.open(WHATSAPP_URL, "_blank", "noopener")}
         className="group text-xs tracking-widest uppercase"
       >
         Tanya Whatsapp

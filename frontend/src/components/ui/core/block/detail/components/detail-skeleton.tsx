@@ -28,7 +28,7 @@ export function DetailSkeleton() {
             {Array.from({ length: 3 }, (_, i) => (
               <Skeleton
                 key={i}
-                className="aspect-[4/3] h-16 rounded-lg md:h-20"
+                className="aspect-[4/3] h-16 rounded-xl md:h-20"
               />
             ))}
           </div>
@@ -40,7 +40,6 @@ export function DetailSkeleton() {
           <div className="flex flex-col gap-3">
             <Skeleton className="h-6 w-24 rounded-full" />
             <Skeleton className="h-9 w-3/4" />
-            <Skeleton className="h-6 w-28 rounded-full" />
           </div>
 
           {/* price + CTA */}
@@ -58,8 +57,11 @@ export function DetailSkeleton() {
 
           {/* metadata rows */}
           <div className="flex flex-col gap-3 border-t border-border pt-5">
-            {Array.from({ length: 2 }, (_, i) => (
-              <div key={i} className="flex items-baseline justify-between gap-6">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div
+                key={i}
+                className="flex items-baseline justify-between gap-6"
+              >
                 <Skeleton className="h-3 w-24 rounded-full" />
                 <Skeleton className="h-3 w-32 rounded-full" />
               </div>

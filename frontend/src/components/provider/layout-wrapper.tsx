@@ -11,6 +11,7 @@ import { useGaleriStore } from "@/store/galeri-store"
 import CTABlock from "../ui/core/layout/cta-block"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { ScrollToTop } from "./scroll-to-top"
+import { RouteSeoResolver } from "./route-seo-resolver"
 import { SiteHeader } from "../ui/core/layout/nav/site-header"
 
 export function LayoutWrapper() {
@@ -53,6 +54,9 @@ export function LayoutWrapper() {
       {/* Global scroll restoration — resets to the top on every route change
           (Lenis-aware, so the next page never renders at the old scroll depth). */}
       <ScrollToTop />
+      {/* Route-level SEO defaults — runs before the page mounts so stale
+          title/description/canonical from the previous route never linger. */}
+      <RouteSeoResolver />
       {!isMobile && <SiteBorder />}
       {preloaderDone && <SiteHeader />}
       {/* Add padding-bottom on mobile to account for fixed navbar */}

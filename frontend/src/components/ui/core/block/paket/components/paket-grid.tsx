@@ -6,11 +6,12 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { usePaketLayoutStore } from "@/store/paket-layout-store"
 import { cn } from "@/lib/utils"
 
 import type { Paket } from "../types/paket-types"
 import { PaketCard } from "./paket-card"
-import { CatalogLayoutToggle, type LayoutMode } from "./catalog-layout-toggle"
+import { CatalogLayoutToggle } from "./catalog-layout-toggle"
 
 const SKELETON_COUNT = 6
 
@@ -44,8 +45,6 @@ export function PaketGrid({
   isFetchingNextPage,
   kategori,
   search,
-  layoutMode = "horizontal",
-  onLayoutModeChange,
   onLoadMore,
   onRetry,
   onReset,
@@ -59,13 +58,17 @@ export function PaketGrid({
   isFetchingNextPage: boolean
   kategori: string
   search: string
-  layoutMode: LayoutMode
-  onLayoutModeChange: (mode: LayoutMode) => void
   onLoadMore: () => void
   onRetry: () => void
   onReset: () => void
 }) {
   const isFiltered = Boolean(kategori || search)
+
+  // View mode is global, persisted UI state (localStorage) — read it straight
+  // from the store so the toggle anywhere updates the grid everywhere. A
+  // change re-renders this grid AND swaps the motion container `key` below,
+  // which re-runs the entry stagger.
+  const layoutMode = usePaketLayoutStore((s) => s.layoutMode)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
 
@@ -162,10 +165,7 @@ export function PaketGrid({
             </p>
           )
         )}
-        <CatalogLayoutToggle
-          current={layoutMode}
-          onChange={onLayoutModeChange}
-        />
+        <CatalogLayoutToggle />
       </div>
 
       {isError ? (

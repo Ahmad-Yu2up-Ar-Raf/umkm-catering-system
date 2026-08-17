@@ -13,6 +13,7 @@ import {
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { cn } from "@/lib/utils"
 import { HeartIcon } from "@hugeicons/core-free-icons"
+import type { PaketLayoutMode } from "@/store/paket-layout-store"
 import type { Paket } from "../types/paket-types"
 import {
   getCategoryColor,
@@ -33,8 +34,6 @@ const formatIDR = (value: string | number) =>
 /** Brand placeholder for a package that has no thumbnail yet — a generic
  *  utility fallback, never presented as the package's own photograph. */
 const FALLBACK_IMG = "/assets/images/banners/hero-banner-tumpeng.png"
-
-export type PaketLayoutMode = "horizontal" | "grid-3"
 
 /**
  * PaketCard — one package in the catalog, adapting to three layout modes:

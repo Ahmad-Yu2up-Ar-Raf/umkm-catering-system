@@ -1,14 +1,13 @@
 "use client"
 
 import * as React from "react"
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  type SpringOptions,
-} from "framer-motion"
+import { motion, useMotionValue, useSpring, type SpringOptions } from "framer-motion"
+import { Link } from "react-router"
 
 import { cn } from "@/lib/utils"
+
+/** React Router-powered motion link — used when `href` is an internal route. */
+const MotionLink = motion.create(Link)
 
 const componentThemeClassName =
   "[--ic-background:#ffffff] [--ic-foreground:#111111] [--ic-primary:#111111] [--ic-secondary:#646b75] [--ic-surface-border:#e9edf2] [--ic-border:#e3e7ec] [--ic-card:#ffffff] [--ic-card-foreground:#111111] [--ic-muted:#f5f7fa] [--ic-muted-foreground:#6d7480] [--ic-accent:#f3f5f8] [--color-accent:var(--ic-accent)] [--color-accent-foreground:var(--ic-accent-foreground)] [--ic-accent-foreground:#111111] [--ic-input:#e3e7ec] [--ic-ring:rgba(17,17,17,0.16)] [--ic-destructive:#dc2626] [--ic-paper:#fcfcfd] [--ic-popover-foreground:#111111] [--ic-brand:#0ea5e9] [--ic-brand-soft:#bae6fd] [--ic-shadow-soft:0_18px_38px_-24px_rgba(15,23,42,0.35)] [--ic-chart-1:oklch(0.52_0.19_254)] [--ic-chart-2:oklch(0.74_0.11_232)] [--ic-chart-3:oklch(0.42_0.16_262)] [--ic-chart-4:oklch(0.84_0.07_228)] [--ic-chart-5:oklch(0.62_0.14_240)] [--color-background:var(--ic-background)] [--color-foreground:var(--ic-foreground)] [--color-primary:var(--ic-primary)] [--color-secondary:var(--ic-secondary)] [--color-border:var(--ic-border)] [--color-card:var(--ic-card)] [--color-card-foreground:var(--ic-card-foreground)] [--color-muted:var(--ic-muted)] [--color-muted-foreground:var(--ic-muted-foreground)] [--color-accent:var(--ic-accent)] [--color-accent-foreground:var(--ic-accent-foreground)] [--color-input:var(--ic-input)] [--color-ring:var(--ic-ring)] [--color-destructive:var(--ic-destructive)] [--color-paper:var(--ic-paper)] [--color-popover-foreground:var(--ic-popover-foreground)] [--color-brand:var(--ic-brand)] [--color-brand-soft:var(--ic-brand-soft)] [--color-chart-1:var(--ic-chart-1)] [--color-chart-2:var(--ic-chart-2)] [--color-chart-3:var(--ic-chart-3)] [--color-chart-4:var(--ic-chart-4)] [--color-chart-5:var(--ic-chart-5)] dark:[--ic-background:#111111] dark:[--ic-foreground:#f6f3ec] dark:[--ic-primary:#f6f3ec] dark:[--ic-secondary:#cbc6bb] dark:[--ic-surface-border:#2a2a25] dark:[--ic-border:#2b2a25] dark:[--ic-card:#111111] dark:[--ic-card-foreground:#f6f3ec] dark:[--ic-muted:#171716] dark:[--ic-muted-foreground:#9a958a] dark:[--ic-accent:#1a1a18] [--color-accent:var(--ic-accent)] [--color-accent-foreground:var(--ic-accent-foreground)] dark:[--ic-accent-foreground:#f6f3ec] dark:[--ic-input:#2b2a25] dark:[--ic-ring:rgba(246,243,236,0.18)] dark:[--ic-destructive:#f87171] dark:[--ic-paper:#171716] dark:[--ic-popover-foreground:#f6f3ec] dark:[--ic-brand:#38bdf8] dark:[--ic-brand-soft:#0c4a6e] dark:[--ic-shadow-soft:0_20px_44px_-28px_rgba(0,0,0,0.6)] dark:[--ic-chart-1:oklch(0.68_0.17_250)] dark:[--ic-chart-2:oklch(0.82_0.09_225)] dark:[--ic-chart-3:oklch(0.58_0.15_260)] dark:[--ic-chart-4:oklch(0.75_0.12_235)] dark:[--ic-chart-5:oklch(0.88_0.06_220)]"
@@ -71,7 +70,7 @@ function hasTextContent(node: React.ReactNode): boolean {
   return false
 }
 
-// 1. Props gabungan Origin Button dan Magnet
+// Props gabungan Origin Button dan Magnet + optional link (`href`).
 type OriginButtonProps = ButtonHTMLAttributesForMotion & {
   children?: React.ReactNode
   loading?: boolean
@@ -79,6 +78,10 @@ type OriginButtonProps = ButtonHTMLAttributesForMotion & {
   range?: number
   actionArea?: "self" | "parent" | "global"
   springOptions?: SpringOptions
+  /** When provided, renders as a link instead of a button:
+   *  - internal route → React Router `<Link>`
+   *  - external (https:/mailto:/tel:///) → `<a target="_blank" rel="noopener noreferrer">` */
+  href?: string
 }
 
 const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
@@ -86,6 +89,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
     {
       children,
       className,
+      href,
       disabled = false,
       loading = false,
       type = "button",
@@ -112,6 +116,22 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
   ) => {
     const buttonRef = React.useRef<HTMLButtonElement>(null)
     const isDisabled = Boolean(disabled || loading)
+
+    // Polymorphic element — `href` turns the magnet button into a link:
+    //   external (wa.me, http, mailto…) → plain `<a target="_blank">`
+    //   internal route                  → React Router `<Link>`
+    //   omitted                         → the original `<button>`
+    const isExternal = Boolean(href && /^(https?:|mailto:|tel:|\/\/)/i.test(href))
+    const Tag: React.ElementType = href
+      ? isExternal
+        ? motion.a
+        : MotionLink
+      : motion.button
+    const elementProps = href
+      ? isExternal
+        ? ({ href, target: "_blank", rel: "noopener noreferrer" } as const)
+        : ({ to: href } as const)
+      : ({ type, disabled: isDisabled } as const)
 
     // State Origin Button
     const [hovered, setHovered] = React.useState(false)
@@ -258,7 +278,8 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
     )
 
     return (
-      <motion.button
+      <Tag
+        {...elementProps}
         {...props}
         aria-busy={loading || undefined}
         // 2. Gabungkan animasi spring X dan Y ke dalam property style
@@ -280,8 +301,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
           className
         )}
         data-pressed={isPressed ? "true" : "false"}
-        disabled={isDisabled}
-        onBlur={(event) => {
+        onBlur={(event: React.FocusEvent<HTMLButtonElement>) => {
           onBlur?.(event)
           setIsPressed(false)
           if (!event.defaultPrevented) {
@@ -289,7 +309,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
           }
         }}
         onClick={onClick}
-        onFocus={(event) => {
+        onFocus={(event: React.FocusEvent<HTMLButtonElement>) => {
           onFocus?.(event)
           if (isDisabled || event.defaultPrevented) return
           if (event.currentTarget.matches(":focus-visible")) {
@@ -297,7 +317,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
             setHovered(true)
           }
         }}
-        onKeyDown={(event) => {
+        onKeyDown={(event: React.KeyboardEvent<HTMLButtonElement>) => {
           onKeyDown?.(event)
 
           if (
@@ -317,7 +337,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
           setIsPressed(true)
           setHovered(true)
         }}
-        onKeyUp={(event) => {
+        onKeyUp={(event: React.KeyboardEvent<HTMLButtonElement>) => {
           onKeyUp?.(event)
 
           if (event.key === " " || event.key === "Enter") {
@@ -327,11 +347,11 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
             }
           }
         }}
-        onPointerCancel={(event) => {
+        onPointerCancel={(event: React.PointerEvent<HTMLButtonElement>) => {
           onPointerCancel?.(event)
           setIsPressed(false)
         }}
-        onPointerDown={(event) => {
+        onPointerDown={(event: React.PointerEvent<HTMLButtonElement>) => {
           onPointerDown?.(event)
 
           if (event.defaultPrevented || isDisabled || event.button !== 0) {
@@ -342,7 +362,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
           setIsPressed(true)
           setHovered(true)
         }}
-        onPointerEnter={(event) => {
+        onPointerEnter={(event: React.PointerEvent<HTMLButtonElement>) => {
           onPointerEnter?.(event)
           if (isDisabled || event.defaultPrevented) return
 
@@ -355,7 +375,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
             setIsMagnetHovered(true)
           }
         }}
-        onPointerLeave={(event) => {
+        onPointerLeave={(event: React.PointerEvent<HTMLButtonElement>) => {
           onPointerLeave?.(event)
 
           // Logic Origin
@@ -369,12 +389,11 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
             y.set(0)
           }
         }}
-        onPointerUp={(event) => {
+        onPointerUp={(event: React.PointerEvent<HTMLButtonElement>) => {
           onPointerUp?.(event)
           setIsPressed(false)
         }}
         ref={setMergedRef}
-        type={type}
         whileTap={isDisabled ? undefined : { scale: 0.985 }}
       >
         <motion.span
@@ -393,7 +412,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
         <span className="relative z-10 inline-flex items-center justify-center gap-2">
           {children}
         </span>
-      </motion.button>
+      </Tag>
     )
   }
 )

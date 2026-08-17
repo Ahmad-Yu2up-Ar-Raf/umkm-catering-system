@@ -3,7 +3,7 @@ import { useSeo } from "@/hooks/use-seo"
 
 function GaleryPage() {
   useSeo({
-    title: "Galeri — Catering Nusantara",
+    title: "Galeri Perayaan",
     description:
       "Galeri momen perayaan bersama Catering Nusantara — pernikahan, acara korporat, prasmanan, tumpeng, hingga hampers istimewa.",
     path: "/galeri",

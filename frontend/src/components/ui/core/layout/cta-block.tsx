@@ -11,6 +11,7 @@ import { WordReveal } from "@/components/motion/word-reveal"
 import { ParallaxMotionBackground } from "@/components/motion/parallax-motion-background"
 import { usePreloaderStore } from "@/store/preloader-store"
 import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
+import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
 import { ArrowRight } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 
@@ -145,6 +146,10 @@ function CTABlock() {
             className="inline-block"
           >
             <OriginButton
+              href={getWhatsAppLink(
+                BUSINESS_NUMBER,
+                "Halo, saya tertarik dan ingin berkonsultasi mengenai paket layanan Anda."
+              )}
               intensity={0.8}
               range={120}
               className="group text-xs tracking-widest uppercase"

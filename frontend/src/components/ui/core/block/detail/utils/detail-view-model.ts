@@ -20,6 +20,8 @@ const formatIDR = (value: string | number) =>
   }).format(Number(value))
 
 export interface DetailMetaRow {
+  /** Stable key for icon mapping in the UI: "event" | "packaging" | "capacity". */
+  key: "event" | "packaging" | "capacity"
   label: string
   value: string
 }
@@ -60,11 +62,12 @@ export function toDetailViewModel(paket: Paket): DetailViewModel {
 
   const metaRows: DetailMetaRow[] = []
   if (paket.kategori_acara)
-    metaRows.push({ label: "Acara", value: paket.kategori_acara })
+    metaRows.push({ key: "event", label: "Acara", value: paket.kategori_acara })
   if (paket.jenis_kemasan)
-    metaRows.push({ label: "Kemasan", value: paket.jenis_kemasan })
+    metaRows.push({ key: "packaging", label: "Kemasan", value: paket.jenis_kemasan })
   if (paket.kapasitas_produksi != null && paket.kapasitas_produksi > 0)
     metaRows.push({
+      key: "capacity",
       label: "Kapasitas produksi",
       value: `${paket.kapasitas_produksi} porsi`,
     })

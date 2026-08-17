@@ -3,10 +3,8 @@
 import { ArrowRight02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
+import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
 import { ScrollRotatingVisual } from "@/components/ui/core/visual/scroll-rotating-visual"
-
-/** Real client WhatsApp chat (also hard-coded in site-footer / faq-data). */
-const WHATSAPP_URL = "https://wa.me/6287870306031"
 
 /** Brand hero object — reuses the About block's top-down Tumpeng. */
 const HERO_IMAGE = "/assets/images/about/tumpeng-from-top.png"
@@ -51,9 +49,12 @@ export function CatalogHeader() {
 
         <OriginButton
           data-catalog-reveal
+          href={getWhatsAppLink(
+            BUSINESS_NUMBER,
+            "Halo, saya ingin berkonsultasi mengenai paket katering."
+          )}
           intensity={0.8}
           range={120}
-          onClick={() => window.open(WHATSAPP_URL, "_blank", "noopener")}
           className="group mt-2 text-xs tracking-widest uppercase"
         >
           Konsultasi via WhatsApp

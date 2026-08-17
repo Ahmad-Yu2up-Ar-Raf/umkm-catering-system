@@ -11,15 +11,14 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "g-primary border-transparent shadow-sm/2 hover:bg-primary/80 focus-visible:ring-ring",
+          "g-primary border-transparent shadow-sm/2 focus-visible:ring-ring",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 focus-visible:ring-ring",
+          "border-transparent bg-secondary text-secondary-foreground focus-visible:ring-ring",
         destructive:
-          "text-destructive-foreground border-transparent bg-destructive shadow-sm/2 hover:bg-destructive/80 focus-visible:ring-destructive",
+          "text-destructive-foreground border-transparent bg-destructive shadow-sm/2 focus-visible:ring-destructive",
         outline:
-          "border-border text-foreground shadow-sm/2 hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring",
-        ghost:
-          "border-transparent text-foreground hover:bg-accent hover:text-accent-foreground focus-visible:ring-ring",
+          "border-border text-foreground shadow-sm/2 focus-visible:ring-ring",
+        ghost: "border-transparent text-foreground focus-visible:ring-ring",
       },
       size: {
         sm: "h-5 px-2",

@@ -16,7 +16,9 @@ interface DetailRecommendationsProps {
   className?: string
 }
 
-/** Grid skeleton — mirrors the exact PaketGrid (grid-3) card footprint. */
+/** Grid skeleton — mirrors the EXACT PaketGrid (grid-3) card footprint:
+ *  media block + badge + title + price. No description lines — grid-3 cards
+ *  don't render one. */
 function GridSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -26,10 +28,9 @@ function GridSkeleton() {
           <div className="flex flex-col gap-3 py-2">
             <Skeleton className="h-6 w-1/3 rounded-full" />
             <Skeleton className="h-7 w-3/4" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
             <div className="pt-4">
               <Skeleton className="h-6 w-1/4" />
+              <Skeleton className="mt-2 h-4 w-2/3" />
             </div>
           </div>
         </div>
@@ -41,8 +42,8 @@ function GridSkeleton() {
 /**
  * Rekomendasi Paket — a full-width 3-item grid at the bottom of the detail
  * page. Mixes categories freely (always enough items); mirrors the responsive
- * grid + card footprint of `paket-grid.tsx`. Cards use the vertical
- * (`grid-2`) PaketCard variant.
+ * grid + card footprint of `paket-grid.tsx`. Cards use the compact vertical
+ * (`grid-3`) PaketCard variant.
  */
 export function DetailRecommendations({
   currentId,
@@ -64,19 +65,19 @@ export function DetailRecommendations({
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.6, ease: LUXURY_EASE }}
       aria-labelledby="rekomendasi-heading"
-      className={cn("flex w-full flex-col gap-10", className)}
+      className={cn("flex w-full flex-col gap-8 lg:gap-10", className)}
     >
-      <div className="flex flex-col gap-3">
-        <p className="text-gold-deep flex items-center gap-3.5 text-[11px] font-normal tracking-[0.28em] uppercase">
-          <div aria-hidden="true" className="h-px w-10 bg-primary" />
-          <span className="text-primary">Rekomendasi</span>
+      <div className="flex flex-col gap-3 lg:gap-4">
+        <p className="flex items-center gap-3.5 text-xs font-normal tracking-[0.3em] text-primary uppercase lg:text-[13px]">
+          <span aria-hidden="true" className="h-px w-10 bg-primary lg:w-12" />
+          Rekomendasi
         </p>
         <h2
           id="rekomendasi-heading"
-          className="font-heading text-[clamp(24px,3vw,34px)] leading-tight tracking-[-0.01em] text-foreground"
+          className="font-heading text-[clamp(28px,4vw,44px)] leading-tight font-light tracking-[-0.02em] text-foreground"
         >
-          Paket lain yang mungkin{" "}
-          <span className="font-accent text-primary italic">Anda</span> sukai
+          Rekomendasi{" "}
+          <span className="font-accent text-primary italic">Paket</span>
         </h2>
       </div>
 

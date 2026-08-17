@@ -42,7 +42,7 @@ export function DetailContent({ vm }: { vm: DetailViewModel }) {
       }
 
   return (
-    <div className="container m-auto w-full px-5 pt-8 pb-24 sm:px-10 md:pt-15 md:pb-32">
+    <div className="container m-auto w-full px-5 pt-8 pb-24 lg:px-9  md:pt-15 md:pb-32">
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
         <motion.div
           ref={galleryRef}
@@ -59,11 +59,10 @@ export function DetailContent({ vm }: { vm: DetailViewModel }) {
             modalCategory={vm.categoryLabel}
           />
         </motion.div>
-
         <DetailSummary vm={vm} />
       </div>
 
-      <DetailRecommendations currentId={vm.id} className="mt-24 md:mt-28" />
+      <DetailRecommendations currentId={vm.id} className="mt-16 md:mt-20" />
     </div>
   )
 }

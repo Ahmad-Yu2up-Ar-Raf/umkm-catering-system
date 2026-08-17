@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
@@ -26,7 +26,6 @@ import { usePaketQuery } from "./hooks/use-paket-query"
 export function PaketBlock() {
   const headerRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
-  const [layoutMode, setLayoutMode] = useState<"horizontal" | "grid-2" | "grid-3">("horizontal")
 
   const { kategori, search, setKategori, setSearch } = useCatalogParams()
   const query = usePaketQuery({ kategori, search })
@@ -93,8 +92,6 @@ export function PaketBlock() {
           isFetchingNextPage={query.isFetchingNextPage}
           kategori={kategori}
           search={search}
-          layoutMode={layoutMode}
-          onLayoutModeChange={setLayoutMode}
           onLoadMore={query.fetchNextPage}
           onRetry={() => query.refetch()}
           onReset={() => {
