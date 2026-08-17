@@ -365,37 +365,64 @@ export function GlobalImageModal() {
             size="icon"
             aria-label="Tutup"
             onClick={close}
-            className="absolute top-4 right-4 z-[70] size-11 rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400"
+            className="absolute top-4 right-4 z-[80] flex size-12 touch-manipulation select-none items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 pointer-events-auto hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none"
           >
-            <HugeiconsIcon icon={Cancel01Icon} className="size-5" />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              className="pointer-events-none size-5"
+            />
           </Button>
 
-          {/* Prev / Next — edge-centered, glass pills. */}
+          {/* Prev / Next — edge-centered, glass pills.
+              EVENT ARCHITECTURE:
+              - `onPointerDown` (NOT onClick): a `click` event is only
+                synthesized when pointerdown AND pointerup hit the same node.
+                Pressing instantly on modal open, or while the image swap /
+                skeleton `box` flip re-renders beneath, can break that pairing
+                and swallow the click — requiring double-taps. `onPointerDown`
+                fires the moment of contact, so the FIRST press always works
+                and rapid-fire presses never get eaten.
+              - `e.preventDefault()` keeps the press from triggering focus,
+                drag, scroll or a synthesized click afterwards.
+              - `e.stopPropagation()` + being SIBLINGS of the image stage
+                (never inside its AnimatePresence/motion.div) means navigation
+                can never bubble into the backdrop close, and the buttons stay
+                in a static DOM while only the framed image transitions.
+              - Hitbox: `size-12` (48px) pill, icon `pointer-events-none`, so
+                the whole visual surface is one reliable press target. */}
           {items.length > 1 && (
             <>
               <Button
                 variant="ghost"
                 size="icon"
                 aria-label="Sebelumnya"
-                onClick={(e) => {
+                onPointerDown={(e) => {
+                  e.preventDefault()
                   e.stopPropagation()
                   prev()
                 }}
-                className="absolute top-1/2 left-3 z-[70] size-11 -translate-y-1/2 rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md hover:border-amber-400/70   hover:bg-black/60 hover:text-amber-400 md:left-6"
+                className="absolute top-1/2 left-3 z-[80] flex size-12 -translate-y-1/2 touch-manipulation select-none items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 pointer-events-auto hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:left-6"
               >
-                <HugeiconsIcon icon={ArrowLeft02Icon} className="size-5" />
+                <HugeiconsIcon
+                  icon={ArrowLeft02Icon}
+                  className="pointer-events-none size-5"
+                />
               </Button>
               <Button
                 variant="ghost"
                 size="icon"
                 aria-label="Berikutnya"
-                onClick={(e) => {
+                onPointerDown={(e) => {
+                  e.preventDefault()
                   e.stopPropagation()
                   next()
                 }}
-                className="absolute top-1/2 right-3 z-[70] size-11 -translate-y-1/2 rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 md:right-6"
+                className="absolute top-1/2 right-3 z-[80] flex size-12 -translate-y-1/2 touch-manipulation select-none items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 pointer-events-auto hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:right-6"
               >
-                <HugeiconsIcon icon={ArrowRight02Icon} className="size-5" />
+                <HugeiconsIcon
+                  icon={ArrowRight02Icon}
+                  className="pointer-events-none size-5"
+                />
               </Button>
             </>
           )}

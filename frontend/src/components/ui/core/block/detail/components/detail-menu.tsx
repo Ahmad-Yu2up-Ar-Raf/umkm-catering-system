@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Cake, ChefHatIcon, Dish01Icon } from "@hugeicons/core-free-icons"
+import { Dish01Icon } from "@hugeicons/core-free-icons"
 
 import type { DetailViewModel } from "../utils/detail-view-model"
 
