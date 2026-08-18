@@ -45,14 +45,14 @@ export default function AuthLayout({
               to={"/"}
               className={cn(
                 buttonVariants({ variant: "ghost" }),
-                "flex hover:bg-transparent items-center gap-0 p-0 font-medium [&_span]:text-lg"
+                "flex items-center gap-0 p-0 font-medium hover:bg-transparent [&_span]:text-lg"
               )}
             >
               <NavbarLogo />
             </Link>
           </div>
 
-          <Card className="relative m-auto flex h-fit w-full max-w-sm flex-col justify-center gap-8 bg-transparent p-0 ring-0">
+          <Card className="relative m-auto flex h-fit w-full max-w-sm flex-col justify-center gap-8 border-none bg-transparent p-0 shadow-none ring-0">
             <CardContent className="size-full border-0 p-0">
               <CardHeader className="flex flex-col justify-center gap-4 text-center">
                 {/* <AppLogoIcon className="m-auto size-11" /> */}
@@ -96,9 +96,7 @@ export default function AuthLayout({
       </div>
       <div className="relative hidden content-center justify-end bg-background lg:block dark:border-l">
         <MediaItem
-          webViewLink={
-            "/assets/images/lifestyle/paket-combo-1.png"
-          }
+          webViewLink={"/assets/images/lifestyle/paket-combo-1.png"}
 
           className="inset- 0 ml-auto h-[89dvh] w-[40dvw] rounded-l-2xl"
         />

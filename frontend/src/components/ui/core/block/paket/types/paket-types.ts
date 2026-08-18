@@ -28,6 +28,7 @@ export interface Paket {
   /** decimal:2 → string like "22000.00" — Number() before formatting */
   harga_per_porsi: string
   kapasitas_produksi: number | null
+  pesanan_count: number
   deskripsi: string | null
   /** Cloudinary secure_url of the first gallery image — nullable on the wire */
   thumbnail: string | null

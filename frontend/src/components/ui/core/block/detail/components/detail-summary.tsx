@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { motion, type Variants } from "framer-motion"
 
 import { cn } from "@/lib/utils"
@@ -7,6 +8,10 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { useShare } from "@/hooks/use-share"
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
+import {
+  Dialog,
+  DialogTrigger,
+} from "@/components/ui/fragments/shadcn-ui/dialog"
 import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
@@ -18,9 +23,9 @@ import {
 import type { DetailViewModel } from "../utils/detail-view-model"
 import { DetailMenu } from "./detail-menu"
 import { DetailFacilities } from "./detail-facilities"
+import { OrderCalculationDialog } from "./order-calculation-dialog"
 import { ShareDialog } from "@/components/ui/fragments/custom-ui/share-dialog"
 import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
-import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
 
 /** Premium ease — Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
@@ -63,9 +68,8 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
 
   const { isOpen, payload, share, close } = useShare()
 
-  // WhatsApp deep link — pre-filled with the package-specific message from
-  // the view model; phone number comes from `.env` (`VITE_BUSINESS_NUMBER`).
-  const whatsappHref = getWhatsAppLink(BUSINESS_NUMBER, vm.waMessage)
+  // Order modal — transient UI state, local to this block (no store needed).
+  const [orderOpen, setOrderOpen] = useState(false)
 
   const sharePackage = () =>
     void share({
@@ -89,7 +93,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
         className="flex w-full flex-col gap-5 md:gap-10"
       >
         {/* badges + title */}
-        <motion.div variants={item} className="flex flex-col gap-4">
+        <motion.div variants={item} className="flex flex-col gap-5">
           <div className="flex w-full justify-between">
             <div className="flex flex-wrap items-center gap-2.5">
               <Badge
@@ -107,7 +111,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
             <Button
               type="button"
               variant="outline"
-              size="icon-lg"
+              size="icon"
               aria-label="Bagikan paket"
               onClick={sharePackage}
               className="bg-background"
@@ -139,15 +143,26 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
               </p>
             )}
           </div>
-          <OriginButton
-            href={whatsappHref}
-            intensity={0.8}
-            range={120}
-            className="group w-full text-xs tracking-widest uppercase md:bg-secondary/20"
-          >
-            <HugeiconsIcon icon={WhatsappIcon} className="size-5" />
-            Pesan via WhatsApp
-          </OriginButton>
+          {/* Pesan via WhatsApp → opens the live order calculation modal.
+              DialogContent renders via Radix Portal (outside this motion
+              group), so the entrance animation of the summary is untouched. */}
+          <Dialog open={orderOpen} onOpenChange={setOrderOpen}>
+            <DialogTrigger asChild>
+              <OriginButton
+                intensity={0.8}
+                range={120}
+                className="group w-full text-xs tracking-widest uppercase md:bg-secondary/20"
+              >
+                <HugeiconsIcon icon={WhatsappIcon} className="size-5" />
+                Pesan via WhatsApp
+              </OriginButton>
+            </DialogTrigger>
+            <OrderCalculationDialog
+              open={orderOpen}
+              onOpenChange={setOrderOpen}
+              vm={vm}
+            />
+          </Dialog>
         </motion.div>
       </motion.div>
 

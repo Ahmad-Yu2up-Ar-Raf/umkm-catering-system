@@ -88,15 +88,15 @@ export const MENU_CHOICES: MenuChoice[] = [
       "/assets/images/products/paket-silver-ayam-lada-hitam/paket-silver-ayam-lada-hitam-1.jpg",
     href: PACKET_QUERY("silver-ayam-lada-hitam"),
   },
-//   {
-//     id: "premium-chicken-salted-egg",
-//     index: "08",
-//     title: "Premium Chicken Salted Egg",
-//     description: "Gurih sederhana, tetap terasa premium",
-//     imagePath:
-//       "/assets/images/products/paket-premium-chicken-salted-egg/paket-premium-chicken-salted-egg-1.jpg",
-//     href: PACKET_QUERY("paket-premium-chicken-salted-egg"),
-//   },
+  {
+    id: "premium-chicken-salted-egg",
+    index: "08",
+    title: "Premium Chicken Salted Egg",
+    description: "Gurih sederhana, tetap terasa premium",
+    imagePath:
+      "/assets/images/products/paket-premium-chicken-salted-egg/paket-premium-chicken-salted-egg-1.jpg",
+    href: PACKET_QUERY("paket-premium-chicken-salted-egg"),
+  },
 //   {
 //     id: "paket-gold-chicken-pop",
 //     index: "09",

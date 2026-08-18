@@ -21,7 +21,7 @@ class PaketController extends Controller
         $page = $request->integer('page', 1);
         $perPage = $request->integer('perPage', 10);
 
-        $query = Paket::query()->with('images');
+        $query = Paket::query()->with('images')->withCount('pesanan');
 
         if ($search) {
             $query->where(function ($q) use ($search) {

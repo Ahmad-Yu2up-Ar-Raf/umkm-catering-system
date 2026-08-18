@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils"
 
 export type FormControlProps = {
   label?: string
+  subLabel?: string
   description?: string
   type?: InputProps["type"]
   placeholder?: string
@@ -21,6 +22,9 @@ export type FormControlProps = {
   LeftIcon?: IconSvgElement
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"]
   maxLength?: number
+  /** Native number-input bounds (forwarded to `<input min|max>`). */
+  min?: number
+  max?: number
   iconClassName?: string
   inputClassName?: string
   isFocusClassName?: string
@@ -37,6 +41,7 @@ type FormBaseProps = FormControlProps & {
 export function FormBase({
   children,
   label,
+  subLabel,
   description,
   controlFirst,
   horizontal,
@@ -57,12 +62,13 @@ export function FormBase({
   const labelElement = (
     <FieldLabel
       className={cn(
-        "mb-2 px-1 tracking-widest text-muted-foreground",
+        "mb-2 flex w-full justify-between px-1 tracking-widest text-muted-foreground",
         isInvalid && "text-destructive"
       )}
       htmlFor={field.name}
     >
-      {label}
+      <span>{label}</span>
+      {subLabel && <span className="text-xs">{subLabel}</span>}
     </FieldLabel>
   )
 
@@ -73,7 +79,10 @@ export function FormBase({
   ) : null
 
   return (
-    <Field orientation={horizontal ? "horizontal" : undefined}>
+    <Field
+      className="gap-1"
+      orientation={horizontal ? "horizontal" : undefined}
+    >
       {controlFirst ? (
         <>
           {children}

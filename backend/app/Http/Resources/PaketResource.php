@@ -30,6 +30,7 @@ class PaketResource extends JsonResource
             'deskripsi' => $this->deskripsi,
             'thumbnail' => $this->thumbnail,
             'images' => $this->whenLoaded('images', fn () => $this->images->pluck('image_url')),
+            'pesanan_count' => $this->whenCounted('pesanan'),
             'is_best_seller' => $this->is_best_seller,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -40,6 +40,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
                 <>
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
+                      tooltip={item.title}
                       isActive={location.pathname == item.path}
                     >
                       {item.icon && <HugeiconsIcon icon={item.icon} />}
@@ -71,6 +72,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
                 </>
               ) : (
                 <SidebarMenuButton
+                  tooltip={item.title}
                   asChild
                   isActive={location.pathname == item.path}
                 >

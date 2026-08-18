@@ -32,7 +32,7 @@ export function MenuList({
       role="group"
       aria-label="Daftar paket menu"
       onKeyDown={handleKeyDown}
-      className={cn("flex flex-col gap-2 md:gap-1")}
+      className={cn("flex flex-col gap-2 ")}
     >
       {MENU_CHOICES.map((item, index) => (
         <MenuListItem

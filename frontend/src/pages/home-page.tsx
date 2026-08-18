@@ -187,10 +187,10 @@ function HomePage() {
         <main>
           <HeroBlock preloaderDone={preloaderDone} />
           <AboutBlock />
-          {/* <MengapaBlock /> */}
+          <MengapaBlock />
           <OrderingBlock />
-          {/* <MomentBlock />
-          <PilihanMenuBlock /> */}
+          {/* <MomentBlock /> */}
+          <PilihanMenuBlock />
           <TestimonialBlock />
           <FaqsSection />
         </main>

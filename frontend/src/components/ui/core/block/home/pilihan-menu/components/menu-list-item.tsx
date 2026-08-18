@@ -35,7 +35,7 @@ export function MenuListItem({
       <span className="flex items-center gap-4 py-[12px] md:gap-6 md:py-[15px]">
         <span
           className={cn(
-            "shrink-0 font-heading text-[11px] tracking-[0.1em] transition-all duration-500 ease-in-out md:text-[12px]",
+            "shrink-0 font-heading text-[11px] tracking-[0.1em] transition-all duration-500 ease-in-out md:text-base    ",
             isActive
               ? "text-primary"
               : "text-primary/40 group-hover:text-primary/70"

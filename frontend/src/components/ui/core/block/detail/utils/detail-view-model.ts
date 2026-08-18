@@ -45,6 +45,10 @@ export interface DetailViewModel {
   gallery: string[]
   hasGallery: boolean
   waMessage: string
+  /** RAW numeric values for the order modal (formatted labels exist above). */
+  minOrder: number
+  capacity: number | null
+  hargaPerPorsi: number
 }
 
 /**
@@ -100,5 +104,8 @@ export function toDetailViewModel(paket: Paket): DetailViewModel {
     gallery,
     hasGallery: gallery.length > 0,
     waMessage: `Halo Catering Nusantara, saya ingin memesan paket ${paket.nama_paket} (${priceLabel}/porsi, min. ${paket.min_order} porsi). Mohon info ketersediaannya.`,
+    minOrder: paket.min_order,
+    capacity: paket.kapasitas_produksi,
+    hargaPerPorsi: Number(paket.harga_per_porsi),
   }
 }

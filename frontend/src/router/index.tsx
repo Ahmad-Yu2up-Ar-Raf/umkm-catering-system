@@ -11,6 +11,9 @@ import { AppShell } from "@/components/ui/core/layout/dashboard/app-shell"
 import GaleryPage from "@/pages/gallery/galery-page"
 import GaleriCategoryPage from "@/pages/gallery/galeri-category-page"
 import PaketDetail from "@/pages/paket/paket-detail"
+import MasterPaketPage from "@/pages/admin/master-paket-page"
+import MasterGaleriPage from "@/pages/admin/master-galeri-page"
+import MasterPesananPage from "@/pages/admin/master-pesanan-page"
 
 export const router = createBrowserRouter([
   {
@@ -68,6 +71,18 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: <DashboardPage />,
+          },
+          {
+            path: "paket",
+            element: <MasterPaketPage />,
+          },
+          {
+            path: "galeri",
+            element: <MasterGaleriPage />,
+          },
+          {
+            path: "pesanan",
+            element: <MasterPesananPage />,
           },
         ],
       },

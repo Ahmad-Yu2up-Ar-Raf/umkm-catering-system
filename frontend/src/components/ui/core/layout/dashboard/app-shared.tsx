@@ -1,16 +1,14 @@
 import { type IconSvgElement } from "@hugeicons/react"
 import {
   DashboardCircleIcon,
-  Plug01Icon,
+  ShoppingCart01Icon,
+  Calendar01Icon,
+  SpoonAndForkIcon,
+  Image01Icon,
+  UserMultipleIcon,
+  Settings01Icon,
   HelpCircleIcon,
   ActivityIcon,
-  Tv01FreeIcons,
-  Timer02FreeIcons,
-  UserMultipleIcon,
-  Home09Icon,
-  Wrench01FreeIcons,
-  HospitalLocationIcon,
-  Stethoscope02FreeIcons,
 } from "@hugeicons/core-free-icons"
 
 export type SidebarNavItem = {
@@ -30,24 +28,24 @@ export const navGroups: SidebarNavGroup[] = [
   {
     items: [
       {
-        title: "Overview",
+        title: "Dashboard",
         path: "/dashboard",
         icon: DashboardCircleIcon,
       },
     ],
   },
   {
-    label: "Layanan",
+    label: "Transaksi",
     items: [
       {
-        title: "Monitor",
-        path: "/",
-        icon: Tv01FreeIcons,
+        title: "Pesanan",
+        path: "/dashboard/pesanan",
+        icon: ShoppingCart01Icon,
       },
       {
-        title: "Antrian",
-        path: "/dashboard/antrian",
-        icon: Timer02FreeIcons,
+        title: "Jadwal Pengiriman",
+        path: "/dashboard/jadwal-pengiriman",
+        icon: Calendar01Icon,
       },
     ],
   },
@@ -55,29 +53,29 @@ export const navGroups: SidebarNavGroup[] = [
     label: "Manajemen Data",
     items: [
       {
-        title: "Dokter",
-        path: "/dashboard/dokter",
-        icon: Stethoscope02FreeIcons,
+        title: "Master Paket",
+        path: "/dashboard/paket",
+        icon: SpoonAndForkIcon,
       },
       {
-        title: "Pasien",
-        path: "/dashboard/pasien",
+        title: "Master Galeri",
+        path: "/dashboard/galeri",
+        icon: Image01Icon,
+      },
+      {
+        title: "Pelanggan",
+        path: "/dashboard/pelanggan",
         icon: UserMultipleIcon,
-      },
-      {
-        title: "Poliklinik",
-        path: "/dashboard/poli",
-        icon: HospitalLocationIcon,
       },
     ],
   },
   {
-    label: "Konfigurasi Staf",
+    label: "Pengaturan",
     items: [
       {
-        title: "operator",
-        path: "/dashboard/operator",
-        icon: Wrench01FreeIcons,
+        title: "Konfigurasi Web",
+        path: "/dashboard/konfigurasi",
+        icon: Settings01Icon,
       },
     ],
   },
