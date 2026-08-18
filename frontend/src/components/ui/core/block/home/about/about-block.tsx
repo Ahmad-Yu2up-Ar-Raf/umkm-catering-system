@@ -17,7 +17,7 @@ function AboutBlock() {
       id="profil"
       className="container content-center py-15 lg:py-0 lg:pt-30 lg:pb-30"
     >
-      <div className="flex flex-col gap-11 lg:flex-row lg:items-center lg:justify-between lg:gap-10">
+      <div className="flex flex-col gap-11 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
         {/* Teks Filosofi Us - Kiri */}
         <header className="flex w-full flex-1 flex-col gap-y-6 md:gap-y-9">
           {/* Judul */}
@@ -53,7 +53,7 @@ function AboutBlock() {
           {/* Deskripsi - lebih singkat */}
           <BlurReveal
             as="p"
-            className="text-sm leading-relaxed text-muted-foreground md:text-base md:text-[16px]"
+            className="text-sm leading-relaxed text-muted-foreground md:text-base md:text-base"
             amount={0.3}
           >
             Sejak 2024, Catering Nusantara hadir dari dapur keluarga di Bogor,

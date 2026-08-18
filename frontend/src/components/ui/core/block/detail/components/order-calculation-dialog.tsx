@@ -5,8 +5,8 @@ import { useEffect, useState } from "react"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
+  DialogDescription,
   DialogTitle,
 } from "@/components/ui/fragments/shadcn-ui/dialog"
 import {
@@ -20,8 +20,6 @@ import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
 
 import type { DetailViewModel } from "../utils/detail-view-model"
 import { OrderForm } from "./order-form"
-import { NavbarLogo } from "../../../layout/nav/app-logo"
-import Logo from "@/components/svg/app-logo-svg"
 
 /** lg breakpoint — desktop Dialog vs mobile Drawer switch. */
 const DESKTOP_QUERY = "(min-width: 1024px)"
@@ -69,13 +67,12 @@ export function OrderCalculationDialog({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="max-w-4xl gap-0 overflow-hidden p-0 sm:max-w-[69em]"
+          className="h-full max-h-[85svh] max-w-4xl gap-0 overflow-hidden p-0 sm:max-w-[70em]"
           showCloseButton
           data-lenis-prevent
         >
-          <DialogHeader className="flex border-b  pb-8 flex-row items-center gap-3 px-6 pt-6  md:px-10 md:pt-10">
-            <Logo className="size-10 lg:size-14" />
-            <div className="flex flex-col gap-1">
+          {/* <DialogHeader className="flex flex-row items-center gap-4 border-b px-6 pt-6 pb-8 md:px-10 md:pt-6">
+            <div className="flex flex-col gap-0.5">
               <DialogTitle className="font-heading text-3xl">
                 Pesan{" "}
                 <span className="font-accent text-primary italic">Paket</span>
@@ -84,9 +81,9 @@ export function OrderCalculationDialog({
                 Lengkapi detail pesanan — estimasi dihitung otomatis.
               </DialogDescription>
             </div>
-          </DialogHeader>
+          </DialogHeader> */}
 
-          <div className="max-h-[70svh] overflow-y-auto overscroll-contain p-6 pt-0 md:p-10 md:py-8">
+          <div className="show-scrollbar h-full  overflow-y-auto overscroll-contain p-6 pt-0 md:p-9">
             <OrderForm vm={vm} onSuccess={() => onOpenChange(false)} />
           </div>
         </DialogContent>

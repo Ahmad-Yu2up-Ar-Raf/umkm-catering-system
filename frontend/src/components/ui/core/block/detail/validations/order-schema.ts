@@ -19,6 +19,7 @@ export const createOrderSchema = ({
   addonOptions,
 }: OrderSchemaParams) =>
   z.object({
+    nama: z.string().trim().min(2, "Nama wajib diisi"),
     lokasi_acara: z.string().trim().min(5, "Lokasi acara wajib diisi"),
     tanggal_acara: z
       .string()

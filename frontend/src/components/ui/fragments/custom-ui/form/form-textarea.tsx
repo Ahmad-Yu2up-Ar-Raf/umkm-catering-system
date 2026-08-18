@@ -3,7 +3,6 @@ import { useStore } from "@tanstack/react-store"
 import { FormBase, type FormControlProps } from "./form-base"
 import { useFieldContext } from "@/hooks/use-form"
 import { cn } from "@/lib/utils"
-import { HugeiconsIcon } from "@hugeicons/react"
 import { Textarea } from "../../shadcn-ui/textarea" // Sesuaikan path jika beda
 
 export type FormTextAreaProps = FormControlProps &

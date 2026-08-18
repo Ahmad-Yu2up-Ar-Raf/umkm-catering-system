@@ -55,6 +55,7 @@ export const buildWaOrderMessage = (
   [
     "Halo Catering Nusantara, saya ingin memesan:",
     `• Paket: ${vm.name}`,
+    `• Nama: ${values.nama}`,
     `• Tanggal acara: ${format(
       parse(values.tanggal_acara, "yyyy-MM-dd", new Date()),
       "dd MMMM yyyy",

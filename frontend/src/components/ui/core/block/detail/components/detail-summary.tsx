@@ -17,6 +17,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   LeafIcon,
   Share08FreeIcons,
+  ShoppingCart,
   WhatsappIcon,
 } from "@hugeicons/core-free-icons"
 
@@ -110,11 +111,11 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
             </div>
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon"
+              className=" hover:bg-secondary/40"
               aria-label="Bagikan paket"
               onClick={sharePackage}
-              className="bg-background"
             >
               <HugeiconsIcon className="size-5" icon={Share08FreeIcons} />
             </Button>
@@ -153,8 +154,8 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
                 range={120}
                 className="group w-full text-xs tracking-widest uppercase md:bg-secondary/20"
               >
-                <HugeiconsIcon icon={WhatsappIcon} className="size-5" />
-                Pesan via WhatsApp
+                <HugeiconsIcon icon={ShoppingCart} className="size-5" />
+                Pesan Sekarang
               </OriginButton>
             </DialogTrigger>
             <OrderCalculationDialog

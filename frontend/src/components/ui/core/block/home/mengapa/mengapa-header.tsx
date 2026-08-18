@@ -28,7 +28,7 @@ export function MengapaHeader() {
           amount={0.4}
           className="block font-accent text-primary italic"
         >
-          Katering Nusantara
+          Catering Nusantara
         </BlurReveal>
       </h2>
 
@@ -38,7 +38,7 @@ export function MengapaHeader() {
           blur={6}
           stagger={0.05}
           amount={0.4}
-          className="max-w-[360px] text-[15px] leading-[1.8] text-muted-foreground"
+          className="max-w-[360px] text-[15px] lg:text-sm leading-[1.8] text-muted-foreground"
         >
           Bukan sekadar angka — melainkan kepercayaan yang tumbuh dari dapur
           keluarga kami.

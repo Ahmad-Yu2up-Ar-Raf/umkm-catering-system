@@ -9,6 +9,7 @@ import {
   CalculatorIcon,
   Dish01Icon,
   Location01Icon,
+  UserIcon,
   WhatsappIcon,
 } from "@hugeicons/core-free-icons"
 
@@ -17,11 +18,53 @@ import { FieldGroup } from "@/components/ui/fragments/shadcn-ui/field"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
-
 import { createOrderSchema } from "../validations/order-schema"
 import { buildWaOrderMessage, calculateOrder } from "../utils/order-calculator"
 import type { DetailViewModel } from "../utils/detail-view-model"
 import { OrderSummaryPanel } from "./order-summary-panel"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/fragments/shadcn-ui/dialog"
+/** Field order == visual order in the form (first-error focus targeting). */
+const FIELD_ORDER = [
+  "nama",
+  "lokasi_acara",
+  "tanggal_acara",
+  "jumlah_porsi",
+  "lauk_pelengkap",
+  "catatan",
+] as const
+
+type FieldMetaLike = { errors: unknown[] }
+
+/** First field (in visual order) that currently holds a validation error. */
+function getFirstErrorField(
+  fieldMeta: Partial<Record<string, FieldMetaLike>>
+): string | null {
+  for (const name of FIELD_ORDER) {
+    if (fieldMeta[name]?.errors.length) return name
+  }
+  return (
+    Object.keys(fieldMeta).find((name) => fieldMeta[name]?.errors.length) ??
+    null
+  )
+}
+
+/** Bring the browser to the first bad field — focus + center it.
+ *  The modal rail (`overscroll-contain` + `data-lenis-prevent`) is the
+ *  nearest scroll container, so this scrolls the DIALOG, not the page. */
+function focusFirstError(fieldMeta: Partial<Record<string, FieldMetaLike>>) {
+  const fieldName = getFirstErrorField(fieldMeta)
+  if (!fieldName) return
+  const el = document.getElementById(fieldName)
+  if (!(el instanceof HTMLElement)) return
+  el.focus({ preventScroll: true })
+  el.scrollIntoView({ behavior: "smooth", block: "center" })
+}
 
 /**
  * OrderForm — interactive order & calculation form, shared verbatim by the
@@ -44,14 +87,23 @@ export function OrderForm({
   vm: DetailViewModel
   onSuccess: () => void
 }) {
+  // ONE schema drives every validation phase. TanStack v1 purges a field's
+  // submit error whenever a change/blur validation runs WITHOUT an error;
+  // giving those phases the real rules keeps genuinely-invalid fields red
+  // (their phase errors), while a truly-fixed field clears immediately.
+  const orderSchema = createOrderSchema({
+    capacity: vm.capacity,
+    addonOptions: vm.menuExtra ?? [],
+  })
+
   const form = useAppForm({
     validators: {
-      onSubmit: createOrderSchema({
-        capacity: vm.capacity,
-        addonOptions: vm.menuExtra ?? [],
-      }),
+      onChange: orderSchema,
+      onBlur: orderSchema,
+      onSubmit: orderSchema,
     },
     defaultValues: {
+      nama: "",
       lokasi_acara: "",
       tanggal_acara: "",
       jumlah_porsi: vm.minOrder,
@@ -68,6 +120,17 @@ export function OrderForm({
       window.open(getWhatsAppLink(BUSINESS_NUMBER, msg), "_blank", "noopener")
       toast.success("Pesanan dikirim ke WhatsApp — admin akan mengonfirmasi")
       onSuccess()
+    },
+    onSubmitInvalid: ({ formApi }) => {
+      toast.error("Validasi Gagal", {
+        description: "Periksa kembali isian form yang ditandai merah.",
+      })
+      // Defer a frame so error state settles, then jump to the first mistake.
+      requestAnimationFrame(() =>
+        focusFirstError(
+          formApi.state.fieldMeta as Partial<Record<string, FieldMetaLike>>
+        )
+      )
     },
   })
 
@@ -88,11 +151,22 @@ export function OrderForm({
 
   return (
     <form.AppForm>
-      <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <OrderSummaryPanel vm={vm} />
 
         {/* right rail — the SHELL owns max-height/scroll containment */}
-        <div className="pt-7 lg:py-5">
+        <div className="pt-0 lg:py-6">
+          <DialogHeader className="flex flex-row items-center gap-4 border-b pb-8  mb-8">
+            <div className="flex flex-col gap-2">
+              <DialogTitle className="font-heading text-3xl">
+                Pesan{" "}
+                <span className="font-accent text-primary italic">Paket</span>
+              </DialogTitle>
+              <DialogDescription>
+                Lengkapi detail pesanan — estimasi dihitung otomatis.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -101,6 +175,16 @@ export function OrderForm({
             className="flex flex-col gap-8"
           >
             <FieldGroup className="gap-10">
+              <form.AppField name="nama">
+                {(field) => (
+                  <field.Input
+                    label="Nama"
+                    LeftIcon={UserIcon}
+                    placeholder="Contoh: Budi Santoso"
+                  />
+                )}
+              </form.AppField>
+
               <form.AppField name="lokasi_acara">
                 {(field) => (
                   <field.TextArea
@@ -168,7 +252,7 @@ export function OrderForm({
             </FieldGroup>
 
             <div className="flex flex-col gap-3">
-              <div className="flex items-baseline justify-between gap-3">
+              <div className="flex items-baseline justify-between gap-3 px-2">
                 <span className="text-xs tracking-widest text-muted-foreground uppercase">
                   Estimasi
                 </span>
@@ -181,7 +265,7 @@ export function OrderForm({
                 type="submit"
                 size="lg"
                 disabled={isSubmitting}
-                className="w-full cursor-pointer"
+                className="w-ful cursor-pointer py-6"
               >
                 <HugeiconsIcon icon={WhatsappIcon} className="size-5" />
                 <span className="font-bold">Kirim ke WhatsApp</span>

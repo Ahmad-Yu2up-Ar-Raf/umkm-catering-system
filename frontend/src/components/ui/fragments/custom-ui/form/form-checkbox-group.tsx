@@ -19,7 +19,7 @@ interface FormCheckboxGroupProps extends Omit<
 }
 
 export function FormCheckboxGroup(props: FormCheckboxGroupProps) {
-  const field = useFieldContext<any>()
+  const field = useFieldContext<Array<string | number>>()
 
   const isSubmitting = useStore(
     field.form.baseStore,
@@ -59,7 +59,7 @@ export function FormCheckboxGroup(props: FormCheckboxGroupProps) {
         )}
       >
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {props.options.map((option) => {
+          {props.options.map((option, index) => {
             const isChecked =
               Array.isArray(value) && value.includes(option.value)
             return (
@@ -74,6 +74,7 @@ export function FormCheckboxGroup(props: FormCheckboxGroupProps) {
                 )}
               >
                 <Checkbox
+                  id={index === 0 ? field.name : undefined}
                   checked={isChecked}
                   onCheckedChange={(checked) =>
                     handleCheckboxChange(checked, option.value)

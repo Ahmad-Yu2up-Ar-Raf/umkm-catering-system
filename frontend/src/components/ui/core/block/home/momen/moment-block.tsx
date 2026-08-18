@@ -55,7 +55,7 @@ export function MomentBlock() {
       <section
         ref={sectionRef}
         id="momentum"
-        className="relative overflow-hidden bg-secondary/60 px-0 pb-15 sm:py-15 md:px-10 md:py-20  "
+        className="relative overflow-hidden bg-secondary/40 px-0 pb-15 sm:py-15 md:px-10 md:py-20  "
       >
         <div
           aria-hidden="true"

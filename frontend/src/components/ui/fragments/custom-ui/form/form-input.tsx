@@ -76,8 +76,7 @@ export function FormInput(props: FormControlProps) {
           isSubmitting && "pointer-events-none opacity-50",
           props.className
         )}
-          >
-              
+      >
         {/* {props.LeftIcon && (
           <div
             className={cn(

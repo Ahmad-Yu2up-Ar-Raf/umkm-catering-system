@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/popover"
 import { Calendar } from "@/components/ui/fragments/shadcn-ui/calendar"
 import { FormBase, type FormControlProps } from "./form-base"
-import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 
@@ -72,14 +71,15 @@ export function FormDateInput({
           <Button
             variant="ghost"
             type="button"
+            id={field.name}
             disabled={isSubmitting}
             className={cn(
-              "group relative flex h-14 w-full items-center overflow-hidden rounded-2xl border border-border/40 p-0 shadow-none transition-all duration-300 focus:outline-none focus-visible:ring-0",
+              "group relative flex h-14 hover:bg-primary/5 w-full items-center overflow-hidden rounded-2xl border border-border/40 p-0 shadow-none transition-all duration-300 focus:outline-none focus-visible:ring-0",
 
               !isOpen &&
                 !isValid &&
                 !isInvalid &&
-                "border-border bg-card hover:bg-primary/5",
+                "border-border bg-card ",
               !isOpen && isValid && !isInvalid && "border-primary bg-primary/5",
               isOpen && !isInvalid && "border-primary bg-primary/5",
               isInvalid &&
