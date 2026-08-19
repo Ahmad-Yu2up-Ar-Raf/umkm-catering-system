@@ -121,6 +121,7 @@ export function GalleryBlock() {
                     category={category}
                     items={result.data?.items ?? []}
                     isLoading={result.isLoading}
+                    direction={index % 2 === 0 ? "ltr" : "rtl"}
                   />
                 )
               })}

@@ -15,8 +15,8 @@ const HeaderDashboard = ({ Icon, Title, Deskrpsi }: compoenentProp) => {
   // 3. Extract the first and second words into two separate variables with type inference
   const [firstWord, secondWord] = words
   return (
-    <div className="flex flex-row items-center gap-7 md:w-fit">
-      <div className="flex aspect-square size-16 items-center justify-center rounded-2xl border border-border bg-background p-2.5 text-primary">
+    <div className="flex flex-row items-center gap-8 md:w-fit">
+      <div className="flex aspect-square size-17 items-center justify-center rounded-2xl border border-border bg-background p-3.5 text-primary">
         <HugeiconsIcon icon={Icon} className="size-full text-primary" />
       </div>
       <div className="space-y-2">

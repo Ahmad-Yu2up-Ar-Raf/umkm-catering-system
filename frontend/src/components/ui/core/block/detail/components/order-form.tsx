@@ -23,49 +23,10 @@ import { buildWaOrderMessage, calculateOrder } from "../utils/order-calculator"
 import type { DetailViewModel } from "../utils/detail-view-model"
 import { OrderSummaryPanel } from "./order-summary-panel"
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
 } from "@/components/ui/fragments/shadcn-ui/dialog"
-/** Field order == visual order in the form (first-error focus targeting). */
-const FIELD_ORDER = [
-  "nama",
-  "lokasi_acara",
-  "tanggal_acara",
-  "jumlah_porsi",
-  "lauk_pelengkap",
-  "catatan",
-] as const
-
-type FieldMetaLike = { errors: unknown[] }
-
-/** First field (in visual order) that currently holds a validation error. */
-function getFirstErrorField(
-  fieldMeta: Partial<Record<string, FieldMetaLike>>
-): string | null {
-  for (const name of FIELD_ORDER) {
-    if (fieldMeta[name]?.errors.length) return name
-  }
-  return (
-    Object.keys(fieldMeta).find((name) => fieldMeta[name]?.errors.length) ??
-    null
-  )
-}
-
-/** Bring the browser to the first bad field — focus + center it.
- *  The modal rail (`overscroll-contain` + `data-lenis-prevent`) is the
- *  nearest scroll container, so this scrolls the DIALOG, not the page. */
-function focusFirstError(fieldMeta: Partial<Record<string, FieldMetaLike>>) {
-  const fieldName = getFirstErrorField(fieldMeta)
-  if (!fieldName) return
-  const el = document.getElementById(fieldName)
-  if (!(el instanceof HTMLElement)) return
-  el.focus({ preventScroll: true })
-  el.scrollIntoView({ behavior: "smooth", block: "center" })
-}
-
 /**
  * OrderForm — interactive order & calculation form, shared verbatim by the
  * desktop Dialog and the mobile Drawer shells (`OrderCalculationDialog`).
@@ -91,6 +52,9 @@ export function OrderForm({
   // submit error whenever a change/blur validation runs WITHOUT an error;
   // giving those phases the real rules keeps genuinely-invalid fields red
   // (their phase errors), while a truly-fixed field clears immediately.
+  // Schema for the form's `onSubmit` — `useAppForm` automatically reuses it
+  // for onChange/onBlur so invalid fields keep their errors until fixed, and
+  // injects the global error toast + first-error auto-focus on failed submit.
   const orderSchema = createOrderSchema({
     capacity: vm.capacity,
     addonOptions: vm.menuExtra ?? [],
@@ -98,8 +62,6 @@ export function OrderForm({
 
   const form = useAppForm({
     validators: {
-      onChange: orderSchema,
-      onBlur: orderSchema,
       onSubmit: orderSchema,
     },
     defaultValues: {
@@ -120,17 +82,6 @@ export function OrderForm({
       window.open(getWhatsAppLink(BUSINESS_NUMBER, msg), "_blank", "noopener")
       toast.success("Pesanan dikirim ke WhatsApp — admin akan mengonfirmasi")
       onSuccess()
-    },
-    onSubmitInvalid: ({ formApi }) => {
-      toast.error("Validasi Gagal", {
-        description: "Periksa kembali isian form yang ditandai merah.",
-      })
-      // Defer a frame so error state settles, then jump to the first mistake.
-      requestAnimationFrame(() =>
-        focusFirstError(
-          formApi.state.fieldMeta as Partial<Record<string, FieldMetaLike>>
-        )
-      )
     },
   })
 

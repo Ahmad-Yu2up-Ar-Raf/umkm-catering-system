@@ -96,7 +96,7 @@ export default function AuthLayout({
       </div>
       <div className="relative hidden content-center justify-end bg-background lg:block dark:border-l">
         <MediaItem
-          webViewLink={"/assets/images/lifestyle/paket-combo-1.png"}
+          webViewLink={"/assets/images/textures/kraft-paper-box-macro-texture.png"}
 
           className="inset- 0 ml-auto h-[89dvh] w-[40dvw] rounded-l-2xl"
         />

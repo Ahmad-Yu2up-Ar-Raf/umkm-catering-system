@@ -67,7 +67,7 @@ export function OrderCalculationDialog({
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="h-full max-h-[85svh] max-w-4xl gap-0 overflow-hidden p-0 sm:max-w-[70em]"
+          className="h-full max-h-[90svh] max-w-4xl gap-0 overflow-hidden p-0 sm:max-w-[70em]"
           showCloseButton
           data-lenis-prevent
         >
