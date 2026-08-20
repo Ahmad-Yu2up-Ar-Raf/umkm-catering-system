@@ -46,6 +46,7 @@ export function FormCheckbox({ label, ...props }: FormCheckboxProps) {
           isInvalid && "border-destructive/40",
           isSubmitting && "pointer-events-none opacity-50"
         )}
+        aria-invalid={isInvalid || undefined}
       >
         <Checkbox
           id={field.name}

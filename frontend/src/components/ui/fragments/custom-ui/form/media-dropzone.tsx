@@ -269,6 +269,7 @@ export function MediaDropzone({
           {...getRootProps()}
           data-drag-active={isDragActive || undefined}
           data-drag-reject={isDragReject || undefined}
+          aria-invalid={isInvalid || undefined}
           className={cn(
             "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border bg-background/40 p-4 text-center transition-colors",
             isDragActive && "border-primary bg-primary/5",
