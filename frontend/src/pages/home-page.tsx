@@ -189,7 +189,7 @@ function HomePage() {
           <AboutBlock />
           <MengapaBlock />
           <OrderingBlock />
-          {/* <MomentBlock /> */}
+          <MomentBlock />
           <PilihanMenuBlock />
           <TestimonialBlock />
           <FaqsSection />

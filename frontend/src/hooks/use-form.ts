@@ -15,12 +15,22 @@ import { FormInput } from "@/components/ui/fragments/custom-ui/form/form-input"
 import { FormTextArea } from "@/components/ui/fragments/custom-ui/form/form-textarea"
 import { FormDateInput } from "@/components/ui/fragments/custom-ui/form/form-date-input"
 import { FormCheckboxGroup } from "@/components/ui/fragments/custom-ui/form/form-checkbox-group"
+import { FormSelect } from "@/components/ui/fragments/custom-ui/form/form-select"
+import { FormCheckbox } from "@/components/ui/fragments/custom-ui/form/form-checkbox"
+import { FormTagInput } from "@/components/ui/fragments/custom-ui/form/form-tag-input"
+import { FormImageUpload } from "@/components/ui/fragments/custom-ui/form/form-image-upload"
+import { FormImagesUpload } from "@/components/ui/fragments/custom-ui/form/form-images-upload"
 
 const fieldComponents = {
   Input: FormInput,
   TextArea: FormTextArea,
   DateInput: FormDateInput,
   CheckboxGroup: FormCheckboxGroup,
+  Select: FormSelect,
+  Checkbox: FormCheckbox,
+  TagInput: FormTagInput,
+  ImageUpload: FormImageUpload,
+  ImagesUpload: FormImagesUpload,
 } as const
 
 const formComponents = {} as Record<string, never>
@@ -69,7 +79,7 @@ function focusFirstInvalidField(formApi: AnyFormApi) {
 /** Default invalid-submit handler: Sonner toast + jump to the first mistake. */
 function globalOnSubmitInvalid({ formApi }: { formApi: AnyFormApi }) {
   toast.error("Validasi Gagal", {
-    description: "Mohon periksa kembali isian form yang ditandai merah.",
+    description: "Periksa kembali isian form yang ditandai merah.",
   })
   // Defer a frame so the error states settle, then scroll to the mistake.
   requestAnimationFrame(() => focusFirstInvalidField(formApi))

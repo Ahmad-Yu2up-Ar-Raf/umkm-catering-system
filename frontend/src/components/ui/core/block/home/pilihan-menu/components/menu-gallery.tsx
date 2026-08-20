@@ -5,7 +5,7 @@ import { useRef } from "react"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
-import { AUTO_ADVANCE_MS, MENU_CHOICES } from "../menu-data"
+import { AUTO_ADVANCE_MS, type MenuChoice } from "../menu-data"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 
 /** Luxury ease — premium Apple-like cubic-bezier (matches the project grammar). */
@@ -30,13 +30,19 @@ const CROSSFADE = 0.9
  * Every photo wrapper is `opacity-0` in the base class so nothing flashes
  * before GSAP claims the frame.
  */
-export function MenuGallery({ activeIndex }: { activeIndex: number }) {
+export function MenuGallery({
+  items,
+  activeIndex,
+}: {
+  items: MenuChoice[]
+  activeIndex: number
+}) {
   const galleryRef = useRef<HTMLDivElement>(null)
   const tlRef = useRef<gsap.core.Timeline | null>(null)
   const prevIndexRef = useRef(0)
   const reduced = useReducedMotion()
 
-  const active = MENU_CHOICES[activeIndex]
+  const active = items[activeIndex]
 
   useGSAP(
     () => {
@@ -118,12 +124,14 @@ export function MenuGallery({ activeIndex }: { activeIndex: number }) {
     },
     {
       scope: galleryRef,
-      dependencies: [activeIndex, reduced],
+      dependencies: [activeIndex, reduced, items.length],
       // Important: keep the PREVIOUS run's inline styles alive so the outgoing
       // frame can fade out (see timeline docblock above).
       revertOnUpdate: false,
     }
   )
+
+  if (!active) return null // no packages yet — the block renders the skeleton
 
   return (
     <div
@@ -131,7 +139,7 @@ export function MenuGallery({ activeIndex }: { activeIndex: number }) {
       className="relative h-[48vh] lg:pl-20 min-h-[320px] w-full overflow-hidden rounded-2xl md:h-full md:rounded-3xl"
     >
       {/* Stacked photos — only the active one is visible at any time. */}
-      {MENU_CHOICES.map((item, index) => (
+      {items.map((item, index) => (
         <div
           key={item.id}
           data-menu-photo
@@ -163,9 +171,14 @@ export function MenuGallery({ activeIndex }: { activeIndex: number }) {
       >
         <p
           data-menu-caption-item
-          className="truncate text-[10px] tracking-[0.28em] text-accent uppercase md:text-[12px]"
+          className="inline-flex items-center gap-2 truncate text-[10px] tracking-[0.28em] text-accent uppercase md:text-[12px]"
         >
-          {active.index} — Menu Pilihan
+          <span>{active.index} — Menu Pilihan</span>
+          {active.badge && (
+            <span className="rounded-full bg-primary/25 px-2 py-0.5 font-medium tracking-[0.14em] text-background">
+              {active.badge}
+            </span>
+          )}
         </p>
         <h3
           data-menu-caption-item
@@ -178,6 +191,13 @@ export function MenuGallery({ activeIndex }: { activeIndex: number }) {
           className="mt-0.5 max-w-[300px] truncate text-[11px] leading-snug text-background/85 md:mt-1.5 md:max-w-[440px] md:text-sm"
         >
           {active.description}
+        </p>
+        <p
+          data-menu-caption-item
+          className="mt-0.5 truncate text-[11px] font-medium text-accent/90 md:mt-1.5 md:text-sm"
+        >
+          {active.priceText} <span className="text-background/60">·</span>{" "}
+          <span className="text-background/85">{active.minOrderText}</span>
         </p>
         <a
           data-menu-caption-item

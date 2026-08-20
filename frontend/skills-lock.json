@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "mediadrop": {
+      "source": "autorender/react-mediadrop",
+      "sourceType": "github",
+      "skillPath": "skills/mediadrop/SKILL.md",
+      "computedHash": "8abfcd0f77b17e64893ddc3e1c3cf6eef99152244f781a20e05d93dd424433b8"
+    }
+  }
+}

@@ -45,6 +45,11 @@ const lineVariants: Variants = {
  *  pass of an 8-card strip takes well over a minute: relaxed, never rushed. */
 const MARQUEE_SPEED = 35
 
+/** Drag-vs-click: pointer movement below this (px) is a click, so the card's
+ *  onClick (the global lightbox) fires. At or above it, the gesture is a
+ *  drag and the resulting click is suppressed. */
+const DRAG_THRESHOLD_PX = 5
+
 /**
  * GalleryMarquee — one infinite, smooth, slow rail.
  *
@@ -79,8 +84,13 @@ function GalleryMarquee({
 
   const [halfWidth, setHalfWidth] = useState(0)
   const pausedRef = useRef(false)
-  const draggingRef = useRef(false)
-  const lastXRef = useRef(0)
+  const dragRef = useRef<{
+    id: number
+    startX: number
+    startY: number
+    lastX: number
+    active: boolean
+  } | null>(null)
 
   // Half point = one full copy of the doubled track. Measured once mounted +
   // on resize; the seam stays exact because the strip is `w-max` with uniform
@@ -94,53 +104,113 @@ function GalleryMarquee({
     return () => window.removeEventListener("resize", measure)
   }, [])
 
+  /**
+   * Bidirectional seam wrap. The offset is kept in the half-open range
+   * [-halfWidth, 0] — the doubled track then always covers the viewport:
+   *   • offset ≤ 0  ⇒ the track's left edge is at/behind the viewport's left
+   *                    edge, so no empty space can ever appear on the LEFT;
+   *   • offset ≥ -halfWidth ⇒ the track's right edge stays at/over the
+   *     viewport's right edge (one copy is wider than the viewport).
+   * Left-moving rows descend toward -halfWidth and wrap back to 0; right-
+   * moving rows rise toward 0 and wrap back to -halfWidth. Both wrap points
+   * land on the copy boundary (copy A ≡ copy B), so the seam is invisible in
+   * both directions. The old ±halfWidth wrap let the offset go positive,
+   * which dragged the track's left edge past the viewport → the reported
+   * empty gap on the left of right-moving rows.
+   */
+  const wrap = useCallback(
+    (v: number) => {
+      if (v > 0) v -= halfWidth
+      else if (v <= -halfWidth) v += halfWidth
+      return v
+    },
+    [halfWidth]
+  )
+
   // Continuous slow motion — paused while hovered or actively dragging.
   useAnimationFrame((_, delta) => {
     if (reduced) return
     if (pausedRef.current) return
+    if (halfWidth <= 0) return // not measured yet — don't drift before first measure
     const dt = Math.min(delta, 64) / 1000
     const sign = direction === "rtl" ? 1 : -1
-    let v = x.get() + sign * MARQUEE_SPEED * dt
-    if (halfWidth > 0) {
-      if (v <= -halfWidth) v += halfWidth
-      if (v >= halfWidth) v -= halfWidth
-    }
-    x.set(v)
+    x.set(wrap(x.get() + sign * MARQUEE_SPEED * dt))
   })
 
   const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
+    (e: React.PointerEvent<HTMLDivElement>) => {
       if (reduced) return
       if (e.pointerType === "mouse" && e.button !== 0) return
-      draggingRef.current = true
-      pausedRef.current = true
-      lastXRef.current = e.clientX
-      e.currentTarget.setPointerCapture(e.pointerId)
+      // Record the gesture WITHOUT capturing — a stationary press must keep
+      // reaching the card's onClick (the lightbox). Pointer capture and pause
+      // only kick in once movement crosses the drag threshold.
+      dragRef.current = {
+        id: e.pointerId,
+        startX: e.clientX,
+        startY: e.clientY,
+        lastX: e.clientX,
+        active: false,
+      }
     },
     [reduced]
   )
 
   const onPointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      if (!draggingRef.current) return
-      const dx = e.clientX - lastXRef.current
-      lastXRef.current = e.clientX
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const drag = dragRef.current
+      if (!drag) return
+      if (!drag.active) {
+        if (
+          Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) <
+          DRAG_THRESHOLD_PX
+        ) {
+          return // still a candidate click — let it be
+        }
+        // Crossed the threshold: the gesture is a drag. Take the pointer over.
+        drag.active = true
+        pausedRef.current = true
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        } catch {
+          /* already captured / lost — ignore */
+        }
+      }
+      const dx = e.clientX - drag.lastX
+      drag.lastX = e.clientX
       // Scrub the SAME motion value the loop drives — autoplay and drag never
       // fight; on release the loop continues from wherever the user left it.
-      let v = x.get() - dx // drag right → content moves right (rtl feel)
-      if (halfWidth > 0) {
-        if (v <= -halfWidth) v += halfWidth
-        if (v >= halfWidth) v -= halfWidth
-      }
-      x.set(v)
+      x.set(wrap(x.get() - dx)) // drag right → content follows the pointer
     },
-    [x, halfWidth]
+    [wrap, x]
   )
 
-  const endDrag = useCallback(() => {
-    draggingRef.current = false
-    pausedRef.current = false
-  }, [])
+  const endPointer = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      const drag = dragRef.current
+      dragRef.current = null
+      pausedRef.current = false
+      if (!drag?.active) return
+      try {
+        e.currentTarget.releasePointerCapture(drag.id)
+      } catch {
+        /* already released — ignore */
+      }
+      // A real drag followed by pointerup still synthesizes a click; it would
+      // otherwise blow through to the card underneath and open the lightbox
+      // against the user's intent. Kill the one click in the capture phase.
+      const killClick = (ev: MouseEvent) => {
+        ev.stopPropagation()
+        ev.preventDefault()
+        e.currentTarget.removeEventListener("click", killClick, true)
+      }
+      const el = e.currentTarget
+      el.addEventListener("click", killClick, true)
+      // Click is dispatched synchronously after pointerup — this only cleans
+      // up for the (rare) case the browser suppresses the click entirely.
+      window.setTimeout(() => el.removeEventListener("click", killClick, true), 0)
+    },
+    []
+  )
 
   // A full copy of the strip — the track = copy A + copy B (aria-hidden) so
   // translateX wraps at exactly half the width. Lowercase helper (returns
@@ -170,19 +240,19 @@ function GalleryMarquee({
         ref={trackRef}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
+        onPointerUp={endPointer}
+        onPointerCancel={endPointer}
         onMouseEnter={() => {
           if (loop) pausedRef.current = true
         }}
         onMouseLeave={() => {
-          if (!draggingRef.current) pausedRef.current = false
+          if (!dragRef.current?.active) pausedRef.current = false
         }}
         className="group/gallery-marquee cursor-grab touch-pan-y select-none active:cursor-grabbing"
       >
         <motion.div
           style={{ x }}
-          className={cn("flex w-max", loop && "will-change-transform")}
+          className={cn("flex w-max", loop && "will-change-transform transform-gpu")}
         >
           {cards(false)}
           {loop && cards(true)}

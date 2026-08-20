@@ -71,6 +71,8 @@ All under `/api/v1/admin`.
 | `GET` | `/admin/pesanan/{pesanan}` | Show order |
 | `PUT` | `/admin/pesanan/{pesanan}` | Update order |
 | `GET` | `/admin/pesanan/{pesanan}/struk` | Order receipt (`nomor_struk`) |
+| `POST` | `/admin/cloudinary/signature` | Signed upload params for direct browser upload to Cloudinary |
+| `DELETE` | `/admin/cloudinary` | Bulk-delete Cloudinary assets by canonical URLs (rollback/orphan sweep) |
 
 > Note: a `register` Bruno request exists but there is **no public register API** — account creation goes through Laravel Breeze web routes (`routes/auth.php`), not this API.
 
@@ -80,6 +82,9 @@ All under `/api/v1/admin`.
 - **`harga_paket_satuan`** is a **snapshot** copied from `paket.harga_per_porsi` at order creation — do not send it from the client.
 - **`nomor_struk`** is **server-generated** (`STR-YYYYMMDD-XXXX`) — never send it.
 - **JSON array fields** (`menu_utama`, `menu_tambahan`, `fasilitas_termasuk` on `paket`; `detail_tambahan` on `pesanan`) are validated via **Form Requests** — send as JSON arrays, not raw strings.
+- **`images`** on `paket` (admin create/update): optional array of Cloudinary `secure_url` strings (max 8, each a valid URL). Sent by the frontend **after** files are uploaded directly to Cloudinary. On update: URLs not present anymore are deleted (DB rows + Cloudinary assets); new URLs become new `paket_images` rows. Omit the field to keep the existing gallery untouched.
+- **`thumbnail`** on `paket`: the primary cover image URL. When set and not already inside `images`, the backend also records it as a `paket_images` row so the cover always belongs to the gallery.
+- **Delete guard:** `DELETE /api/v1/admin/paket/{id}` returns `409` when the paket still has orders (`pesanan` rows referencing it) — delete is blocked to protect order history.
 - **Tumpeng Mini** is priced per package: `harga_per_porsi` = Rp25.000 with `min_order` = 10. Never send Rp250.000 as `harga_per_porsi`.
 
 ## 6. Request/Response Shapes

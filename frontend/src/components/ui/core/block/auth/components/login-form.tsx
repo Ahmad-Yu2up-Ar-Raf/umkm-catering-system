@@ -18,10 +18,11 @@ export default function LoginForm({ form, isLoading }: componentProps) {
       }}
       className="space-y-9"
     >
-      <FieldGroup className="gap-2">
+      <FieldGroup className="gap-8">
         <form.AppField name="email">
           {(field) => (
             <field.Input
+            label="Email"
               LeftIcon={Email}
               type="email"
               placeholder="example@gmail.com"
@@ -31,6 +32,7 @@ export default function LoginForm({ form, isLoading }: componentProps) {
         <form.AppField name="password">
           {(field) => (
             <field.Input
+            label="Password"
               LeftIcon={Key}
               type="password"
               placeholder="Password"

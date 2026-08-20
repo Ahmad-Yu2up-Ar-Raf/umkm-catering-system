@@ -6,7 +6,7 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
-import { AUTO_ADVANCE_MS, MOMENT_ITEMS } from "../moment-data"
+import { AUTO_ADVANCE_MS, type MomentItem } from "../moment-data"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
@@ -31,18 +31,23 @@ const CROSSFADE = 0.9
  * claims the frame, exactly like the menu gallery engine).
  */
 export function MomentFeatured({
+  items,
   activeIndex,
   onSelect,
+  onOpen,
 }: {
+  items: MomentItem[]
   activeIndex: number
   onSelect: (index: number) => void
+  /** Open the global lightbox at this moment. */
+  onOpen: (index: number) => void
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const tlRef = useRef<gsap.core.Timeline | null>(null)
   const prevIndexRef = useRef(0)
   const reduced = useReducedMotion()
 
-  const active = MOMENT_ITEMS[activeIndex]
+  const active = items[activeIndex]
 
   useGSAP(
     () => {
@@ -114,20 +119,23 @@ export function MomentFeatured({
     },
     {
       scope: ref,
-      dependencies: [activeIndex, reduced],
+      dependencies: [activeIndex, reduced, items.length],
       // Keep the PREVIOUS run's inline styles alive so the outgoing frame can
       // fade out (see timeline docblock above).
       revertOnUpdate: false,
     }
   )
 
+  if (!active) return null // no moments yet — the block renders the skeleton
+
   return (
     <div
       ref={ref}
-      className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(50vh,520px)]"
+      onClick={() => onOpen(activeIndex)}
+      className="relative aspect-[3/2] w-full cursor-pointer overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(50vh,520px)]"
     >
       {/* Stacked photos — only the active one is visible at any time. */}
-      {MOMENT_ITEMS.map((item, index) => (
+      {items.map((item, index) => (
         <div
           key={item.id}
           data-moment-photo
@@ -165,15 +173,19 @@ export function MomentFeatured({
           </p>
         </div>
 
-        {/* Pagination pills — hidden on mobile, clickable to jump. */}
+        {/* Pagination pills — hidden on mobile, clickable to jump. The frame's
+            click opens the lightbox; pills must not bubble into it. */}
         <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
-          {MOMENT_ITEMS.map((item, index) => (
+          {items.map((item, index) => (
             <button
               key={item.id}
               type="button"
               aria-label={`Lihat ${item.category} — ${item.title}`}
               aria-current={index === activeIndex}
-              onClick={() => onSelect(index)}
+              onClick={(e) => {
+                e.stopPropagation()
+                onSelect(index)
+              }}
               className={cn(
                 "h-1.5 rounded-full transition-all duration-500",
                 index === activeIndex

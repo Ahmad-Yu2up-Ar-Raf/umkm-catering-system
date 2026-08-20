@@ -1,20 +1,63 @@
 "use client"
 
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useMemo, useRef, useState } from "react"
 
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowRight } from "@hugeicons/core-free-icons"
+import { Link } from "react-router"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
-import { AUTO_ADVANCE_MS, MENU_CHOICES } from "./menu-data"
+import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
+import { useBestSellerPakets } from "@/components/ui/core/block/paket/hooks/use-paket-query"
+import {
+  AUTO_ADVANCE_MS,
+  toMenuChoice,
+  type MenuChoice,
+} from "./menu-data"
 import { MenuHeader } from "./components/menu-header"
 import { MenuList } from "./components/menu-list"
 import { MenuGallery } from "./components/menu-gallery"
-import { Link } from "react-router"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
+
+/**
+ * MenuSkeleton — 1:1 placeholder for the loaded grid.
+ *
+ * Mirrors the exact grid/order/dimensions of the loaded state so the swap to
+ * real data causes ZERO layout shift: the gallery box keeps its
+ * `h-[48vh]/md:h-full` frame and the list column renders seven rows with the
+ * same padding/height budget as `MenuListItem` (index bar + title bar).
+ */
+function MenuSkeleton() {
+  return (
+    <div className="grid gap-6 md:grid-cols-12 md:items-stretch md:gap-12">
+      <div
+        aria-hidden="true"
+        className="md:order-2 md:col-span-5 md:pl-5 lg:col-span-6"
+      >
+        <div className="h-[48vh] min-h-[320px] w-full overflow-hidden rounded-2xl md:h-full md:rounded-3xl lg:pl-20">
+          <Skeleton className="h-full w-full rounded-2xl md:rounded-3xl" />
+        </div>
+      </div>
+
+      <div className="md:order-1 md:col-span-7 lg:col-span-6">
+        <div className="flex flex-col">
+          {Array.from({ length: 7 }, (_, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-4 py-[13px] border-b border-border first:border-t first:border-border/40 md:gap-6 md:py-[16px]"
+            >
+              <Skeleton className="h-3.5 w-6 shrink-0 rounded-full md:h-4 md:w-7" />
+              <Skeleton className="h-6 max-w-[15rem] flex-1 rounded-full md:h-8" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 /**
  * #pilihan-menu — auto-advancing tab list (left) + synced visual display
@@ -42,6 +85,14 @@ export function PilihanMenuBlock() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [cycleSeed, setCycleSeed] = useState(0)
 
+  // Live data — Top-N most-ordered packages via the shared /paket fetcher.
+  const query = useBestSellerPakets()
+  const choices: MenuChoice[] = useMemo(
+    () => query.data?.map((paket, i) => toMenuChoice(paket, i)) ?? [],
+    [query.data]
+  )
+  const isLoading = query.isLoading
+
   const selectMenu = useCallback((next: number) => {
     setActiveIndex(next)
     setCycleSeed((s) => s + 1)
@@ -50,7 +101,7 @@ export function PilihanMenuBlock() {
   // Auto-advance scheduler — one timeline per tab.
   useGSAP(
     () => {
-      if (reduced || !sectionRef.current) return
+      if (reduced || !sectionRef.current || choices.length === 0) return
 
       const progress = sectionRef.current.querySelector<HTMLElement>(
         "[data-menu-progress]"
@@ -71,14 +122,17 @@ export function PilihanMenuBlock() {
           ease: "none",
         }
       ).call(
-        () => setActiveIndex((prev) => (prev + 1) % MENU_CHOICES.length),
+        () => setActiveIndex((prev) => (prev + 1) % choices.length),
         undefined,
         AUTO_ADVANCE_MS / 1000
       )
 
       carouselRef.current = tl
     },
-    { scope: sectionRef, dependencies: [activeIndex, cycleSeed, reduced] }
+    {
+      scope: sectionRef,
+      dependencies: [activeIndex, cycleSeed, reduced, choices.length],
+    }
   )
 
   // Scroll-triggered entrance — one continuous cascade: header → menu rows
@@ -86,7 +140,7 @@ export function PilihanMenuBlock() {
   useGSAP(
     () => {
       const el = sectionRef.current
-      if (!el) return
+      if (!el || choices.length === 0) return // wait for data — skeletons stay visible
 
       const q = gsap.utils.selector(el)
       const header = q("[data-menu-header]")
@@ -143,7 +197,7 @@ export function PilihanMenuBlock() {
           0.15
         )
     },
-    { scope: sectionRef }
+    { scope: sectionRef, dependencies: [choices.length] }
   )
 
   return (
@@ -165,18 +219,28 @@ export function PilihanMenuBlock() {
 
         {/* Grid — exact 12-col trait replica, MD swaps order via md:order-*.
             Both columns stretch to the same row height (grid default); the
-            gallery's `md:min-h` sets a balanced floor for the pair. */}
-        <div className="grid gap-6 md:grid-cols-12 md:items-stretch md:gap-12">
-          <div
-            data-menu-gallery
-            className="md:order-2 md:col-span-5 md:pl-5 lg:col-span-6"
-          >
-            <MenuGallery activeIndex={activeIndex} />
+            gallery's `md:min-h` sets a balanced floor for the pair. While the
+            query is in flight the SAME grid renders skeleton cells — identical
+            dimensions, so the swap to live data causes zero layout shift. */}
+        {isLoading ? (
+          <MenuSkeleton />
+        ) : choices.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-12 md:items-stretch md:gap-12">
+            <div
+              data-menu-gallery
+              className="md:order-2 md:col-span-5 md:pl-5 lg:col-span-6"
+            >
+              <MenuGallery items={choices} activeIndex={activeIndex} />
+            </div>
+            <div className="md:order-1 md:col-span-7 lg:col-span-6">
+              <MenuList
+                items={choices}
+                activeIndex={activeIndex}
+                onSelect={selectMenu}
+              />
+            </div>
           </div>
-          <div className="md:order-1 md:col-span-7 lg:col-span-6">
-            <MenuList activeIndex={activeIndex} onSelect={selectMenu} />
-          </div>
-        </div>
+        ) : null}
 
         {/* Mobile CTA — at the very bottom of the section, always reachable
             after scrolling the menu list. Hidden on md+ (header owns it). */}

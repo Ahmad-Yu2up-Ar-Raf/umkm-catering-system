@@ -41,6 +41,8 @@ class PaketStoreRequest extends FormRequest
             'kapasitas_produksi' => ['nullable', 'integer', 'min:1'],
             'deskripsi' => ['nullable', 'string'],
             'thumbnail' => ['nullable', 'string', 'max:2048'],
+            'images' => ['nullable', 'array', 'max:8'],
+            'images.*' => ['required', 'url', 'max:2048'],
             'is_best_seller' => ['nullable', 'boolean'],
         ];
     }

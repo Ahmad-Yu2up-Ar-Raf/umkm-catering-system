@@ -1,111 +1,60 @@
 /**
- * Pilihan Menu — static catalogue data decoupled from the UI.
+ * Pilihan Menu — presentation view-model for the homepage's Top-N packages.
  *
- * Items 01–05 mirror the packages seeded in `backend/docs/database-seeders.md`
- * (titles verbatim; descriptions tightened to one line). Items 06–07 are
- * Silver-series additions served from local product art. Every description is
- * ≤7 words so it renders on a single line at desktop widths.
+ * The static dummy catalogue is gone: rows now come from `GET /paket` (see
+ * `useBestSellerPakets`) mapped through `toMenuChoice`. All strings here are
+ * presentation-ready (zero-padded index, IDR-formatted price, min-order label)
+ * so the components stay dumb renderers.
  */
 
+import type { Paket } from "@/components/ui/core/block/paket/types/paket-types"
+
 export interface MenuChoice {
-  /** Stable package slug (used for the /kontak?paket= fallback query). */
+  /** Stable package id (used for the /kontak?paket= fallback query). */
   id: string
   /** Zero-padded index shown as the row numeral, e.g. "01". */
   index: string
   /** Package display name. */
   title: string
-  /** Short, honest one-line description (≤7 words). */
+  /** Short, honest one-line description. */
   description: string
-  /** Public asset path served from `/assets/...`. */
+  /** Cover image — Cloudinary URL or fallback asset path. */
   imagePath: string
   /** Fallback contact route until the real /menu page ships. */
   href: string
+  /** IDR-formatted per-portion price, e.g. "Rp 22.000". */
+  priceText: string
+  /** Minimum order label, e.g. "Min. 50 porsi". */
+  minOrderText: string
+  /** Optional marketing badge, e.g. "Best Seller". */
+  badge?: string
 }
 
-const PACKET_QUERY = (id: string) => `/kontak?paket=${id}`
-
-export const MENU_CHOICES: MenuChoice[] = [
-  {
-    id: "nasi-box-hemat",
-    index: "01",
-    title: "Nasi Box Hemat",
-    description: "Praktis, ekonomis untuk kebutuhan kantor",
-    imagePath:
-      "/assets/images/products/paket-nasi-box-hemat/paket-nasi-box-hemat-1.png",
-    href: PACKET_QUERY("nasi-box-hemat"),
-  },
-  {
-    id: "prasmanan-pernikahan",
-    index: "02",
-    title: "Prasmanan Pernikahan",
-    description: "Resepsi lengkap dengan penataan meja prasmanan",
-    imagePath:
-      "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-1.png",
-    href: PACKET_QUERY("prasmanan-pernikahan"),
-  },
-  {
-    id: "snack-box-arisan",
-    index: "03",
-    title: "Snack Box Arisan",
-    description: "Empat kue basah segar untuk arisan",
-    imagePath:
-      "/assets/images/products/paket-snack-box-arisan/paket-snack-box-arisan-1.png",
-    href: PACKET_QUERY("snack-box-arisan"),
-  },
-  {
-    id: "tumpeng-mini",
-    index: "04",
-    title: "Tumpeng Mini",
-    description: "Perayaan kecil yang tetap menarik",
-    imagePath:
-      "/assets/images/products/paket-tumpeng-mini/paket-tumpeng-mini-1.png",
-    href: PACKET_QUERY("tumpeng-mini"),
-  },
-  {
-    id: "prasmanan-korporat",
-    index: "05",
-    title: "Prasmanan Korporat",
-    description: "Gathering formal dengan menu modern",
-    imagePath:
-      "/assets/images/products/paket-prasmanan-korporat/paket-prasmanan-korporat-2.png",
-    href: PACKET_QUERY("prasmanan-korporat"),
-  },
-  {
-    id: "silver-ayam-bakar",
-    index: "06",
-    title: "Silver Ayam Bakar",
-    description: "Ayam bakar bumbu rumahan, harian istimewa",
-    imagePath:
-      "/assets/images/products/paket-silver-ayam-bakar/paket-silver-ayam-bakar-1.png",
-    href: PACKET_QUERY("silver-ayam-bakar"),
-  },
-  {
-    id: "silver-ayam-lada-hitam",
-    index: "07",
-    title: "Silver Ayam Lada Hitam",
-    description: "Gurih sederhana, tetap terasa premium",
-    imagePath:
-      "/assets/images/products/paket-silver-ayam-lada-hitam/paket-silver-ayam-lada-hitam-1.jpg",
-    href: PACKET_QUERY("silver-ayam-lada-hitam"),
-  },
-//   {
-//     id: "premium-chicken-salted-egg",
-//     index: "08",
-//     title: "Premium Chicken Salted Egg",
-//     description: "Gurih sederhana, tetap terasa premium",
-//     imagePath:
-//       "/assets/images/products/paket-premium-chicken-salted-egg/paket-premium-chicken-salted-egg-1.jpg",
-//     href: PACKET_QUERY("paket-premium-chicken-salted-egg"),
-//   },
-//   {
-//     id: "paket-gold-chicken-pop",
-//     index: "09",
-//     title: "Silver Ayam Lada Hitam",
-//     description: "Gurih sederhana, tetap terasa premium",
-//     imagePath:
-//       "/assets/images/products/paket-gold-chicken-pop/paket-gold-chicken-pop-1.jpg",
-//     href: PACKET_QUERY("paket-gold-chicken-pop"),
-//   },
-]
-
 export const AUTO_ADVANCE_MS = 6000
+
+const PACKET_QUERY = (id: number) => `/kontak?paket=${id}`
+
+/** Format a decimal:2 wire price ("22000.00") as "Rp 22.000". */
+export function formatIDR(value: string): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(Number(value))
+}
+
+/** Normalize a `Paket` into the menu's presentation `MenuChoice`. */
+export function toMenuChoice(paket: Paket, index: number): MenuChoice {
+  return {
+    id: String(paket.id),
+    index: String(index + 1).padStart(2, "0"),
+    title: paket.nama_paket,
+    description:
+      paket.deskripsi ?? paket.menu_utama.slice(0, 2).join(" · ") ?? "",
+    imagePath: paket.thumbnail ?? paket.images[0] ?? "",
+    href: PACKET_QUERY(paket.id),
+    priceText: formatIDR(paket.harga_per_porsi),
+    minOrderText: `Min. ${paket.min_order} porsi`,
+    badge: paket.is_best_seller ? "Best Seller" : undefined,
+  }
+}

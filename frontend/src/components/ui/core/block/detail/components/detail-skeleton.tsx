@@ -23,7 +23,7 @@ export function DetailSkeleton() {
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
         {/* LEFT — gallery */}
         <div className="flex flex-col gap-3 lg:sticky lg:top-24 lg:self-start">
-          <Skeleton className="aspect-[4/3] w-full rounded-2xl lg:aspect-[16/15]" />
+          <Skeleton className="aspect-[4/3] w-full rounded-2xl lg:aspect-[16/17]" />
           <div className="flex gap-2">
             {Array.from({ length: 3 }, (_, i) => (
               <Skeleton

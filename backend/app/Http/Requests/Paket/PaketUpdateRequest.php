@@ -41,6 +41,8 @@ class PaketUpdateRequest extends FormRequest
             'kapasitas_produksi' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'deskripsi' => ['sometimes', 'nullable', 'string'],
             'thumbnail' => ['sometimes', 'nullable', 'string', 'max:2048'],
+            'images' => ['sometimes', 'nullable', 'array', 'max:8'],
+            'images.*' => ['required', 'url', 'max:2048'],
             'is_best_seller' => ['sometimes', 'nullable', 'boolean'],
         ];
     }

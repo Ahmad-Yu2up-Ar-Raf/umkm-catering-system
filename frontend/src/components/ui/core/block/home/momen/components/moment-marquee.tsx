@@ -5,7 +5,7 @@ import { motion, type Variants } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
-import { MOMENT_ITEMS } from "../moment-data"
+import type { MomentItem } from "../moment-data"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -35,15 +35,20 @@ const TILE_VARIANTS: Variants = {
  * - `prefers-reduced-motion` → single static list, no loop, no animation.
  */
 export function MomentMarquee({
+  items,
   activeIndex,
   onSelect,
+  onOpen,
 }: {
+  items: MomentItem[]
   activeIndex: number
   onSelect: (index: number) => void
+  /** Open the global lightbox at this moment (same index as onSelect). */
+  onOpen: (index: number) => void
 }) {
   const reduced = useReducedMotion()
-  const loop = !reduced
-  const items = loop ? [...MOMENT_ITEMS, ...MOMENT_ITEMS] : MOMENT_ITEMS
+  const loop = !reduced && items.length > 0
+  const doubled = loop ? [...items, ...items] : items
 
   return (
     <motion.div
@@ -56,9 +61,9 @@ export function MomentMarquee({
       }}
       className="mt-3 overflow-hidden py-2 [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]"
     >
-      <div className={cn("flex w-max", loop && "animate-marquee")}>
-        {items.map((item, i) => {
-          const realIndex = i % MOMENT_ITEMS.length
+      <div className={cn("flex w-max", loop && "animate-marquee will-change-transform")}>
+        {doubled.map((item, i) => {
+          const realIndex = i % items.length
           const isActive = realIndex === activeIndex
           return (
             <motion.button
@@ -67,7 +72,10 @@ export function MomentMarquee({
               variants={TILE_VARIANTS}
               aria-label={`${item.category} — ${item.title}`}
               aria-pressed={isActive}
-              onClick={() => onSelect(realIndex)}
+              onClick={() => {
+                onSelect(realIndex)
+                onOpen(realIndex)
+              }}
               className={cn(
                 "group/card relative mr-3 aspect-[4/3] w-[170px] shrink-0 overflow-hidden rounded-2xl ring-1 transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-xl hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:w-[190px]",
                 isActive ? "ring-primary/60" : "ring-border"

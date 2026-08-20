@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\CloudinaryController;
 use App\Http\Controllers\GaleriController;
 use App\Http\Controllers\PaketController;
 use App\Http\Controllers\PesananController;
@@ -28,6 +29,12 @@ Route::prefix('v1')->group(function () {
     Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::apiResource('paket', PaketController::class)->names('admin.paket');
         Route::apiResource('galeri', GaleriController::class)->except('update')->names('admin.galeri');
+
+        // Cloudinary — signed upload credentials + storage cleanup (see CloudinaryService).
+        Route::post('/cloudinary/signature', [CloudinaryController::class, 'signature'])
+            ->name('admin.cloudinary.signature');
+        Route::delete('/cloudinary', [CloudinaryController::class, 'destroy'])
+            ->name('admin.cloudinary.destroy');
 
         Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
         Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');

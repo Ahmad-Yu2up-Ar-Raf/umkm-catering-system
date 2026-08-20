@@ -1,75 +1,36 @@
 /**
- * Momen Yang Kami Rayakan — static gallery data, decoupled from the UI.
+ * Momen Yang Kami Rayakan — presentation view-model for live gallery data.
  *
- * Dummy set built from REAL client assets already in `public/assets/images`
- * (no stock, no new uploads). Shape mirrors the future `GET /galeri`
- * endpoint (`../backend/docs/api-collection.md`) so the loader can be swapped
- * to React Query + Ky later without touching the components.
+ * The static dummy set is gone: moments now come from `GET /galeri` via the
+ * shared `useGaleriPreviews` fetcher and are mapped through `toMomentItem`.
+ * The components render this shape only, so the load path can change without
+ * touching the UI.
  */
 
+import type { GalleryItem } from "@/components/ui/core/block/galeri/types/gallery-types"
+
 export interface MomentItem {
-  /** Stable slug, e.g. "pernikahan-1". */
+  /** Stable id (gallery record id). */
   id: string
   /** Category micro-label, e.g. "Pernikahan" | "Korporat" | "Syukuran". */
   category: string
   /** One-line caption (featured) / two-line max (marquee tiles). */
   title: string
-  /** Public asset path served from `/assets/...`. */
+  /** Editorial caption — feeds the fullscreen lightbox, optional. */
+  description?: string
+  /** Public asset path or Cloudinary URL (API: gambar_acara). */
   imagePath: string
 }
 
 export const AUTO_ADVANCE_MS = 6000
 
-export const MOMENT_ITEMS: MomentItem[] = [
-  {
-    id: "pernikahan-1",
-    category: "Pernikahan",
-    title: "Resepsi pernikahan yang hangat",
-    imagePath: "/assets/images/lifestyle/wedding-buffet-lifestyle-shot.png",
-  },
-  {
-    id: "pernikahan-2",
-    category: "Pernikahan",
-    title: "Prasmanan penuh kehangatan",
-    imagePath:
-      "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-1.png",
-  },
-  {
-    id: "korporat-1",
-    category: "Korporat",
-    title: "Lunch box rapat dan training",
-    imagePath:
-      "/assets/images/lifestyle/corporate-lunch-box-overhead-lifestyle.png",
-  },
-  {
-    id: "korporat-2",
-    category: "Korporat",
-    title: "Prasmanan acara kantor",
-    imagePath:
-      "/assets/images/products/paket-prasmanan-korporat/paket-prasmanan-korporat-1.png",
-  },
-  {
-    id: "syukuran-1",
-    category: "Syukuran",
-    title: "Tumpeng syukuran keluarga",
-    imagePath: "/assets/images/products/paket-tumpeng/tumpeng-1.jpg",
-  },
-  {
-    id: "syukuran-2",
-    category: "Syukuran",
-    title: "Tumpeng mini ulang tahun",
-    imagePath: "/assets/images/products/paket-tumpeng-mini/tumpeng-mini-1.jpg",
-  },
-  {
-    id: "hampers-1",
-    category: "Hampers",
-    title: "Bingkisan istimewa untuk berbagi",
-    imagePath: "/assets/images/lifestyle/paket-combo-1.png",
-  },
-  {
-    id: "di-balik-layar-1",
-    category: "Di Balik Layar",
-    title: "Penyajian yang telaten",
-    imagePath: "/assets/images/lifestyle/kantor-3.png",
-  },
-]
+/** Normalize a `GalleryItem` into the moment section's presentation shape. */
+export function toMomentItem(item: GalleryItem): MomentItem {
+  return {
+    id: item.id,
+    category: item.category,
+    title: item.nama_acara,
+    description: item.deskripsi_acara,
+    imagePath: item.gambar_acara,
+  }
+}
