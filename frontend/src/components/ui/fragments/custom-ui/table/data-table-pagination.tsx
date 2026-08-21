@@ -11,6 +11,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons"
 import type { Pagination } from "@/types/pagination-type"
+import { usePagination, DOTS } from "@/hooks/use-pagination"
 
 const PER_PAGE_OPTIONS = [10, 25, 50, 100]
 
@@ -21,7 +22,7 @@ interface DataTablePaginationProps {
   isLoading?: boolean
 }
 
-/** Prev/next + per-page size for server-side paginated admin tables. */
+/** Prev/next + per-page size for server-side paginated admin tables — minimalist, transparent. */
 export function DataTablePagination({
   pagination,
   onPageChange,
@@ -30,8 +31,14 @@ export function DataTablePagination({
 }: DataTablePaginationProps) {
   const { total, currentPage, lastPage, perPage, hasMore } = pagination
 
+  const paginationRange = usePagination({
+    currentPage,
+    totalCount: total,
+    pageSize: perPage,
+  })
+
   return (
-    <div className="flex flex-col items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 sm:flex-row">
+    <div className="flex flex-col items-center justify-between gap-3 px-2 py-3 sm:flex-row">
       <p className="text-xs text-muted-foreground">
         Menampilkan <span className="font-medium text-foreground">{total}</span> paket
       </p>
@@ -44,10 +51,10 @@ export function DataTablePagination({
             onValueChange={(value) => onPerPageChange(Number(value))}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-8 w-16" aria-label="Jumlah per halaman">
+            <SelectTrigger className="h-8 w-16 bg-transparent" aria-label="Jumlah per halaman">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[9999]">
               {PER_PAGE_OPTIONS.map((option) => (
                 <SelectItem key={option} value={String(option)}>
                   {option}
@@ -59,7 +66,7 @@ export function DataTablePagination({
 
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="icon-sm"
           aria-label="Halaman sebelumnya"
           onClick={() => onPageChange(currentPage - 1)}
@@ -67,16 +74,43 @@ export function DataTablePagination({
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} />
         </Button>
-        <span className="min-w-16 text-center text-xs text-muted-foreground tabular-nums">
-          {currentPage} / {lastPage}
-        </span>
+
+        <div className="flex items-center gap-1">
+          {paginationRange?.map((pageNumber, idx) => {
+            if (pageNumber === DOTS) {
+              return (
+                <span key={`dots-${idx}`} className="px-1 text-xs text-muted-foreground">
+                  &#8230;
+                </span>
+              )
+            }
+
+            const page = pageNumber as number
+            const isActive = page === currentPage
+
+            return (
+              <Button
+                key={page}
+                type="button"
+                variant={isActive ? "secondary" : "ghost"}
+                size="icon-xs"
+                onClick={() => onPageChange(page)}
+                disabled={isLoading}
+                className="h-7 w-7 text-xs tabular-nums"
+              >
+                {page}
+              </Button>
+            )
+          })}
+        </div>
+
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
           size="icon-sm"
           aria-label="Halaman berikutnya"
           onClick={() => onPageChange(currentPage + 1)}
-          disabled={isLoading || !hasMore}
+          disabled={isLoading || !hasMore || currentPage >= lastPage}
         >
           <HugeiconsIcon icon={ArrowRight01Icon} />
         </Button>

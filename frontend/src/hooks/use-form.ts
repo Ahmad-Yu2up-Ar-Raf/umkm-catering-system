@@ -20,6 +20,7 @@ import { FormCheckbox } from "@/components/ui/fragments/custom-ui/form/form-chec
 import { FormTagInput } from "@/components/ui/fragments/custom-ui/form/form-tag-input"
 import { FormImageUpload } from "@/components/ui/fragments/custom-ui/form/form-image-upload"
 import { FormImagesUpload } from "@/components/ui/fragments/custom-ui/form/form-images-upload"
+import { FormCurrencyInput } from "@/components/ui/fragments/custom-ui/form/form-currency-input"
 
 const fieldComponents = {
   Input: FormInput,
@@ -31,6 +32,7 @@ const fieldComponents = {
   TagInput: FormTagInput,
   ImageUpload: FormImageUpload,
   ImagesUpload: FormImagesUpload,
+  CurrencyInput: FormCurrencyInput,
 } as const
 
 const formComponents = {} as Record<string, never>

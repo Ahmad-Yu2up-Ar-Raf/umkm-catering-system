@@ -38,10 +38,7 @@ const readCanonical = (input: unknown): string =>
   toCanonicalCloudinaryUrl(input as UploadResultLike)
 
 /**
- * Headless mediadrop dropzone + tile grid — the ONLY upload UI in the admin
- * paket form. Files upload to Cloudinary immediately on selection (concurrency
- * 3, shared retry/backoff, cancel via AbortSignal) and the field value is the
- * resulting canonical URLs — the form submit never touches file bytes.
+ * Headless mediadrop dropzone + tile grid.
  */
 export function MediaDropzone({
   urls,
@@ -60,7 +57,6 @@ export function MediaDropzone({
   const {
     getRootProps,
     getInputProps,
-    open,
     acceptedFiles,
     isDragActive,
     isDragReject,
@@ -80,9 +76,6 @@ export function MediaDropzone({
   })
 
   // Auto-queue freshly accepted files.
-  // NOTE: localUrls is initialized from `urls` and stays in sync through the
-  // onChange round-trip; external resets remount the dropzone via the drawer's
-  // key, so no prop-sync effect is needed here.
   useEffect(() => {
     const fresh = acceptedFiles.some(
       (f) => f.status === "accepted" && !f.uploadStatus
@@ -90,7 +83,7 @@ export function MediaDropzone({
     if (fresh) uploadAll()
   }, [acceptedFiles, uploadAll])
 
-  // Fold completed uploads into the value (single → replace, multiple → append).
+  // Fold completed uploads into the value.
   useEffect(() => {
     const settled = [
       ...new Set(
@@ -101,9 +94,7 @@ export function MediaDropzone({
       ),
     ]
     if (settled.length === 0) return
-    // Synchronizing upload results into local state from an effect is the
-    // required React pattern here (state is derived from the mediadrop engine).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setLocalUrls((prev) => {
       if (multiple) {
         return [...prev, ...settled.filter((url) => !prev.includes(url))]
@@ -117,14 +108,13 @@ export function MediaDropzone({
     onChangeRef.current(localUrls)
   }, [localUrls])
 
-  // Reconcile in-flight uploads against the shared store (exact once-per-state).
+  // Reconcile in-flight uploads.
   const uploading = acceptedFiles.some(
     (f) => !f.uploadStatus || f.uploadStatus === "queued" || f.uploadStatus === "uploading"
   )
   useEffect(() => {
     adjustActiveUploads(uploading ? 1 : 0)
     return () => adjustActiveUploads(uploading ? -1 : 0)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uploading])
 
   const removeStored = (url: string) => {
@@ -271,36 +261,23 @@ export function MediaDropzone({
           data-drag-reject={isDragReject || undefined}
           aria-invalid={isInvalid || undefined}
           className={cn(
-            "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border bg-background/40 p-4 text-center transition-colors",
+            "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border bg-background/40 p-4 text-center transition-all hover:border-primary/50 hover:bg-muted/30",
             isDragActive && "border-primary bg-primary/5",
             isDragReject && "border-destructive/60 bg-destructive/5",
-            isInvalid && "border-destructive/60"
+            isInvalid && "border-destructive bg-destructive/10"
           )}
         >
           <input {...getInputProps()} aria-label="Unggah gambar" />
           <HugeiconsIcon icon={Upload01Icon} className="size-5 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs font-medium text-foreground">
             {isDragActive
               ? "Lepaskan gambar di sini"
               : "Letakkan gambar di sini, atau klik untuk memilih"}
           </p>
-          <p className="text-xs text-muted-foreground/70">
+          <p className="text-[11px] text-muted-foreground">
             PNG, JPG atau WebP — maks 5MB per file
           </p>
         </div>
-      )}
-
-      {!atLimit && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-fit"
-          onClick={open}
-        >
-          <HugeiconsIcon icon={Upload01Icon} className="size-4" />
-          Pilih Gambar
-        </Button>
       )}
     </div>
   )

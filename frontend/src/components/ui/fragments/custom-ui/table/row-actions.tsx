@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   Delete01Icon,
   Edit01Icon,
+  EyeIcon,
   MoreHorizontalIcon,
 } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
@@ -18,21 +19,25 @@ import {
 interface RowActionsProps {
   onEdit: () => void
   onDelete: () => void
+  onPreview?: () => void
   editDisabled?: boolean
   deleteDisabled?: boolean
   editLabel?: string
   deleteLabel?: string
+  previewLabel?: string
   deleteHint?: string
 }
 
-/** Row-level actions (edit/delete) for admin tables — generic, ready to reuse. */
+/** Row-level actions (edit/delete/preview) for admin tables. */
 export function RowActions({
   onEdit,
   onDelete,
+  onPreview,
   editDisabled = false,
   deleteDisabled = false,
   editLabel = "Ubah",
   deleteLabel = "Hapus",
+  previewLabel = "Lihat Detail",
   deleteHint,
 }: RowActionsProps) {
   return (
@@ -47,7 +52,13 @@ export function RowActions({
           <HugeiconsIcon icon={MoreHorizontalIcon} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
+      <DropdownMenuContent align="end" className="w-44 z-[9999]">
+        {onPreview && (
+          <DropdownMenuItem onSelect={onPreview}>
+            <HugeiconsIcon icon={EyeIcon} className="size-4" />
+            {previewLabel}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onSelect={onEdit} disabled={editDisabled}>
           <HugeiconsIcon icon={Edit01Icon} className="size-4" />
           {editLabel}

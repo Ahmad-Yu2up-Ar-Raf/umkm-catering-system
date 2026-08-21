@@ -13,19 +13,18 @@ interface PaketListResponse {
 
 /**
  * Admin paket list — server-paginated `useQuery` over `GET /api/v1/admin/paket`.
- * Search + enum filters live in the queryKey, so any combination change
- * refetches that exact key. `keepPreviousData` keeps the previous page rendered
- * (dimmed) while the next one loads instead of flashing skeletons.
  */
 export function usePaketList({
   search,
   kategoriPaket,
   kategoriAcara,
+  sortBy = "created_at",
+  sortDir = "desc",
   page,
   perPage,
 }: PaketListQueryParams) {
   return useQuery({
-    queryKey: ["admin", "paket", search, kategoriPaket, kategoriAcara, page, perPage],
+    queryKey: ["admin", "paket", search, kategoriPaket, kategoriAcara, sortBy, sortDir, page, perPage],
 
     queryFn: async () => {
       const res = await api
@@ -36,6 +35,8 @@ export function usePaketList({
             ...(search ? { search } : {}),
             ...(kategoriPaket ? { kategori_paket: kategoriPaket } : {}),
             ...(kategoriAcara ? { kategori_acara: kategoriAcara } : {}),
+            ...(sortBy ? { sort_by: sortBy } : {}),
+            ...(sortDir ? { sort_dir: sortDir } : {}),
           },
         })
         .json<PaketListResponse>()

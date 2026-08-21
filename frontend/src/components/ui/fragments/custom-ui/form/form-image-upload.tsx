@@ -12,12 +12,10 @@ type FormImageUploadProps = Omit<
 
 /**
  * FormImageUpload — single-image (thumbnail) field. Value is the canonical
- * Cloudinary URL string (`string | null`). Files upload directly via the
- * mediadrop dropzone the moment they are selected; the field only ever holds
- * URLs, never File objects.
+ * Cloudinary URL string (`string`).
  */
 export function FormImageUpload(props: FormImageUploadProps) {
-  const field = useFieldContext<string | null>()
+  const field = useFieldContext<string>()
 
   const isSubmitting = useStore(
     field.form.baseStore,
@@ -28,7 +26,7 @@ export function FormImageUpload(props: FormImageUploadProps) {
     (state) => state.submissionAttempts
   )
   const errors = useStore(field.store, (state) => state.meta.errors)
-  const value = useStore(field.store, (state) => state.value) ?? null
+  const value = useStore(field.store, (state) => state.value) ?? ""
 
   const isInvalid = errors.length > 0 && submissionAttempts > 0
 
@@ -36,7 +34,7 @@ export function FormImageUpload(props: FormImageUploadProps) {
     <FormBase {...props}>
       <MediaDropzone
         urls={value ? [value] : []}
-        onChange={(urls) => field.handleChange(urls[0] ?? null)}
+        onChange={(urls) => field.handleChange(urls[0] ?? "")}
         multiple={false}
         maxFiles={1}
         isInvalid={isInvalid}

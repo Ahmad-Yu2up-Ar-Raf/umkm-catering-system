@@ -4,13 +4,13 @@ import { useState } from "react"
 import { useStore } from "@tanstack/react-store"
 import { toast } from "sonner"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/fragments/shadcn-ui/sheet"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/fragments/shadcn-ui/dialog"
 import {
   Drawer,
   DrawerContent,
@@ -33,7 +33,7 @@ interface UpdatePaketDrawerProps {
   onOpenChange: (open: boolean) => void
 }
 
-/** Responsive Update shell — same form as Create, seeded from the row being edited. */
+/** Responsive Update shell — Dialog on desktop (≥md), Drawer on mobile (<md). */
 export function UpdatePaketDrawer({
   paket,
   open,
@@ -93,7 +93,7 @@ export function UpdatePaketDrawer({
             <DrawerHeader className="border-b p-4 text-left">
               <DrawerTitle>Ubah Paket</DrawerTitle>
               <DrawerDescription>
-                Perbarui detail paket “{paket.nama_paket}”.
+                Perbarui detail paket "{paket.nama_paket}".
               </DrawerDescription>
             </DrawerHeader>
             <div className="overflow-y-auto px-4 pb-4">
@@ -124,27 +124,27 @@ export function UpdatePaketDrawer({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={handleOpenChange}>
-        <SheetContent side="right" className="w-full gap-0 overflow-y-auto p-0 sm:max-w-2xl">
-          <SheetHeader className="sticky top-0 z-30 space-y-1 border-b bg-background p-6 text-left">
-            <SheetTitle>Ubah Paket</SheetTitle>
-            <SheetDescription>
-              Perbarui detail paket “{paket.nama_paket}”.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="p-6">
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
+          <DialogHeader className="sticky top-0 z-30 flex flex-row items-center gap-4 border-b bg-background px-6 py-5 sm:px-10">
+            <DialogTitle>Ubah Paket</DialogTitle>
+            <DialogDescription className="hidden sm:block">
+              Perbarui detail paket "{paket.nama_paket}".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="show-scrollbar flex-1 overflow-y-auto overscroll-contain p-6">
             <PaketForm key={open ? "open" : "closed"} form={form}>
-              <SheetFooter className="sticky bottom-0 z-50 -mx-6 mt-4 flex w-[calc(100%+3rem)] flex-row justify-end gap-3 border-t bg-background px-8 py-4">
+              <DialogFooter className="sticky bottom-0 z-50 flex w-full flex-row justify-end gap-3 border-t bg-background px-6 py-4">
                 <PaketFormActions
                   form={form}
                   submitLabel="Simpan Perubahan"
                   onCancel={handleCancel}
                 />
-              </SheetFooter>
+              </DialogFooter>
             </PaketForm>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       <DeleteDialog
         open={confirmDiscard}

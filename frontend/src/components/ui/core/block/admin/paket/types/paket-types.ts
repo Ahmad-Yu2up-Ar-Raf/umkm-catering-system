@@ -1,11 +1,12 @@
 /**
- * Query parameters for the admin paket list. The wire shape is the shared
- * public `Paket` type from `block/paket/types` — no separate admin shape.
+ * Query parameters for the admin paket list.
  */
 export interface PaketListQueryParams {
   search: string
   kategoriPaket: string
   kategoriAcara: string
+  sortBy?: string
+  sortDir?: "asc" | "desc"
   page: number
   perPage: number
 }

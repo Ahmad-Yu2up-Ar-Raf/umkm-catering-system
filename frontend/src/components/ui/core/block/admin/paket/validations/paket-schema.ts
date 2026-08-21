@@ -7,11 +7,6 @@ export const MAX_PAKET_IMAGES = 8
 
 /**
  * Schema for the shared Create/Update Paket form.
- *
- * Media fields hold canonical Cloudinary URLs only — files upload instantly on
- * selection via mediadrop, so `thumbnail`/`images` are required URL lists by
- * submit time. `update` reuses the full schema: defaultValues are seeded from
- * the row being edited and the backend treats omitted fields as "keep".
  */
 export const paketSchema = z.object({
   nama_paket: z.string().trim().min(1, "Nama paket wajib diisi"),
@@ -22,14 +17,12 @@ export const paketSchema = z.object({
     message: "Kategori acara tidak valid",
   }).nullable().optional(),
   harga_per_porsi: z
-    .number({ message: "Harga wajib diisi" })
-    .nonnegative("Harga tidak boleh negatif")
-    .optional(),
+    .number({ message: "Harga per porsi wajib diisi" })
+    .min(1000, "Harga minimal Rp 1.000"),
   min_order: z
     .number({ message: "Min. order wajib diisi" })
     .int("Harus bilangan bulat")
-    .min(1, "Minimal 1")
-    .optional(),
+    .min(1, "Minimal 1"),
   kapasitas_produksi: z
     .number()
     .int("Harus bilangan bulat")
@@ -42,13 +35,12 @@ export const paketSchema = z.object({
     .min(1, "Minimal 1 menu utama"),
   menu_tambahan: z.array(z.string().trim().min(1, "Item tidak boleh kosong")).optional(),
   fasilitas_termasuk: z.array(z.string().trim().min(1, "Item tidak boleh kosong")).optional(),
-  jenis_kemasan: z.string().trim().max(255).nullable().optional(),
+  jenis_kemasan: z.string().trim().min(1, "Jenis kemasan wajib diisi").max(255),
   catatan_alergen: z.string().trim().nullable().optional(),
-  deskripsi: z.string().trim().nullable().optional(),
-  thumbnail: z.string().url("Foto utama wajib diisi"),
+  deskripsi: z.string().trim().min(1, "Deskripsi wajib diisi"),
+  thumbnail: z.string().trim().min(1, "Foto utama wajib diisi"),
   images: z
-    .array(z.string().url("URL gambar tidak valid"))
-    .min(1, "Minimal 1 gambar galeri")
+    .array(z.string().trim())
     .max(MAX_PAKET_IMAGES, `Maksimal ${MAX_PAKET_IMAGES} gambar`),
 })
 

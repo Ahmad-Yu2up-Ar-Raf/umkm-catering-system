@@ -9,7 +9,7 @@ export function AppShell() {
   return (
     <div className="overflow-hidden">
       <SidebarProvider className="relative h-svh">
-        <AppSidebar />
+        {/* <AppSidebar /> */}
         <SidebarInset className="md:peer-data-[variant=inset]:ml-0">
           <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
             <Outlet />

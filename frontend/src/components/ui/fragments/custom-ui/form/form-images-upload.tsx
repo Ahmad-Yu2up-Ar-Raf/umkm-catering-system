@@ -14,14 +14,13 @@ interface FormImagesUploadProps extends Omit<
 
 /**
  * FormImagesUpload — multi-image gallery field. Value is an array of canonical
- * Cloudinary URLs (`string[]`). Files upload directly via the mediadrop
- * dropzone the moment they are selected; the field only ever holds URLs.
+ * Cloudinary URLs (`string[]`).
  */
 export function FormImagesUpload({
   maxFiles = 8,
   ...props
 }: FormImagesUploadProps) {
-  const field = useFieldContext<string[] | null>()
+  const field = useFieldContext<string[]>()
 
   const isSubmitting = useStore(
     field.form.baseStore,

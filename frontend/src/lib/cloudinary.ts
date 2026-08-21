@@ -36,9 +36,9 @@ export function toCanonicalCloudinaryUrl(upload: {
   version?: number | string
   format?: string
   secure_url?: string
-}): string {
-  if (!upload.public_id || upload.version === undefined || !upload.format) {
-    return upload.secure_url ?? ""
+} | null | undefined): string {
+  if (!upload || typeof upload !== "object" || !upload.public_id || upload.version === undefined || !upload.format) {
+    return (upload as { secure_url?: string })?.secure_url ?? ""
   }
   return `https://res.cloudinary.com/${cachedSignature?.cloudName ?? ""}/image/upload/v${upload.version}/${upload.public_id}.${upload.format}`
 }

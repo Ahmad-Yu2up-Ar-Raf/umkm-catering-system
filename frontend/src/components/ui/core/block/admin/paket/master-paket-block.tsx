@@ -21,9 +21,7 @@ import { PaketDeleteDialog } from "./components/paket-delete-dialog"
 import { cn } from "@/lib/utils"
 
 /**
- * Master Paket — the admin MDM block. Owns UI state only (search, filters,
- * pagination, drawers, delete target); all server data flows through
- * `usePaketList` + the mutation hooks (React Query + Ky).
+ * Master Paket — the admin MDM block.
  */
 function MasterPaketBlock() {
   const isMobile = useIsMobile()
@@ -35,6 +33,8 @@ function MasterPaketBlock() {
 
   const [kategoriPaket, setKategoriPaket] = useState("")
   const [kategoriAcara, setKategoriAcara] = useState("")
+  const [sortBy, setSortBy] = useState("created_at")
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
 
@@ -42,6 +42,8 @@ function MasterPaketBlock() {
     search,
     kategoriPaket,
     kategoriAcara,
+    sortBy,
+    sortDir,
     page,
     perPage,
   })
@@ -62,6 +64,12 @@ function MasterPaketBlock() {
     }
   }
 
+  const handleSortChange = (column: string, dir: "asc" | "desc") => {
+    setSortBy(column)
+    setSortDir(dir)
+    setPage(1)
+  }
+
   const handleDelete = () => {
     if (!deleteTarget) return
     if (deleteTarget.pesanan_count > 0) {
@@ -78,6 +86,8 @@ function MasterPaketBlock() {
     setSearchInput("")
     setKategoriPaket("")
     setKategoriAcara("")
+    setSortBy("created_at")
+    setSortDir("desc")
     setPage(1)
   }
 
@@ -143,11 +153,14 @@ function MasterPaketBlock() {
             onDelete={setDeleteTarget}
           />
         ) : (
-          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="overflow-hidden bg-transparent">
             <PaketTable
               items={items}
               onEdit={setUpdateTarget}
               onDelete={setDeleteTarget}
+              sortBy={sortBy}
+              sortDir={sortDir}
+              onSortChange={handleSortChange}
             />
           </div>
         )}

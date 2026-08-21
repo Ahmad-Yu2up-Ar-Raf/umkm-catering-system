@@ -19,6 +19,8 @@ class PaketController extends Controller
         $search = $request->input('search');
         $kategoriPaket = $request->input('kategori_paket');
         $kategoriAcara = $request->input('kategori_acara');
+        $sortBy = $request->input('sort_by', 'created_at');
+        $sortDir = $request->input('sort_dir', 'desc');
         $page = $request->integer('page', 1);
         $perPage = $request->integer('perPage', 10);
 
@@ -39,12 +41,19 @@ class PaketController extends Controller
             $query->where('kategori_acara', $kategoriAcara);
         }
 
-        $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
+        // Validate allowed sort columns to prevent SQL injection
+        $allowedSorts = ['nama_paket', 'harga_per_porsi', 'created_at', 'kategori_paket', 'min_order'];
+        $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
+        $sortDir = in_array(strtolower($sortDir), ['asc', 'desc']) ? $sortDir : 'desc';
+
+        $paginate = $query->orderBy($sortBy, $sortDir)->paginate($perPage, ['*'], 'page', $page);
 
         $filters = array_filter([
             'search' => $search,
             'kategori_paket' => $kategoriPaket,
             'kategori_acara' => $kategoriAcara,
+            'sort_by' => $sortBy,
+            'sort_dir' => $sortDir,
         ], fn ($value) => ! is_null($value) && $value !== '');
 
         return response()->json($this->respondWithPagination(
@@ -100,11 +109,6 @@ class PaketController extends Controller
 
     /**
      * Update the specified resource in storage (admin).
-     *
-     * Images are diffed against the new URL list: removed rows are deleted and
-     * their Cloudinary assets destroyed; new URLs become new rows. If `images`
-     * is omitted, the existing gallery is kept untouched (the frontend bypasses
-     * the image path entirely when nothing changed).
      */
     public function update(PaketUpdateRequest $request, Paket $paket)
     {
@@ -125,9 +129,6 @@ class PaketController extends Controller
 
     /**
      * Remove the specified resource from storage (admin).
-     *
-     * Guarded: a paket that still has orders cannot be deleted — the order
-     * history must stay intact (no FK cascade on pesanan.paket_id).
      */
     public function destroy(Paket $paket)
     {
@@ -169,7 +170,6 @@ class PaketController extends Controller
 
         if ($removed !== []) {
             $paket->images()->whereIn('image_url', $removed)->delete();
-            // Delete storage AFTER the response is sent — never block the request.
             DeleteCloudinaryAssets::dispatch($removed)->afterResponse();
         }
 
@@ -177,11 +177,8 @@ class PaketController extends Controller
             $paket->images()->create(['image_url' => $url]);
         }
 
-        // A thumbnail must always be a real gallery row when one is set.
-        if ($paket->thumbnail
-            && ! in_array($paket->thumbnail, $newUrls, true)
-            && ! $paket->images()->where('image_url', $paket->thumbnail)->exists()) {
-            $paket->images()->create(['image_url' => $paket->thumbnail]);
-        }
+        // NOTE: The thumbnail is handled separately as a field on the paket table.
+        // It should NOT be automatically added to the gallery table here,
+        // as that causes duplication issues on the frontend.
     }
 }
