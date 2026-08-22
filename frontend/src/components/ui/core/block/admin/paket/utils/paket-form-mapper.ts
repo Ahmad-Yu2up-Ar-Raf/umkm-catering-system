@@ -1,5 +1,6 @@
 import type { Paket } from "../../../paket/types/paket-types"
 import type { PaketFormValues, KategoriAcaraValue } from "../validations/paket-schema"
+import { deepEqual } from "@/lib/deep-equal"
 
 export interface PaketPayload {
   nama_paket: string
@@ -24,6 +25,21 @@ const cleanTags = (items: string[] | null | undefined): string[] | null => {
     .map((item) => item.trim())
     .filter(Boolean)
   return cleaned.length > 0 ? cleaned : null
+}
+
+const normalizeFormValue = (value: unknown): unknown => {
+  if (typeof window !== "undefined" && value instanceof window.File) return ""
+  if (Array.isArray(value)) return value.map(normalizeFormValue)
+  if (value && typeof value === "object") {
+    const result: Record<string, unknown> = {}
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        result[key] = normalizeFormValue((value as Record<string, unknown>)[key])
+      }
+    }
+    return result
+  }
+  return value
 }
 
 /** Map a freshly-edited Paket into form default values. */
@@ -51,12 +67,21 @@ export function toFormDefaults(paket: Paket): PaketFormValues {
 }
 
 /**
+ * Compare two form value objects for equality, normalizing File objects to empty strings.
+ */
+export function areFormValuesEqual(a: unknown, b: unknown): boolean {
+  return deepEqual(normalizeFormValue(a), normalizeFormValue(b))
+}
+
+/**
  * Coerce validated form values into the API payload.
  */
 export function toPaketPayload(value: PaketFormValues): PaketPayload {
-  const thumb = value.thumbnail.trim()
+  const thumb = typeof value.thumbnail === "string" ? value.thumbnail.trim() : ""
   // Ensure thumbnail is excluded from images gallery
-  const gallery = (value.images ?? []).filter((img) => img.trim() !== thumb)
+  const gallery = (value.images ?? [])
+    .map((img) => (typeof img === "string" ? img.trim() : ""))
+    .filter((img) => img !== thumb)
 
   return {
     nama_paket: value.nama_paket.trim(),
@@ -73,6 +98,6 @@ export function toPaketPayload(value: PaketFormValues): PaketPayload {
     catatan_alergen: value.catatan_alergen?.trim() || null,
     deskripsi: value.deskripsi.trim(),
     thumbnail: thumb,
-    images: gallery,
+    images: gallery as string[],
   }
 }

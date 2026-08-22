@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useStore } from "@tanstack/react-store"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -23,6 +22,7 @@ import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePaketUploadStore } from "@/store/paket-upload-store"
 import { usePaketForm } from "../hooks/use-paket-mutations"
+import { areFormValuesEqual } from "../utils/paket-form-mapper"
 import PaketForm from "./paket-form"
 import { PaketFormActions } from "./paket-form-actions"
 
@@ -47,14 +47,36 @@ export function CreatePaketDrawer({
   })
 
   const activeUploads = usePaketUploadStore((s) => s.activeUploads)
-  const isDirty = useStore(form.store, (state) => state.isDirty)
+
+  const hasActualChanges = () => {
+    const currentValues = form.store.state.values
+    const defaults = {
+      nama_paket: "",
+      kategori_paket: "Nasi Box",
+      kategori_acara: null,
+      harga_per_porsi: 1000,
+      min_order: 1,
+      kapasitas_produksi: null,
+      is_best_seller: false,
+      menu_utama: [],
+      menu_tambahan: [],
+      fasilitas_termasuk: [],
+      jenis_kemasan: "",
+      catatan_alergen: null,
+      deskripsi: "",
+      thumbnail: "",
+      images: [],
+    }
+    
+    return !areFormValuesEqual(currentValues, defaults)
+  }
 
   const requestClose = () => {
     if (activeUploads > 0) {
       toast.error("Masih ada upload gambar — tunggu sampai selesai.")
       return
     }
-    if (isDirty) {
+    if (hasActualChanges()) {
       setConfirmDiscard(true)
       return
     }

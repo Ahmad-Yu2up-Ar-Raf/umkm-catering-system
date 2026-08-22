@@ -10,13 +10,10 @@ import {
   SelectValue,
 } from "@/components/ui/fragments/shadcn-ui/select"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Add01Icon,
-  FilterIcon,
-  Search01Icon,
-} from "@hugeicons/core-free-icons"
+import { Add01Icon, FilterIcon, Search01Icon } from "@hugeicons/core-free-icons"
 import { PAKET_KATEGORI_OPTIONS, KATEGORI_ACARA_OPTIONS } from "../config/paket-enum-options"
 import { PaketViewToggle } from "./paket-view-toggle"
+import { cn } from "@/lib/utils"
 
 const ALL = "all"
 
@@ -64,7 +61,13 @@ export function PaketToolbar({
             value={kategoriPaket || ALL}
             onValueChange={(value) => onKategoriPaketChange(value === ALL ? "" : value)}
           >
-            <SelectTrigger className="w-full xl:w-44" aria-label="Filter kategori paket">
+            <SelectTrigger 
+              className={cn(
+                "w-full xl:w-44 rounded-full text-xs",
+                kategoriPaket && "border-primary text-primary bg-primary/5"
+              )} 
+              aria-label="Filter kategori paket"
+            >
               <SelectValue placeholder="Kategori Paket" />
             </SelectTrigger>
             <SelectContent>
@@ -81,7 +84,13 @@ export function PaketToolbar({
             value={kategoriAcara || ALL}
             onValueChange={(value) => onKategoriAcaraChange(value === ALL ? "" : value)}
           >
-            <SelectTrigger className="w-full xl:w-44" aria-label="Filter kategori acara">
+            <SelectTrigger 
+              className={cn(
+                "w-full xl:w-44 rounded-full text-xs",
+                kategoriAcara && "border-primary text-primary bg-primary/5"
+              )} 
+              aria-label="Filter kategori acara"
+            >
               <SelectValue placeholder="Kategori Acara" />
             </SelectTrigger>
             <SelectContent>
@@ -99,7 +108,7 @@ export function PaketToolbar({
               type="button"
               variant="ghost"
               size="sm"
-              className="w-fit text-muted-foreground"
+              className="w-fit text-muted-foreground rounded-full"
               onClick={onClearFilters}
             >
               <HugeiconsIcon icon={FilterIcon} className="size-4" />

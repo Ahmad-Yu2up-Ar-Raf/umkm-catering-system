@@ -75,43 +75,47 @@ export function PaketTable({
     const isSorted = sortBy === columnKey
 
     return (
-      <div className="flex items-center justify-between gap-1">
-        <span>{title}</span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className={cn("h-6 w-6 text-muted-foreground", isSorted && "text-foreground font-semibold")}
-            >
-              {isSorted ? (
-                sortDir === "asc" ? (
-                  <HugeiconsIcon icon={ArrowUp01Icon} className="size-3" />
-                ) : (
-                  <HugeiconsIcon icon={ArrowDown01Icon} className="size-3" />
-                )
-              ) : (
-                <HugeiconsIcon icon={Sorting01Icon} className="size-3" />
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-40 z-[9999]">
-            <DropdownMenuItem onClick={() => onSortChange?.(columnKey, "asc")}>
-              <HugeiconsIcon icon={ArrowUp01Icon} className="size-3.5" />
-              Sort Ascending
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onSortChange?.(columnKey, "desc")}>
-              <HugeiconsIcon icon={ArrowDown01Icon} className="size-3.5" />
-              Sort Descending
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => toggleColumn(columnKey)}>
-              <HugeiconsIcon icon={EyeIcon} className="size-3.5" />
-              Sembunyikan
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:bg-muted/50",
+              isSorted && "text-foreground font-semibold"
+            )}
+          >
+            <span className="flex-1">{title}</span>
+            <HugeiconsIcon 
+              icon={isSorted 
+                ? sortDir === "asc" 
+                  ? ArrowUp01Icon 
+                  : ArrowDown01Icon
+                : Sorting01Icon
+              } 
+              className={cn(
+                "size-3.5 shrink-0 transition-opacity",
+                isSorted ? "text-foreground" : "text-muted-foreground opacity-0 group-hover:opacity-100"
+              )} 
+            />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-40 z-[9999]">
+          <DropdownMenuItem onClick={() => onSortChange?.(columnKey, "asc")}>
+            <HugeiconsIcon icon={ArrowUp01Icon} className="size-3.5" />
+            Sort Ascending
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onSortChange?.(columnKey, "desc")}>
+            <HugeiconsIcon icon={ArrowDown01Icon} className="size-3.5" />
+            Sort Descending
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => toggleColumn(columnKey)}>
+            <HugeiconsIcon icon={EyeIcon} className="size-3.5" />
+            Sembunyikan
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     )
   }
 
@@ -126,7 +130,7 @@ export function PaketTable({
             <TableHead className="min-w-36">{renderSortHeader("Kategori", "kategori_paket")}</TableHead>
           )}
           {!hiddenCols.kategori_acara && (
-            <TableHead className="min-w-32">Acara</TableHead>
+            <TableHead className="min-w-32">{renderSortHeader("Acara", "kategori_acara")}</TableHead>
           )}
           {!hiddenCols.harga_per_porsi && (
             <TableHead className="min-w-36">{renderSortHeader("Harga / Porsi", "harga_per_porsi")}</TableHead>
@@ -138,7 +142,7 @@ export function PaketTable({
             <TableHead className="min-w-24">Terjual</TableHead>
           )}
           {!hiddenCols.status && (
-            <TableHead className="min-w-28">Status</TableHead>
+            <TableHead className="min-w-28">{renderSortHeader("Status", "is_best_seller")}</TableHead>
           )}
           {!hiddenCols.created_at && (
             <TableHead className="min-w-32">{renderSortHeader("Dibuat", "created_at")}</TableHead>
@@ -162,7 +166,7 @@ export function PaketTable({
               {!hiddenCols.nama_paket && (
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Avatar className="size-10 shrink-0 rounded-xl border border-border bg-muted/40">
+                    <Avatar className="size-10 shrink-0 rounded-lg border border-border bg-muted/40">
                       {paket.thumbnail ? (
                         <MediaItem
                           webViewLink={paket.thumbnail}

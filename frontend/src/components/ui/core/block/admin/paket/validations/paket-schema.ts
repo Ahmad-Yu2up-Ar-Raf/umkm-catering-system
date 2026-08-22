@@ -5,8 +5,14 @@ export const KATEGORI_ACARA_VALUES = ["Pernikahan", "Kantor", "Ulang Tahun", "Ar
 
 export const MAX_PAKET_IMAGES = 8
 
+const fileOrUrl = z.union([
+  z.instanceof(globalThis.File, { message: "File tidak valid" }),
+  z.string().trim().min(1, "URL tidak valid"),
+])
+
 /**
  * Schema for the shared Create/Update Paket form.
+ * Allows File objects during upload; coercion transforms to string on submit.
  */
 export const paketSchema = z.object({
   nama_paket: z.string().trim().min(1, "Nama paket wajib diisi"),
@@ -38,10 +44,8 @@ export const paketSchema = z.object({
   jenis_kemasan: z.string().trim().min(1, "Jenis kemasan wajib diisi").max(255),
   catatan_alergen: z.string().trim().nullable().optional(),
   deskripsi: z.string().trim().min(1, "Deskripsi wajib diisi"),
-  thumbnail: z.string().trim().min(1, "Foto utama wajib diisi"),
-  images: z
-    .array(z.string().trim())
-    .max(MAX_PAKET_IMAGES, `Maksimal ${MAX_PAKET_IMAGES} gambar`),
+  thumbnail: fileOrUrl.nullable().optional(),
+  images: z.array(fileOrUrl).max(MAX_PAKET_IMAGES, `Maksimal ${MAX_PAKET_IMAGES} gambar`).optional(),
 })
 
 export type PaketFormValues = z.infer<typeof paketSchema>

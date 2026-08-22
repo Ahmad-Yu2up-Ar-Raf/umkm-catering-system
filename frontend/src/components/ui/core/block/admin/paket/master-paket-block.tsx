@@ -4,13 +4,14 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { SpoonAndForkIcon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
-import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useDebouncedValue } from "./hooks/use-debounced-value"
 import { usePaketList } from "./hooks/use-paket-query"
 import { usePaketDeleteMutation } from "./hooks/use-paket-mutations"
 import { usePaketViewStore } from "@/store/paket-admin-view-store"
+import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
+import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
 import type { Paket } from "../../paket/types/paket-types"
 import { PaketToolbar } from "./components/paket-toolbar"
 import { PaketTable } from "./components/paket-table"
@@ -130,15 +131,25 @@ function MasterPaketBlock() {
         )}
       >
         {isLoading ? (
-          <div className="flex w-full justify-center py-20">
-            <Spinner className="size-8 text-primary" />
-          </div>
+          viewMode === "grid" ? (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex flex-col gap-3">
+                  <Skeleton className="aspect-square w-full rounded-xl" />
+                  <Skeleton className="h-4 w-3/4 rounded" />
+                  <Skeleton className="h-4 w-1/2 rounded" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <DataTableSkeleton columnCount={8} rowCount={5} />
+          )
         ) : isError ? (
-          <div className="rounded-xl border border-border bg-card py-12 text-center text-destructive">
+          <div className="rounded-xl border border-border py-12 text-center text-destructive">
             Gagal memuat data dari server. Muat ulang halaman dan coba lagi.
           </div>
         ) : items.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card py-16 text-center">
+          <div className="rounded-xl border border-border py-16 text-center bg-transparent">
             <p className="text-sm text-muted-foreground">
               Tidak ada paket ditemukan.
             </p>

@@ -143,7 +143,10 @@ export function MediaDropzone({
           {localUrls.map((url) => (
             <div
               key={`stored-${url}`}
-              className="relative aspect-square overflow-hidden rounded-xl border border-border bg-muted/30"
+              className={cn(
+                "relative aspect-square overflow-hidden rounded-xl border bg-muted/30",
+                isInvalid ? "border-destructive" : "border-border"
+              )}
             >
               <MediaItem
                 webViewLink={url}
@@ -158,7 +161,7 @@ export function MediaDropzone({
                 aria-label="Hapus gambar"
                 variant="ghost"
                 size="icon-xs"
-                className="absolute top-1.5 right-1.5 rounded-full border border-border bg-background/90 text-destructive shadow-sm hover:text-destructive"
+                className="absolute top-1.5 right-1.5 rounded-full border border-border bg-background/90 text-destructive shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground"
                 onClick={() => removeStored(url)}
               >
                 <HugeiconsIcon icon={Cancel01Icon} />
@@ -169,10 +172,15 @@ export function MediaDropzone({
           {pendingFiles.map((file) => {
             const status = file.uploadStatus ?? "queued"
             const url = readCanonical(file.uploadResult)
+            const hasError = status === "error"
+            
             return (
               <div
                 key={file.id}
-                className="relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border border-border bg-muted/30 p-2 text-center"
+                className={cn(
+                  "relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border p-2 text-center",
+                  hasError ? "border-destructive bg-destructive/10" : "border-border bg-muted/30"
+                )}
               >
                 {url ? (
                   <MediaItem
@@ -186,7 +194,10 @@ export function MediaDropzone({
                 ) : (
                   <HugeiconsIcon
                     icon={Image01Icon}
-                    className="size-6 text-muted-foreground"
+                    className={cn(
+                      "size-6",
+                      hasError ? "text-destructive" : "text-muted-foreground"
+                    )}
                   />
                 )}
 
@@ -218,20 +229,20 @@ export function MediaDropzone({
                   </p>
                 )}
 
-                {status === "error" && (
+                {hasError && (
                   <p className="truncate text-[10px] text-destructive">
                     {file.uploadError?.message ?? file.errors[0]?.message ?? "Gagal"}
                   </p>
                 )}
 
                 <div className="absolute top-1.5 right-1.5 flex gap-1">
-                  {status === "error" && (
+                  {hasError && (
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon-xs"
                       aria-label="Coba lagi"
-                      className="rounded-full border border-border bg-background/90 shadow-sm"
+                      className="rounded-full border border-destructive bg-destructive/10 shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground"
                       onClick={() => retryUpload(file.id)}
                     >
                       <HugeiconsIcon icon={RefreshIcon} />
@@ -242,7 +253,12 @@ export function MediaDropzone({
                     aria-label={`Hapus ${file.name}`}
                     variant="ghost"
                     size="icon-xs"
-                    className="rounded-full border border-border bg-background/90 text-destructive shadow-sm hover:text-destructive"
+                    className={cn(
+                      "rounded-full border shadow-sm transition-colors",
+                      hasError
+                        ? "border-destructive bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        : "border-border bg-background/90 text-destructive hover:text-destructive"
+                    )}
                     onClick={() => removePending(file)}
                   >
                     <HugeiconsIcon icon={Cancel01Icon} />
@@ -261,20 +277,33 @@ export function MediaDropzone({
           data-drag-reject={isDragReject || undefined}
           aria-invalid={isInvalid || undefined}
           className={cn(
-            "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-border bg-background/40 p-4 text-center transition-all hover:border-primary/50 hover:bg-muted/30",
+            "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed p-4 text-center transition-all",
             isDragActive && "border-primary bg-primary/5",
             isDragReject && "border-destructive/60 bg-destructive/5",
-            isInvalid && "border-destructive bg-destructive/10"
+            isInvalid && "border-destructive bg-destructive/10",
+            !isDragActive && !isDragReject && !isInvalid && "border-border bg-background/40 hover:border-primary/50 hover:bg-muted/30"
           )}
         >
           <input {...getInputProps()} aria-label="Unggah gambar" />
-          <HugeiconsIcon icon={Upload01Icon} className="size-5 text-muted-foreground" />
-          <p className="text-xs font-medium text-foreground">
+          <HugeiconsIcon 
+            icon={Upload01Icon} 
+            className={cn(
+              "size-5",
+              isInvalid ? "text-destructive" : "text-muted-foreground"
+            )} 
+          />
+          <p className={cn(
+            "text-xs font-medium",
+            isInvalid ? "text-destructive" : "text-foreground"
+          )}>
             {isDragActive
               ? "Lepaskan gambar di sini"
               : "Letakkan gambar di sini, atau klik untuk memilih"}
           </p>
-          <p className="text-[11px] text-muted-foreground">
+          <p className={cn(
+            "text-[11px]",
+            isInvalid ? "text-destructive/80" : "text-muted-foreground"
+          )}>
             PNG, JPG atau WebP — maks 5MB per file
           </p>
         </div>

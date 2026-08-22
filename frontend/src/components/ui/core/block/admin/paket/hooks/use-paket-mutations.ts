@@ -91,7 +91,7 @@ export function usePaketUpdateMutation({ onSuccess }: { onSuccess?: () => void }
       const previousPaket = queryClient.getQueryData(ADMIN_PAKET_KEY)
 
       if (previousPaket) {
-        queryClient.setQueryData(ADMIN_PAKET_KEY, (old: any) => {
+        queryClient.setQueryData(ADMIN_PAKET_KEY, (old: { items: Paket[] } | undefined) => {
           if (!old?.items) return old
           return {
             ...old,
@@ -139,7 +139,7 @@ export function usePaketDeleteMutation() {
       const previousPaket = queryClient.getQueryData(ADMIN_PAKET_KEY)
 
       if (previousPaket) {
-        queryClient.setQueryData(ADMIN_PAKET_KEY, (old: any) => {
+        queryClient.setQueryData(ADMIN_PAKET_KEY, (old: { items: Paket[] } | undefined) => {
           if (!old?.items) return old
           return {
             ...old,

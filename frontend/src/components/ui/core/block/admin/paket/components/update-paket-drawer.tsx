@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useStore } from "@tanstack/react-store"
 import { toast } from "sonner"
 import {
   Dialog,
@@ -23,6 +22,7 @@ import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePaketUploadStore } from "@/store/paket-upload-store"
 import { usePaketForm } from "../hooks/use-paket-mutations"
+import { toFormDefaults, areFormValuesEqual } from "../utils/paket-form-mapper"
 import type { Paket } from "../../../paket/types/paket-types"
 import PaketForm from "./paket-form"
 import { PaketFormActions } from "./paket-form-actions"
@@ -51,14 +51,20 @@ export function UpdatePaketDrawer({
   })
 
   const activeUploads = usePaketUploadStore((s) => s.activeUploads)
-  const isDirty = useStore(form.store, (state) => state.isDirty)
+
+  const hasActualChanges = () => {
+    const currentValues = form.store.state.values
+    const originalValues = toFormDefaults(paket)
+    
+    return !areFormValuesEqual(currentValues, originalValues)
+  }
 
   const requestClose = () => {
     if (activeUploads > 0) {
       toast.error("Masih ada upload gambar — tunggu sampai selesai.")
       return
     }
-    if (isDirty) {
+    if (hasActualChanges()) {
       setConfirmDiscard(true)
       return
     }
