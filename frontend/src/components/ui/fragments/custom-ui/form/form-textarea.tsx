@@ -33,7 +33,6 @@ export function FormTextArea(props: FormTextAreaProps) {
   const isValid = hasValue && !hasErrors
 
   // 2. THEMING SYSTEM (Persis seperti FormInput)
-  const defaultIconColor = props.iconClassName || "text-primary"
   const defaultInputColor = props.inputClassName || "text-primary"
   const focusClass = props.isFocusClassName || "border-primary bg-primary/5"
   const validClass = props.isValidClassName || "border-primary bg-primary/5"
@@ -43,17 +42,13 @@ export function FormTextArea(props: FormTextAreaProps) {
 
   // 3. PRIORITAS VISUAL (Invalid > Valid > Focus > Normal)
   let containerStateClass = "border-border bg-card"
-  let iconStateColor = defaultIconColor
 
   if (isInvalid) {
     containerStateClass = invalidClass
-    iconStateColor = "text-destructive"
   } else if (isValid) {
     containerStateClass = validClass
-    iconStateColor = defaultIconColor // Warna valid netep
   } else if (isFocused) {
     containerStateClass = focusClass
-    iconStateColor = iconStateColor
   }
 
   return (
@@ -86,7 +81,12 @@ export function FormTextArea(props: FormTextAreaProps) {
           aria-invalid={isInvalid}
           placeholder={props.placeholder}
           rows={props.rows || 4} // Default 4 baris
-          onChange={(e) => field.handleChange(e.target.value)}
+          onChange={(e) => {
+            field.handleChange(e.target.value)
+            // Every keystroke is a commit — run blur validation so stale
+            // errors clear on the first valid character.
+            field.handleBlur()
+          }}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
             setIsFocused(false)

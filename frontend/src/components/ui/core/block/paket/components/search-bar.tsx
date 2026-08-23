@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 
 import { Search01Icon } from "@hugeicons/core-free-icons"
 import { Input } from "@/components/ui/fragments/shadcn-ui/input"
+import { cn } from "@/lib/utils"
 
 /** Debounce pause before a keystroke is committed to the URL (?search=). */
 const DEBOUNCE_MS = 300
@@ -23,9 +24,11 @@ const DEBOUNCE_MS = 300
 export function SearchBar({
   search,
   onSearchChange,
+  className,
 }: {
   search: string
   onSearchChange: (term: string) => void
+  className?: string
 }) {
   const [value, setValue] = useState(search)
   const [focused, setFocused] = useState(false)
@@ -58,7 +61,7 @@ export function SearchBar({
       onBlur={() => setFocused(false)}
       placeholder="Cari paket…"
       aria-label="Cari paket"
-      className="h-9 w-full rounded-full border-border bg-muted/40"
+      className={cn("h-9 w-full rounded-full border-border bg-muted/40", className)}
     />
   )
 }

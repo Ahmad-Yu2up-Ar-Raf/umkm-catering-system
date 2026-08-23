@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Paket\PaketStoreRequest;
 use App\Http\Requests\Paket\PaketUpdateRequest;
 use App\Http\Resources\PaketResource;
-use App\Jobs\DeleteCloudinaryAssets;
 use App\Models\Paket;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PaketController extends Controller
 {
@@ -116,9 +117,16 @@ class PaketController extends Controller
             ? $request->input('images') ?? []
             : $paket->images()->pluck('image_url')->all();
 
+        // Capture BEFORE the write so a replaced thumbnail can be purged.
+        $oldThumbnail = $paket->thumbnail;
+
         $paket->update($request->validated());
 
         $this->syncImages($paket, $newImages);
+
+        if ($oldThumbnail && $paket->thumbnail !== $oldThumbnail) {
+            $this->purgeAssets([$oldThumbnail]);
+        }
 
         return response()->json([
             'status' => true,
@@ -147,8 +155,9 @@ class PaketController extends Controller
 
         $paket->delete(); // paket_images rows cascade
 
-        // Storage cleanup happens after the response — never block the request.
-        DeleteCloudinaryAssets::dispatch($urls)->afterResponse();
+        // Synchronous purge — URLs were extracted before the delete, so model
+        // context loss is impossible. Failures are logged, never fatal.
+        $this->purgeAssets($urls);
 
         return response()->json([
             'status' => true,
@@ -170,7 +179,7 @@ class PaketController extends Controller
 
         if ($removed !== []) {
             $paket->images()->whereIn('image_url', $removed)->delete();
-            DeleteCloudinaryAssets::dispatch($removed)->afterResponse();
+            $this->purgeAssets($removed);
         }
 
         foreach ($added as $url) {
@@ -180,5 +189,36 @@ class PaketController extends Controller
         // NOTE: The thumbnail is handled separately as a field on the paket table.
         // It should NOT be automatically added to the gallery table here,
         // as that causes duplication issues on the frontend.
+    }
+
+    /**
+     * Destroy Cloudinary assets synchronously. Never throws: a storage
+     * failure is logged (with the offending URLs) but never breaks the
+     * HTTP response or the DB mutation it accompanies.
+     *
+     * @param  list<string>  $urls  canonical Cloudinary URLs
+     */
+    private function purgeAssets(array $urls): void
+    {
+        if ($urls === []) {
+            return;
+        }
+
+        try {
+            $deleted = CloudinaryService::fromConfig()->destroyMany($urls);
+
+            if ($deleted < count($urls)) {
+                Log::warning('Cloudinary purge incomplete', [
+                    'requested' => count($urls),
+                    'deleted' => $deleted,
+                    'urls' => $urls,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Cloudinary purge failed', [
+                'urls' => $urls,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

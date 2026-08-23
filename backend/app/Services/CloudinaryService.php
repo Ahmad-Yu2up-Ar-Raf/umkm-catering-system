@@ -72,6 +72,8 @@ class CloudinaryService
     public function destroyMany(array $urlsOrIds, int $concurrency = 5): int
     {
         if (! $this->isConfigured()) {
+            logger()->warning('Cloudinary destroy skipped: credentials not configured');
+
             return 0;
         }
 
@@ -93,10 +95,25 @@ class CloudinaryService
                     ]))
                 ->all());
 
+            $failed = collect($responses)
+                ->filter(fn ($r) => ! ($r instanceof \Illuminate\Http\Client\Response && $r->ok()))
+                ->isNotEmpty();
+
+            if ($failed) {
+                logger()->warning('Cloudinary destroy: some assets failed to delete', [
+                    'requested' => $publicIds,
+                ]);
+            }
+
             return collect($responses)
                 ->filter(fn ($r) => $r instanceof \Illuminate\Http\Client\Response && $r->ok())
                 ->count();
-        } catch (ConnectionException) {
+        } catch (ConnectionException $e) {
+            logger()->warning('Cloudinary destroy: connection failure', [
+                'error' => $e->getMessage(),
+                'requested' => $publicIds,
+            ]);
+
             return 0; // network blip — assets are orphaned, not corrupted
         }
     }
@@ -133,8 +150,14 @@ class CloudinaryService
     /** Extract the Cloudinary public_id (with folder path) from a canonical URL. */
     public function extractPublicIdFromUrl(string $url): ?string
     {
-        // https://res.cloudinary.com/<cloud>/image/upload/v<ts>/<folder>/<file>.ext
-        if (! preg_match('#/upload/(?:v\d+/)?(.+?)(?:\.[^/.]+)?$#', $url, $match)) {
+        // Strip query string / fragment before matching.
+        $url = preg_replace('#[?#].*$#', '', $url) ?? $url;
+
+        // https://res.cloudinary.com/<cloud>/image/upload/v<ts>/<folder>/<file>.<ext>
+        // The extension is only stripped when it is a KNOWN image extension —
+        // Cloudinary public_ids may contain dots ("foto.v2.jpg"), so a greedy
+        // strip would mangle them and destroy() would hit a nonexistent id.
+        if (! preg_match('#/upload/(?:v\d+/)?(.+?)(?:\.(?:jpe?g|png|webp|gif|avif|tiff?|bmp))?$#i', $url, $match)) {
             return null;
         }
 

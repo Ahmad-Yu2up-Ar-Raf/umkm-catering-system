@@ -65,6 +65,9 @@ export function FormInput(props: FormControlProps) {
     } else {
       field.handleChange(val)
     }
+    // Every keystroke is a commit — run blur validation so stale errors
+    // clear on the first valid character.
+    field.handleBlur()
   }
 
   return (

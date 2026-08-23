@@ -8,7 +8,10 @@ import {
   PackageIcon,
   Restaurant01Icon,
 } from "@hugeicons/core-free-icons"
-import { PAKET_KATEGORI_OPTIONS, KATEGORI_ACARA_OPTIONS } from "../config/paket-enum-options"
+import {
+  PAKET_KATEGORI_OPTIONS,
+  KATEGORI_ACARA_OPTIONS,
+} from "../config/paket-enum-options"
 import type { PaketFormReturnType } from "../hooks/use-paket-mutations"
 
 interface PaketFormProps {
@@ -27,9 +30,9 @@ export default function PaketForm({ form, children }: PaketFormProps) {
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className="flex flex-col gap-8"
+      className="show-scrollbar flex flex-1 flex-col gap-8 overflow-y-auto overscroll-contain"
     >
-      <main className="grid gap-8">
+      <main className="flex flex-col gap-8 p-10">
         {/* Required Section */}
         <FieldGroup className="flex flex-col gap-6">
           <form.AppField name="nama_paket">
@@ -103,20 +106,12 @@ export default function PaketForm({ form, children }: PaketFormProps) {
           </form.AppField>
 
           <form.AppField name="thumbnail">
-            {(field) => (
-              <field.ImageUpload label="Foto Utama / Thumbnail" />
-            )}
-          </form.AppField>
-
-          <form.AppField name="images">
-            {(field) => (
-              <field.ImagesUpload label="Galeri Gambar" maxFiles={8} />
-            )}
+            {(field) => <field.ImageUpload label="Foto Utama / Thumbnail" />}
           </form.AppField>
         </FieldGroup>
 
         {/* Optional Section */}
-        <div className="space-y-6 pt-4 border-t border-border">
+        <div className="space-y-6 border-t border-border pt-4">
           <header className="mb-4">
             <h1 className="text-lg font-semibold">Detail Tambahan</h1>
             <p className="text-sm text-muted-foreground">
@@ -125,6 +120,11 @@ export default function PaketForm({ form, children }: PaketFormProps) {
           </header>
 
           <FieldGroup className="flex flex-col gap-6">
+            <form.AppField name="images">
+              {(field) => (
+                <field.ImagesUpload label="Galeri Gambar" maxFiles={8} />
+              )}
+            </form.AppField>
             <form.AppField name="kategori_acara">
               {(field) => (
                 <field.Select
@@ -175,9 +175,7 @@ export default function PaketForm({ form, children }: PaketFormProps) {
             </form.AppField>
 
             <form.AppField name="is_best_seller">
-              {(field) => (
-                <field.Checkbox label="Tandai sebagai Best Seller" />
-              )}
+              {(field) => <field.Checkbox label="Tandai sebagai Best Seller" />}
             </form.AppField>
           </FieldGroup>
         </div>

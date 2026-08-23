@@ -45,10 +45,13 @@ export function FormCurrencyInput(props: FormControlProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value.replace(/\D/g, "")
     const numericValue = rawValue === "" ? undefined : parseInt(rawValue, 10)
-    
+
     // Update internal state immediately
     field.handleChange(numericValue)
-    
+    // Every keystroke is a commit — run blur validation so stale errors
+    // clear on the first valid digit.
+    field.handleBlur()
+
     // Update display value with mask
     setDisplayValue(formatIDR(numericValue))
   }

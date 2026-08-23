@@ -86,17 +86,17 @@ export function PaketTable({
             )}
           >
             <span className="flex-1">{title}</span>
-            <HugeiconsIcon 
-              icon={isSorted 
-                ? sortDir === "asc" 
-                  ? ArrowUp01Icon 
+            <HugeiconsIcon
+              icon={isSorted
+                ? sortDir === "asc"
+                  ? ArrowUp01Icon
                   : ArrowDown01Icon
                 : Sorting01Icon
-              } 
+              }
               className={cn(
                 "size-3.5 shrink-0 transition-opacity",
                 isSorted ? "text-foreground" : "text-muted-foreground opacity-0 group-hover:opacity-100"
-              )} 
+              )}
             />
           </Button>
         </DropdownMenuTrigger>

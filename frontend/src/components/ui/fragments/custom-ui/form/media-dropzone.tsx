@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { memo, useCallback, useEffect, useRef, useState } from "react"
 import { useMediaDrop, type MediaDropFile } from "react-mediadrop"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
@@ -37,6 +37,162 @@ interface UploadResultLike {
 const readCanonical = (input: unknown): string =>
   toCanonicalCloudinaryUrl(input as UploadResultLike)
 
+const sameUrlList = (a: string[], b: string[]): boolean =>
+  a.length === b.length && a.every((url, i) => url === b[i])
+
+/* ------------------------------------------------------------------ *
+ * Memoized tiles — one upload's progress tick never re-renders its
+ * siblings. Keys are stable: `stored-${url}` / `file.id`.
+ * ------------------------------------------------------------------ */
+
+interface StoredTileProps {
+  url: string
+  isInvalid: boolean
+  onRemove: (url: string) => void
+}
+
+const StoredTile = memo(function StoredTile({
+  url,
+  isInvalid,
+  onRemove,
+}: StoredTileProps) {
+  return (
+    <div
+      className={cn(
+        "relative aspect-square overflow-hidden rounded-xl border bg-muted/30",
+        isInvalid ? "border-destructive" : "border-border"
+      )}
+    >
+      <MediaItem
+        webViewLink={url}
+        alt="Gambar paket"
+        layout="constrained"
+        width={240}
+        height={240}
+        className="size-full"
+      />
+      <Button
+        type="button"
+        aria-label="Hapus gambar"
+        variant="ghost"
+        size="icon-xs"
+        className="absolute top-1.5 right-1.5 rounded-full border border-border bg-background/90 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+        onClick={() => onRemove(url)}
+      >
+        <HugeiconsIcon icon={Cancel01Icon} />
+      </Button>
+    </div>
+  )
+})
+
+interface PendingTileProps {
+  file: MediaDropFile
+  onRemove: (file: MediaDropFile) => void
+  onRetry: (id: string) => void
+}
+
+const PendingTile = memo(function PendingTile({
+  file,
+  onRemove,
+  onRetry,
+}: PendingTileProps) {
+  const status = file.uploadStatus ?? "queued"
+  const url = readCanonical(file.uploadResult)
+  const hasError = status === "error"
+
+  return (
+    <div
+      className={cn(
+        "relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border p-2 text-center",
+        hasError ? "border-destructive bg-destructive/10" : "border-border bg-muted/30"
+      )}
+    >
+      {url ? (
+        <MediaItem
+          webViewLink={url}
+          alt={file.name}
+          layout="constrained"
+          width={240}
+          height={240}
+          className="size-full"
+        />
+      ) : (
+        <HugeiconsIcon
+          icon={Image01Icon}
+          className={cn(
+            "size-6",
+            hasError ? "text-destructive" : "text-muted-foreground"
+          )}
+        />
+      )}
+
+      {status === "uploading" && (
+        <div className="absolute inset-x-2 bottom-1.5 space-y-1">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full bg-primary transition-[width]"
+              style={{
+                width: `${
+                  file.progress?.total
+                    ? Math.round(
+                        ((file.progress.loaded ?? 0) / file.progress.total) * 100
+                      )
+                    : 30
+                }%`,
+              }}
+            />
+          </div>
+          <p className="truncate text-[10px] text-muted-foreground">
+            {file.name} · Mengunggah…
+          </p>
+        </div>
+      )}
+
+      {status === "queued" && (
+        <p className="truncate text-[10px] text-muted-foreground">
+          {file.name} · Menunggu…
+        </p>
+      )}
+
+      {hasError && (
+        <p className="truncate text-[10px] text-destructive">
+          {file.uploadError?.message ?? file.errors[0]?.message ?? "Gagal"}
+        </p>
+      )}
+
+      <div className="absolute top-1.5 right-1.5 flex gap-1">
+        {hasError && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            aria-label="Coba lagi"
+            className="rounded-full border border-destructive bg-destructive/10 transition-colors hover:bg-destructive hover:text-destructive-foreground"
+            onClick={() => onRetry(file.id)}
+          >
+            <HugeiconsIcon icon={RefreshIcon} />
+          </Button>
+        )}
+        <Button
+          type="button"
+          aria-label={`Hapus ${file.name}`}
+          variant="ghost"
+          size="icon-xs"
+          className={cn(
+            "rounded-full border transition-colors",
+            hasError
+              ? "border-destructive bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              : "border-border bg-background/90 text-destructive hover:text-destructive"
+          )}
+          onClick={() => onRemove(file)}
+        >
+          <HugeiconsIcon icon={Cancel01Icon} />
+        </Button>
+      </div>
+    </div>
+  )
+})
+
 /**
  * Headless mediadrop dropzone + tile grid.
  */
@@ -53,6 +209,11 @@ export function MediaDropzone({
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
+
+  /** Canonical URLs already folded into the form value — prevents re-folding
+   * after an external reset wipes `localUrls`. State (not a ref) so render
+   * can derive `pendingFiles` from it. */
+  const [foldedUrls, setFoldedUrls] = useState<ReadonlySet<string>>(() => new Set())
 
   const {
     getRootProps,
@@ -83,25 +244,38 @@ export function MediaDropzone({
     if (fresh) uploadAll()
   }, [acceptedFiles, uploadAll])
 
-  // Fold completed uploads into the value.
+  // Fold completed uploads into the value exactly once per canonical URL.
   useEffect(() => {
-    const settled = [
-      ...new Set(
-        acceptedFiles
-          .filter((f) => f.uploadStatus === "done" && f.uploadResult)
-          .map(readCanonical)
-          .filter(Boolean)
-      ),
-    ]
-    if (settled.length === 0) return
+    const fresh = acceptedFiles
+      .filter((f) => f.uploadStatus === "done" && f.uploadResult)
+      .map((f) => readCanonical(f.uploadResult))
+      .filter((url) => url !== "" && !foldedUrls.has(url))
+    if (fresh.length === 0) return
 
-    setLocalUrls((prev) => {
-      if (multiple) {
-        return [...prev, ...settled.filter((url) => !prev.includes(url))]
-      }
-      return settled.slice(-1)
+    // Folding settled upload results into form value is the effect's job;
+    // both updates land in one batched commit.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFoldedUrls((prev) => {
+      const next = new Set(prev)
+      fresh.forEach((url) => next.add(url))
+      return next
     })
-  }, [acceptedFiles, multiple])
+    setLocalUrls((prev) => {
+      if (!multiple) return [fresh[fresh.length - 1]]
+      return [...prev, ...fresh.filter((url) => !prev.includes(url))]
+    })
+  }, [acceptedFiles, multiple, foldedUrls])
+
+  // Adopt EXTERNAL value changes (form.reset / drawer seeding) via React's
+  // render-time derived-state pattern. Our own emits round-trip back as an
+  // identical list, so they are no-ops here.
+  const [prevExternalUrls, setPrevExternalUrls] = useState(urls)
+  if (!sameUrlList(prevExternalUrls, urls)) {
+    setPrevExternalUrls(urls)
+    if (!sameUrlList(localUrls, urls)) {
+      setLocalUrls(urls)
+    }
+  }
 
   // Emit upward.
   useEffect(() => {
@@ -117,156 +291,62 @@ export function MediaDropzone({
     return () => adjustActiveUploads(uploading ? -1 : 0)
   }, [uploading])
 
-  const removeStored = (url: string) => {
+  const handleRemoveStored = useCallback((url: string) => {
     setLocalUrls((prev) => prev.filter((u) => u !== url))
-  }
+  }, [])
 
-  const removePending = (file: MediaDropFile) => {
-    const canonical = readCanonical(file.uploadResult)
-    if (canonical) removeStored(canonical)
-    removeFile(file.id)
-  }
+  const handleRemovePending = useCallback(
+    (file: MediaDropFile) => {
+      const canonical = readCanonical(file.uploadResult)
+      if (canonical) {
+        setFoldedUrls((prev) => new Set(prev).add(canonical))
+        setLocalUrls((prev) => prev.filter((u) => u !== canonical))
+      }
+      removeFile(file.id)
+    },
+    [removeFile]
+  )
 
-  const storedUrls = new Set(localUrls)
+  const handleRetry = useCallback(
+    (id: string) => retryUpload(id),
+    [retryUpload]
+  )
+
+  const storedUrls = localUrls
   const pendingFiles = acceptedFiles.filter((file) => {
-    const canonical = readCanonical(file.uploadResult)
-    return !(file.uploadStatus === "done" && canonical && storedUrls.has(canonical))
+    if (file.uploadStatus === "done") {
+      const canonical = readCanonical(file.uploadResult)
+      return canonical === "" || !foldedUrls.has(canonical)
+    }
+    return true
   })
 
   const hasAccepted = acceptedFiles.length > 0
-  const atLimit = multiple ? hasAccepted && acceptedFiles.length >= maxFiles : hasAccepted
+  const atLimit = multiple
+    ? hasAccepted && acceptedFiles.length >= maxFiles
+    : hasAccepted || storedUrls.length > 0
 
   return (
     <div className={cn("flex w-full flex-col gap-3", disabled && "pointer-events-none opacity-50")}>
-      {(localUrls.length > 0 || pendingFiles.length > 0) && (
+      {(storedUrls.length > 0 || pendingFiles.length > 0) && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {localUrls.map((url) => (
-            <div
+          {storedUrls.map((url) => (
+            <StoredTile
               key={`stored-${url}`}
-              className={cn(
-                "relative aspect-square overflow-hidden rounded-xl border bg-muted/30",
-                isInvalid ? "border-destructive" : "border-border"
-              )}
-            >
-              <MediaItem
-                webViewLink={url}
-                alt="Gambar paket"
-                layout="constrained"
-                width={240}
-                height={240}
-                className="size-full"
-              />
-              <Button
-                type="button"
-                aria-label="Hapus gambar"
-                variant="ghost"
-                size="icon-xs"
-                className="absolute top-1.5 right-1.5 rounded-full border border-border bg-background/90 text-destructive shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground"
-                onClick={() => removeStored(url)}
-              >
-                <HugeiconsIcon icon={Cancel01Icon} />
-              </Button>
-            </div>
+              url={url}
+              isInvalid={isInvalid}
+              onRemove={handleRemoveStored}
+            />
           ))}
 
-          {pendingFiles.map((file) => {
-            const status = file.uploadStatus ?? "queued"
-            const url = readCanonical(file.uploadResult)
-            const hasError = status === "error"
-            
-            return (
-              <div
-                key={file.id}
-                className={cn(
-                  "relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border p-2 text-center",
-                  hasError ? "border-destructive bg-destructive/10" : "border-border bg-muted/30"
-                )}
-              >
-                {url ? (
-                  <MediaItem
-                    webViewLink={url}
-                    alt={file.name}
-                    layout="constrained"
-                    width={240}
-                    height={240}
-                    className="size-full"
-                  />
-                ) : (
-                  <HugeiconsIcon
-                    icon={Image01Icon}
-                    className={cn(
-                      "size-6",
-                      hasError ? "text-destructive" : "text-muted-foreground"
-                    )}
-                  />
-                )}
-
-                {status === "uploading" && (
-                  <div className="absolute inset-x-2 bottom-1.5 space-y-1">
-                    <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full bg-primary transition-[width]"
-                        style={{
-                          width: `${
-                            file.progress?.total
-                              ? Math.round(
-                                  ((file.progress.loaded ?? 0) / file.progress.total) * 100
-                                )
-                              : 30
-                          }%`,
-                        }}
-                      />
-                    </div>
-                    <p className="truncate text-[10px] text-muted-foreground">
-                      {file.name} · Mengunggah…
-                    </p>
-                  </div>
-                )}
-
-                {status === "queued" && (
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {file.name} · Menunggu…
-                  </p>
-                )}
-
-                {hasError && (
-                  <p className="truncate text-[10px] text-destructive">
-                    {file.uploadError?.message ?? file.errors[0]?.message ?? "Gagal"}
-                  </p>
-                )}
-
-                <div className="absolute top-1.5 right-1.5 flex gap-1">
-                  {hasError && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="Coba lagi"
-                      className="rounded-full border border-destructive bg-destructive/10 shadow-sm transition-colors hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={() => retryUpload(file.id)}
-                    >
-                      <HugeiconsIcon icon={RefreshIcon} />
-                    </Button>
-                  )}
-                  <Button
-                    type="button"
-                    aria-label={`Hapus ${file.name}`}
-                    variant="ghost"
-                    size="icon-xs"
-                    className={cn(
-                      "rounded-full border shadow-sm transition-colors",
-                      hasError
-                        ? "border-destructive bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        : "border-border bg-background/90 text-destructive hover:text-destructive"
-                    )}
-                    onClick={() => removePending(file)}
-                  >
-                    <HugeiconsIcon icon={Cancel01Icon} />
-                  </Button>
-                </div>
-              </div>
-            )
-          })}
+          {pendingFiles.map((file) => (
+            <PendingTile
+              key={file.id}
+              file={file}
+              onRemove={handleRemovePending}
+              onRetry={handleRetry}
+            />
+          ))}
         </div>
       )}
 
@@ -285,12 +365,12 @@ export function MediaDropzone({
           )}
         >
           <input {...getInputProps()} aria-label="Unggah gambar" />
-          <HugeiconsIcon 
-            icon={Upload01Icon} 
+          <HugeiconsIcon
+            icon={Upload01Icon}
             className={cn(
               "size-5",
               isInvalid ? "text-destructive" : "text-muted-foreground"
-            )} 
+            )}
           />
           <p className={cn(
             "text-xs font-medium",

@@ -54,7 +54,9 @@ export function FormDateInput({
 
   const handleSelect = (date: Date | undefined) => {
     field.handleChange(date ? format(date, "yyyy-MM-dd") : "")
-    // 🚨 FIX: Hapus field.handleBlur() di sini agar tidak memicu event berlebih
+    // Calendar selection has no native blur — run blur validation so stale
+    // error rings/messages clear instantly on pick.
+    field.handleBlur()
     setIsOpen(false)
   }
 

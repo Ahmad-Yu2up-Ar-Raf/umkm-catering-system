@@ -5,14 +5,36 @@ export const KATEGORI_ACARA_VALUES = ["Pernikahan", "Kantor", "Ulang Tahun", "Ar
 
 export const MAX_PAKET_IMAGES = 8
 
-const fileOrUrl = z.union([
-  z.instanceof(globalThis.File, { message: "File tidak valid" }),
-  z.string().trim().min(1, "URL tidak valid"),
-])
+const isFile = (value: unknown): value is File =>
+  typeof globalThis.File !== "undefined" && value instanceof globalThis.File
+
+const isHttpUrl = (value: string): boolean =>
+  /^https?:\/\/\S+$/i.test(value.trim())
+
+/**
+ * A gallery/thumbnail entry is valid when it is either an in-flight `File`
+ * (upload still running — submit is blocked upstream) or a canonical
+ * http(s) Cloudinary URL. Empty strings and blob:/data: URLs are rejected.
+ */
+const fileOrUrl = z
+  .union([z.custom<File>((v) => isFile(v), { message: "File tidak valid" }), z.string()])
+  .refine(
+    (value) => isFile(value) || isHttpUrl(value),
+    { message: "URL gambar tidak valid" }
+  )
+
+/** Thumbnail is required: File or http(s) URL, never empty. */
+const requiredThumbnail = z
+  .union([z.custom<File>((v) => isFile(v), { message: "File tidak valid" }), z.string()])
+  .refine(
+    (value) => isFile(value) || isHttpUrl(value),
+    { message: "Foto utama wajib diisi" }
+  )
 
 /**
  * Schema for the shared Create/Update Paket form.
- * Allows File objects during upload; coercion transforms to string on submit.
+ * Allows File objects during upload; the dropzone folds resolved Cloudinary
+ * URLs back into the field, so the API payload always carries URL strings.
  */
 export const paketSchema = z.object({
   nama_paket: z.string().trim().min(1, "Nama paket wajib diisi"),
@@ -44,7 +66,7 @@ export const paketSchema = z.object({
   jenis_kemasan: z.string().trim().min(1, "Jenis kemasan wajib diisi").max(255),
   catatan_alergen: z.string().trim().nullable().optional(),
   deskripsi: z.string().trim().min(1, "Deskripsi wajib diisi"),
-  thumbnail: fileOrUrl.nullable().optional(),
+  thumbnail: requiredThumbnail,
   images: z.array(fileOrUrl).max(MAX_PAKET_IMAGES, `Maksimal ${MAX_PAKET_IMAGES} gambar`).optional(),
 })
 

@@ -51,7 +51,11 @@ export function FormCheckbox({ label, ...props }: FormCheckboxProps) {
         <Checkbox
           id={field.name}
           checked={value}
-          onCheckedChange={(checked) => field.handleChange(checked === true)}
+          onCheckedChange={(checked) => {
+            field.handleChange(checked === true)
+            // Toggle is an implicit commit — purge stale errors instantly.
+            field.handleBlur()
+          }}
           disabled={isSubmitting}
         />
         <label

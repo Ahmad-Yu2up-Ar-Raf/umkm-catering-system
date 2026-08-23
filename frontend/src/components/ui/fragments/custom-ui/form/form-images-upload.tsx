@@ -39,7 +39,12 @@ export function FormImagesUpload({
     <FormBase {...props}>
       <MediaDropzone
         urls={value}
-        onChange={(urls) => field.handleChange(urls)}
+        onChange={(urls) => {
+          field.handleChange(urls)
+          // Dropzone has no native blur — run blur validation explicitly so
+          // stale gallery errors clear the moment URLs resolve.
+          field.handleBlur()
+        }}
         multiple
         maxFiles={maxFiles}
         isInvalid={isInvalid}

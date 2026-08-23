@@ -21,7 +21,7 @@ import {
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePaketUploadStore } from "@/store/paket-upload-store"
-import { usePaketForm } from "../hooks/use-paket-mutations"
+import { usePaketForm, purgeUncommittedPaketImages } from "../hooks/use-paket-mutations"
 import { toFormDefaults, areFormValuesEqual } from "../utils/paket-form-mapper"
 import type { Paket } from "../../../paket/types/paket-types"
 import PaketForm from "./paket-form"
@@ -59,6 +59,29 @@ export function UpdatePaketDrawer({
     return !areFormValuesEqual(currentValues, originalValues)
   }
 
+  /** On discard, sweep only uploads that were ADDED this session (not in the
+   * original paket) — originals stay referenced by the DB and must survive. */
+  const discardUncommittedUploads = () => {
+    const current = form.store.state.values
+    const original = toFormDefaults(paket)
+    const known = new Set<string>([
+      ...(typeof original.thumbnail === "string" && original.thumbnail
+        ? [original.thumbnail]
+        : []),
+      ...(original.images ?? []).filter((img): img is string =>
+        typeof img === "string"
+      ),
+    ])
+    purgeUncommittedPaketImages(
+      [
+        typeof current.thumbnail === "string" ? current.thumbnail : "",
+        ...((current.images ?? []).filter(
+          (img): img is string => typeof img === "string"
+        )),
+      ].filter((url) => url !== "" && !known.has(url))
+    )
+  }
+
   const requestClose = () => {
     if (activeUploads > 0) {
       toast.error("Masih ada upload gambar — tunggu sampai selesai.")
@@ -81,12 +104,14 @@ export function UpdatePaketDrawer({
   }
 
   const confirmDiscardAction = () => {
+    discardUncommittedUploads()
     form.reset()
     setConfirmDiscard(false)
     onOpenChange(false)
   }
 
   const handleCancel = () => {
+    discardUncommittedUploads()
     form.reset()
     onOpenChange(false)
   }

@@ -64,9 +64,12 @@ export function FormSelect({
     <FormBase {...props}>
       <Select
         value={selectValue}
-        onValueChange={(v) =>
+        onValueChange={(v) => {
           field.handleChange(v === NONE_VALUE ? null : v)
-        }
+          // Selection is an implicit commit — run blur validation so a
+          // stale submit-phase error clears instantly.
+          field.handleBlur()
+        }}
         disabled={isSubmitting}
       >
         <SelectTrigger
@@ -74,7 +77,9 @@ export function FormSelect({
           aria-invalid={isInvalid}
           onBlur={field.handleBlur}
           className={cn(
-            "h-12 w-full rounded-2xl border-border/4 bg-card",
+            "h-12 w-full rounded-2xl border-border bg-background",
+            "focus:border-primary focus:ring-primary/20 data-[state=open]:border-primary",
+            selectValue && "data-[state=closed]:border-primary/50",
             isInvalid && "border-destructive bg-destructive/8"
           )}
         >

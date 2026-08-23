@@ -10,8 +10,8 @@ import { useDebouncedValue } from "./hooks/use-debounced-value"
 import { usePaketList } from "./hooks/use-paket-query"
 import { usePaketDeleteMutation } from "./hooks/use-paket-mutations"
 import { usePaketViewStore } from "@/store/paket-admin-view-store"
-import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
+import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import type { Paket } from "../../paket/types/paket-types"
 import { PaketToolbar } from "./components/paket-toolbar"
 import { PaketTable } from "./components/paket-table"
@@ -111,10 +111,6 @@ function MasterPaketBlock() {
       <PaketToolbar
         search={searchInput}
         onSearchChange={setSearchInput}
-        onSearchClear={() => {
-          setSearchInput("")
-          setPage(1)
-        }}
         kategoriPaket={kategoriPaket}
         onKategoriPaketChange={handleFilterChange(setKategoriPaket)}
         kategoriAcara={kategoriAcara}
@@ -142,7 +138,12 @@ function MasterPaketBlock() {
               ))}
             </div>
           ) : (
-            <DataTableSkeleton columnCount={8} rowCount={5} />
+            <DataTableSkeleton
+              columnCount={8}
+              rowCount={5}
+              withViewOptions={false}
+              withPagination={false}
+            />
           )
         ) : isError ? (
           <div className="rounded-xl border border-border py-12 text-center text-destructive">

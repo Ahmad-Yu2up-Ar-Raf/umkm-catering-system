@@ -34,7 +34,12 @@ export function FormImageUpload(props: FormImageUploadProps) {
     <FormBase {...props}>
       <MediaDropzone
         urls={value ? [value] : []}
-        onChange={(urls) => field.handleChange(urls[0] ?? "")}
+        onChange={(urls) => {
+          field.handleChange(urls[0] ?? "")
+          // Dropzone has no native blur — run blur validation explicitly so
+          // a stale "Foto utama wajib diisi" clears the moment a URL lands.
+          field.handleBlur()
+        }}
         multiple={false}
         maxFiles={1}
         isInvalid={isInvalid}

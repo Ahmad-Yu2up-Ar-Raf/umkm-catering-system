@@ -45,12 +45,15 @@ export function FormTagInput(props: FormTagInputProps) {
     if (!tag) return
     if (!value.includes(tag)) {
       field.handleChange([...value, tag])
+      // Chip commit — run blur validation so stale errors clear instantly.
+      field.handleBlur()
     }
     setDraft("")
   }
 
   const removeTag = (index: number) => {
     field.handleChange(value.filter((_, i) => i !== index))
+    field.handleBlur()
   }
 
   return (
@@ -69,14 +72,14 @@ export function FormTagInput(props: FormTagInputProps) {
                 className="flex items-center gap-1.5 rounded-full border border-border bg-muted/40 py-1 pr-1 pl-3 text-xs"
               >
                 {tag}
-                <button
+                <Button
                   type="button"
                   aria-label={`Hapus ${tag}`}
                   onClick={() => removeTag(index)}
                   className="flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} className="size-3" />
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -96,7 +99,7 @@ export function FormTagInput(props: FormTagInputProps) {
             }}
             onBlur={field.handleBlur}
             disabled={isSubmitting}
-            className="min-h-9 flex-1"
+            className="min-h-9 rounded-full flex-1"
           />
           <Button
             type="button"

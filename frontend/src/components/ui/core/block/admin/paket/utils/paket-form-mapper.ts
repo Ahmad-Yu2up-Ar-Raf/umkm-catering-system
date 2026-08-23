@@ -27,8 +27,17 @@ const cleanTags = (items: string[] | null | undefined): string[] | null => {
   return cleaned.length > 0 ? cleaned : null
 }
 
+/**
+ * Files are collapsed to a distinctive sentinel (NOT "") so that
+ * "default empty" vs "freshly dropped file" compares as CHANGED — this is
+ * what makes the discard-changes dialog fire for image-only edits.
+ */
+const FILE_SENTINEL = "__file_upload__"
+
 const normalizeFormValue = (value: unknown): unknown => {
-  if (typeof window !== "undefined" && value instanceof window.File) return ""
+  if (typeof globalThis.File !== "undefined" && value instanceof globalThis.File) {
+    return FILE_SENTINEL
+  }
   if (Array.isArray(value)) return value.map(normalizeFormValue)
   if (value && typeof value === "object") {
     const result: Record<string, unknown> = {}
@@ -74,14 +83,16 @@ export function areFormValuesEqual(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Coerce validated form values into the API payload.
+ * Coerce validated form values into the API payload. Any residual `File`
+ * entries (upload never resolved) are dropped so the API only ever sees URLs.
  */
 export function toPaketPayload(value: PaketFormValues): PaketPayload {
   const thumb = typeof value.thumbnail === "string" ? value.thumbnail.trim() : ""
   // Ensure thumbnail is excluded from images gallery
   const gallery = (value.images ?? [])
-    .map((img) => (typeof img === "string" ? img.trim() : ""))
-    .filter((img) => img !== thumb)
+    .filter((img): img is string => typeof img === "string")
+    .map((img) => img.trim())
+    .filter((img) => img !== "" && img !== thumb)
 
   return {
     nama_paket: value.nama_paket.trim(),

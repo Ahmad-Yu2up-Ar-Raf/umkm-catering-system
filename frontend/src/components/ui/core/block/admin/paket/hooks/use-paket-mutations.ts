@@ -2,6 +2,7 @@ import { HTTPError } from "ky"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useAppForm } from "@/hooks/use-form"
+import { usePaketUploadStore } from "@/store/paket-upload-store"
 import { api } from "@/api/client"
 import type { Paket } from "../../../paket/types/paket-types"
 import { paketSchema } from "../validations/paket-schema"
@@ -10,6 +11,20 @@ import { toFormDefaults, toPaketPayload, type PaketPayload } from "../utils/pake
 const ADMIN_PAKET_KEY = ["admin", "paket"] as const
 
 export type PaketFormReturnType = ReturnType<typeof usePaketForm>
+
+/**
+ * Fire-and-forget orphan sweep: deletes Cloudinary assets that were uploaded
+ * during a draft session but never committed (drawer discarded/cancelled).
+ * Backend endpoint: DELETE /admin/cloudinary { urls } — best-effort, errors
+ * are swallowed (storage sweep, not a user-facing flow).
+ */
+export function purgeUncommittedPaketImages(urls: string[]): void {
+  const canonical = [...new Set(urls.filter((u) => u.startsWith("http")))]
+  if (canonical.length === 0) return
+  void api
+    .delete("admin/cloudinary", { json: { urls: canonical } })
+    .catch(() => {})
+}
 
 async function getErrorMessage(error: unknown, fallback: string): Promise<string> {
   if (error instanceof HTTPError) {
@@ -192,6 +207,10 @@ export function usePaketForm({
     },
     defaultValues: paket ? toFormDefaults(paket) : defaultFormValues,
     onSubmit: async ({ value }) => {
+      if (usePaketUploadStore.getState().activeUploads > 0) {
+        toast.error("Masih ada unggahan gambar berlangsung — tunggu sampai selesai.")
+        return
+      }
       const payload = toPaketPayload(value)
       if (paketId) {
         await updatePaket({ id: paketId, ...payload })

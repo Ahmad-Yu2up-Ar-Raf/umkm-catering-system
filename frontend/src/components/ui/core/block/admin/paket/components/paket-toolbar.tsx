@@ -1,6 +1,5 @@
 "use client"
 
-import { Input } from "@/components/ui/fragments/shadcn-ui/input"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import {
   Select,
@@ -10,17 +9,20 @@ import {
   SelectValue,
 } from "@/components/ui/fragments/shadcn-ui/select"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Add01Icon, FilterIcon, Search01Icon } from "@hugeicons/core-free-icons"
-import { PAKET_KATEGORI_OPTIONS, KATEGORI_ACARA_OPTIONS } from "../config/paket-enum-options"
+import { Add01Icon, CancelCircleIcon } from "@hugeicons/core-free-icons"
+import {
+  PAKET_KATEGORI_OPTIONS,
+  KATEGORI_ACARA_OPTIONS,
+} from "../config/paket-enum-options"
 import { PaketViewToggle } from "./paket-view-toggle"
 import { cn } from "@/lib/utils"
+import { SearchBar } from "../../../paket/components/search-bar"
 
 const ALL = "all"
 
 interface PaketToolbarProps {
   search: string
   onSearchChange: (value: string) => void
-  onSearchClear: () => void
   kategoriPaket: string
   onKategoriPaketChange: (value: string) => void
   kategoriAcara: string
@@ -33,7 +35,6 @@ interface PaketToolbarProps {
 export function PaketToolbar({
   search,
   onSearchChange,
-  onSearchClear,
   kategoriPaket,
   onKategoriPaketChange,
   kategoriAcara,
@@ -45,27 +46,24 @@ export function PaketToolbar({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
-        <Input
-          leftIcon={Search01Icon}
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          onClear={onSearchClear}
-          clearable
-          placeholder="Cari nama paket..."
-          aria-label="Cari paket"
+        <SearchBar
+          search={search}
+          onSearchChange={onSearchChange}
           className="w-full xl:max-w-xs"
         />
 
         <div className="grid gap-3 sm:grid-cols-2 xl:flex">
           <Select
             value={kategoriPaket || ALL}
-            onValueChange={(value) => onKategoriPaketChange(value === ALL ? "" : value)}
+            onValueChange={(value) =>
+              onKategoriPaketChange(value === ALL ? "" : value)
+            }
           >
-            <SelectTrigger 
+            <SelectTrigger
               className={cn(
-                "w-full xl:w-44 rounded-full text-xs",
-                kategoriPaket && "border-primary text-primary bg-primary/5"
-              )} 
+                "w-full rounded-full text-xs xl:w-44",
+                kategoriPaket && "border-primary bg-primary/5 text-primary"
+              )}
               aria-label="Filter kategori paket"
             >
               <SelectValue placeholder="Kategori Paket" />
@@ -82,13 +80,15 @@ export function PaketToolbar({
 
           <Select
             value={kategoriAcara || ALL}
-            onValueChange={(value) => onKategoriAcaraChange(value === ALL ? "" : value)}
+            onValueChange={(value) =>
+              onKategoriAcaraChange(value === ALL ? "" : value)
+            }
           >
-            <SelectTrigger 
+            <SelectTrigger
               className={cn(
-                "w-full xl:w-44 rounded-full text-xs",
-                kategoriAcara && "border-primary text-primary bg-primary/5"
-              )} 
+                "w-full rounded-full text-xs xl:w-44",
+                kategoriAcara && "border-primary bg-primary/5 text-primary"
+              )}
               aria-label="Filter kategori acara"
             >
               <SelectValue placeholder="Kategori Acara" />
@@ -108,14 +108,79 @@ export function PaketToolbar({
               type="button"
               variant="ghost"
               size="sm"
-              className="w-fit text-muted-foreground rounded-full"
+              className="w-fit rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+              onClick={onClearFilters}
+            >
+              <HugeiconsIcon icon={CancelCircleIcon} className="size-4" />
+              Bersihkan Filter
+            </Button>
+          )}
+        </div>
+
+        {/* <div className="grid gap-3 sm:grid-cols-2 xl:flex">
+          <Select
+            value={kategoriPaket || ALL}
+            onValueChange={(value) =>
+              onKategoriPaketChange(value === ALL ? "" : value)
+            }
+          >
+            <SelectTrigger
+              className={cn(
+                "w-full rounded-full text-xs xl:w-44",
+                kategoriPaket && "border-primary bg-primary/5 text-primary"
+              )}
+              aria-label="Filter kategori paket"
+            >
+              <SelectValue placeholder="Kategori Paket" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Semua Kategori</SelectItem>
+              {PAKET_KATEGORI_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={kategoriAcara || ALL}
+            onValueChange={(value) =>
+              onKategoriAcaraChange(value === ALL ? "" : value)
+            }
+          >
+            <SelectTrigger
+              className={cn(
+                "w-full rounded-full text-xs xl:w-44",
+                kategoriAcara && "border-primary bg-primary/5 text-primary"
+              )}
+              aria-label="Filter kategori acara"
+            >
+              <SelectValue placeholder="Kategori Acara" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Semua Acara</SelectItem>
+              {KATEGORI_ACARA_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {hasActiveFilters && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="w-fit rounded-full text-muted-foreground"
               onClick={onClearFilters}
             >
               <HugeiconsIcon icon={FilterIcon} className="size-4" />
               Bersihkan Filter
             </Button>
           )}
-        </div>
+        </div> */}
 
         <div className="flex items-center gap-3 xl:ml-auto xl:pl-3">
           <PaketViewToggle />

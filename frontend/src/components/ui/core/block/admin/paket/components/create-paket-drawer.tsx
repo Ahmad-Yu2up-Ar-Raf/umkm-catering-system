@@ -21,7 +21,7 @@ import {
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePaketUploadStore } from "@/store/paket-upload-store"
-import { usePaketForm } from "../hooks/use-paket-mutations"
+import { usePaketForm, purgeUncommittedPaketImages } from "../hooks/use-paket-mutations"
 import { areFormValuesEqual } from "../utils/paket-form-mapper"
 import PaketForm from "./paket-form"
 import { PaketFormActions } from "./paket-form-actions"
@@ -67,8 +67,20 @@ export function CreatePaketDrawer({
       thumbnail: "",
       images: [],
     }
-    
+
     return !areFormValuesEqual(currentValues, defaults)
+  }
+
+  /** In a create draft every string URL in form state is an uncommitted
+   * Cloudinary upload — sweep it on discard/cancel so storage stays clean. */
+  const discardUncommittedUploads = () => {
+    const values = form.store.state.values
+    purgeUncommittedPaketImages([
+      ...(typeof values.thumbnail === "string" ? [values.thumbnail] : []),
+      ...((values.images ?? []).filter(
+        (img): img is string => typeof img === "string"
+      )),
+    ])
   }
 
   const requestClose = () => {
@@ -93,12 +105,14 @@ export function CreatePaketDrawer({
   }
 
   const confirmDiscardAction = () => {
+    discardUncommittedUploads()
     form.reset()
     setConfirmDiscard(false)
     onOpenChange(false)
   }
 
   const handleCancel = () => {
+    discardUncommittedUploads()
     form.reset()
     onOpenChange(false)
   }
@@ -144,23 +158,22 @@ export function CreatePaketDrawer({
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-          <DialogHeader className="sticky top-0 z-30 flex flex-row items-center gap-4 border-b bg-background px-6 py-5 sm:px-10">
-            <DialogTitle>Tambah Paket</DialogTitle>
+          <DialogHeader className="sticky top-0 z-30 flex flex-col items-center gap-2 border-b bg-background px-6 py-5 sm:px-10">
+            <DialogTitle className="text-2xl">Tambah Paket</DialogTitle>
             <DialogDescription className="hidden sm:block">
               Lengkapi detail paket catering baru di bawah ini.
             </DialogDescription>
           </DialogHeader>
-          <div className="show-scrollbar flex-1 overflow-y-auto overscroll-contain p-6">
-            <PaketForm key={open ? "open" : "closed"} form={form}>
-              <DialogFooter className="sticky bottom-0 z-50 flex w-full flex-row justify-end gap-3 border-t bg-background px-6 py-4">
-                <PaketFormActions
-                  form={form}
-                  submitLabel="Simpan"
-                  onCancel={handleCancel}
-                />
-              </DialogFooter>
-            </PaketForm>
-          </div>
+
+          <PaketForm key={open ? "open" : "closed"} form={form}>
+            <DialogFooter className="sticky bottom-0 z-50 flex w-full flex-row justify-end gap-3 border-t bg-background px-6 py-4">
+              <PaketFormActions
+                form={form}
+                submitLabel="Simpan"
+                onCancel={handleCancel}
+              />
+            </DialogFooter>
+          </PaketForm>
         </DialogContent>
       </Dialog>
 
