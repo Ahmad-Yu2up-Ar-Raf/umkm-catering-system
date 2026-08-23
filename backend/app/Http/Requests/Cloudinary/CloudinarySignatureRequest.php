@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Cloudinary;
 
+use App\Enums\GaleriKategoriEnum;
 use App\Enums\PaketKategoriEnum;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -20,6 +21,7 @@ class CloudinarySignatureRequest extends FormRequest
     {
         return [
             'category' => ['nullable', 'string', Rule::enum(PaketKategoriEnum::class)],
+            'kategori_acara' => ['nullable', 'string', Rule::enum(GaleriKategoriEnum::class)],
         ];
     }
 }

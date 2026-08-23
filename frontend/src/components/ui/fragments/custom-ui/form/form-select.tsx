@@ -17,24 +17,17 @@ export interface SelectOption {
   label: string
 }
 
-interface FormSelectProps
-  extends Omit<
-    FormControlProps,
-    "type" | "maxLength" | "inputMode" | "placeholder" | "LeftIcon"
-  > {
+interface FormSelectProps extends Omit<
+  FormControlProps,
+  "type" | "maxLength" | "inputMode" | "placeholder" | "LeftIcon"
+> {
   options: readonly SelectOption[]
   placeholder?: string
-  /** When provided, renders a "clear/none" item that writes `null` to the field. */
   noneLabel?: string
 }
 
 const NONE_VALUE = "__none__"
 
-/**
- * FormSelect — shadcn Select wired into TanStack Form via `useFieldContext`.
- * Passed as `field.Select` after registration in `src/hooks/use-form.ts`.
- * `noneLabel` turns the select into an optional field: picking it stores `null`.
- */
 export function FormSelect({
   options,
   placeholder,
@@ -57,17 +50,14 @@ export function FormSelect({
   const hasErrors = errors.length > 0
   const isInvalid = hasErrors && submissionAttempts > 0
 
-  const selectValue =
-    value === null || value === undefined ? "" : value
+  const selectValue = value === null || value === undefined ? "" : value
 
   return (
     <FormBase {...props}>
       <Select
         value={selectValue}
         onValueChange={(v) => {
-          field.handleChange(v === NONE_VALUE ? null : v)
-          // Selection is an implicit commit — run blur validation so a
-          // stale submit-phase error clears instantly.
+          field.handleChange(v === NONE_VALUE || v === "" ? null : v)
           field.handleBlur()
         }}
         disabled={isSubmitting}
@@ -77,20 +67,21 @@ export function FormSelect({
           aria-invalid={isInvalid}
           onBlur={field.handleBlur}
           className={cn(
-            "h-12 w-full rounded-2xl border-border bg-background",
+            "h-12 w-full rounded-2xl border-border bg-background transition-colors",
             "focus:border-primary focus:ring-primary/20 data-[state=open]:border-primary",
-            selectValue && "data-[state=closed]:border-primary/50",
-            isInvalid && "border-destructive bg-destructive/8"
+            selectValue &&
+              !isInvalid &&
+              "data-[state=closed]:border-primary/50",
+            isInvalid &&
+              "border-destructive bg-destructive/8 text-destructive focus:ring-destructive/20"
           )}
         >
           <SelectValue
-            placeholder={placeholder ?? props.label}
+            placeholder={placeholder ?? `Pilih ${props.label ?? ""}`.trim()}
           />
         </SelectTrigger>
         <SelectContent>
-          {noneLabel && (
-            <SelectItem value={NONE_VALUE}>{noneLabel}</SelectItem>
-          )}
+          {noneLabel && <SelectItem value={NONE_VALUE}>{noneLabel}</SelectItem>}
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}

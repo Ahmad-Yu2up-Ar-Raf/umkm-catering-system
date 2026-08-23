@@ -1,13 +1,6 @@
 "use client"
 
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/fragments/shadcn-ui/select"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Add01Icon, CancelCircleIcon } from "@hugeicons/core-free-icons"
 import {
@@ -15,18 +8,16 @@ import {
   KATEGORI_ACARA_OPTIONS,
 } from "../config/paket-enum-options"
 import { PaketViewToggle } from "./paket-view-toggle"
-import { cn } from "@/lib/utils"
+import { MultiSelectFilter } from "../../shared/multi-select-filter"
 import { SearchBar } from "../../../paket/components/search-bar"
-
-const ALL = "all"
 
 interface PaketToolbarProps {
   search: string
   onSearchChange: (value: string) => void
-  kategoriPaket: string
-  onKategoriPaketChange: (value: string) => void
-  kategoriAcara: string
-  onKategoriAcaraChange: (value: string) => void
+  kategoriPaket: string[]
+  onKategoriPaketChange: (value: string[]) => void
+  kategoriAcara: string[]
+  onKategoriAcaraChange: (value: string[]) => void
   onClearFilters: () => void
   hasActiveFilters: boolean
   onAdd: () => void
@@ -53,55 +44,21 @@ export function PaketToolbar({
         />
 
         <div className="grid gap-3 sm:grid-cols-2 xl:flex">
-          <Select
-            value={kategoriPaket || ALL}
-            onValueChange={(value) =>
-              onKategoriPaketChange(value === ALL ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                "w-full rounded-full text-xs xl:w-44",
-                kategoriPaket && "border-primary bg-primary/5 text-primary"
-              )}
-              aria-label="Filter kategori paket"
-            >
-              <SelectValue placeholder="Kategori Paket" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Semua Kategori</SelectItem>
-              {PAKET_KATEGORI_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelectFilter
+            options={PAKET_KATEGORI_OPTIONS}
+            value={kategoriPaket}
+            onChange={onKategoriPaketChange}
+            placeholder="Kategori Paket"
+            ariaLabel="Filter kategori paket"
+          />
 
-          <Select
-            value={kategoriAcara || ALL}
-            onValueChange={(value) =>
-              onKategoriAcaraChange(value === ALL ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                "w-full rounded-full text-xs xl:w-44",
-                kategoriAcara && "border-primary bg-primary/5 text-primary"
-              )}
-              aria-label="Filter kategori acara"
-            >
-              <SelectValue placeholder="Kategori Acara" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Semua Acara</SelectItem>
-              {KATEGORI_ACARA_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelectFilter
+            options={KATEGORI_ACARA_OPTIONS}
+            value={kategoriAcara}
+            onChange={onKategoriAcaraChange}
+            placeholder="Kategori Acara"
+            ariaLabel="Filter kategori acara"
+          />
 
           {hasActiveFilters && (
             <Button
@@ -116,71 +73,6 @@ export function PaketToolbar({
             </Button>
           )}
         </div>
-
-        {/* <div className="grid gap-3 sm:grid-cols-2 xl:flex">
-          <Select
-            value={kategoriPaket || ALL}
-            onValueChange={(value) =>
-              onKategoriPaketChange(value === ALL ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                "w-full rounded-full text-xs xl:w-44",
-                kategoriPaket && "border-primary bg-primary/5 text-primary"
-              )}
-              aria-label="Filter kategori paket"
-            >
-              <SelectValue placeholder="Kategori Paket" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Semua Kategori</SelectItem>
-              {PAKET_KATEGORI_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={kategoriAcara || ALL}
-            onValueChange={(value) =>
-              onKategoriAcaraChange(value === ALL ? "" : value)
-            }
-          >
-            <SelectTrigger
-              className={cn(
-                "w-full rounded-full text-xs xl:w-44",
-                kategoriAcara && "border-primary bg-primary/5 text-primary"
-              )}
-              aria-label="Filter kategori acara"
-            >
-              <SelectValue placeholder="Kategori Acara" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Semua Acara</SelectItem>
-              {KATEGORI_ACARA_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {hasActiveFilters && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="w-fit rounded-full text-muted-foreground"
-              onClick={onClearFilters}
-            >
-              <HugeiconsIcon icon={FilterIcon} className="size-4" />
-              Bersihkan Filter
-            </Button>
-          )}
-        </div> */}
 
         <div className="flex items-center gap-3 xl:ml-auto xl:pl-3">
           <PaketViewToggle />

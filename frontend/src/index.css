@@ -345,7 +345,7 @@
 /* Warna Deskripsi (Description) - Ini yang bikin masalah */
 [data-sonner-toast] [data-description] {
   color: var(--muted-foreground) !important;
-  font-size: 0.800rem !important; /* Biar ukurannya pas */
+  font-size: 0.8rem !important; /* Biar ukurannya pas */
 }
 
 /* Warna untuk Icon bawaan (jika tidak pakai custom icon) */

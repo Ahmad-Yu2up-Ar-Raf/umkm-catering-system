@@ -27,19 +27,20 @@ export function usePaketList({
     queryKey: ["admin", "paket", search, kategoriPaket, kategoriAcara, sortBy, sortDir, page, perPage],
 
     queryFn: async () => {
-      const res = await api
-        .get("admin/paket", {
-          searchParams: {
-            page: String(page),
-            perPage: String(perPage),
-            ...(search ? { search } : {}),
-            ...(kategoriPaket ? { kategori_paket: kategoriPaket } : {}),
-            ...(kategoriAcara ? { kategori_acara: kategoriAcara } : {}),
-            ...(sortBy ? { sort_by: sortBy } : {}),
-            ...(sortDir ? { sort_dir: sortDir } : {}),
-          },
-        })
-        .json<PaketListResponse>()
+      // Built manually so array filters serialize as repeated bracketed
+      // keys (`kategori_paket[]=A&kategori_paket[]=B`) — the format Laravel
+      // parses into an array. ky's object searchParams would flatten arrays
+      // to "A,B" strings.
+      const params = new URLSearchParams()
+      params.set("page", String(page))
+      params.set("perPage", String(perPage))
+      if (search) params.set("search", search)
+      for (const value of kategoriPaket) params.append("kategori_paket[]", value)
+      for (const value of kategoriAcara) params.append("kategori_acara[]", value)
+      if (sortBy) params.set("sort_by", sortBy)
+      if (sortDir) params.set("sort_dir", sortDir)
+
+      const res = await api.get("admin/paket", { searchParams: params }).json<PaketListResponse>()
 
       return { items: res.data, pagination: res.meta.pagination }
     },

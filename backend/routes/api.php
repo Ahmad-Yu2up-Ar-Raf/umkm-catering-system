@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\GaleriController as AdminGaleriController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CloudinaryController;
 use App\Http\Controllers\GaleriController;
@@ -28,7 +29,7 @@ Route::prefix('v1')->group(function () {
     // with the public paket/galeri routes.
     Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::apiResource('paket', PaketController::class)->names('admin.paket');
-        Route::apiResource('galeri', GaleriController::class)->except('update')->names('admin.galeri');
+        Route::apiResource('galeri', AdminGaleriController::class)->names('admin.galeri');
 
         // Cloudinary — signed upload credentials + storage cleanup (see CloudinaryService).
         Route::post('/cloudinary/signature', [CloudinaryController::class, 'signature'])

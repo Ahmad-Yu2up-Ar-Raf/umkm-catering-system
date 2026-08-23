@@ -44,7 +44,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
                       isActive={location.pathname == item.path}
                     >
                       {item.icon && <HugeiconsIcon icon={item.icon} />}
-                      <span>{item.title}</span>
+                      <span className=" text-sm">{item.title}</span>
                       <HugeiconsIcon
                         icon={ArrowRight01Icon}
                         strokeWidth={2}
@@ -62,7 +62,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
                           >
                             <Link to={subItem.path || "/"}>
                               {item.icon && <HugeiconsIcon icon={item.icon} />}
-                              <span>{subItem.title}</span>
+                              <span className=" text-xs">{subItem.title}</span>
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -76,7 +76,7 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
                   asChild
                   isActive={location.pathname == item.path}
                 >
-                  <Link to={item.path || "/"}>
+                  <Link to={item.path || "/"} className=" gap-4">
                     {item.icon && (
                       <HugeiconsIcon
                         strokeWidth={2}

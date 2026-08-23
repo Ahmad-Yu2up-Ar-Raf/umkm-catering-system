@@ -31,7 +31,7 @@ function RailsSkeleton() {
             {Array.from({ length: 4 }, (_, j) => (
               <Skeleton
                 key={j}
-                className="aspect-[16/10] basis-[72%] shrink-0 rounded-2xl sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
+                className="aspect-[16/10] shrink-0 basis-[72%] rounded-2xl sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
               />
             ))}
           </div>
@@ -54,7 +54,8 @@ function RailsSkeleton() {
  * so `LayoutWrapper` defers the CTA band + footer past the loading skeleton.
  */
 export function GalleryBlock() {
-  const { categories, results, featured, isLoading, isError } = useGaleriPreviews()
+  const { categories, results, featured, isLoading, isError } =
+    useGaleriPreviews()
   const isModalOpen = useImageModalStore((s) => s.isOpen)
 
   const [featuredIndex, setFeaturedIndex] = useState(0)
@@ -87,7 +88,7 @@ export function GalleryBlock() {
 
         {/* 2 — featured signature event (premium viewport reveal: blur +
             fade-up, once, fast — the first piece below the hero). */}
-        <div className="container m-auto w-full pt-6   pb-8 md:pt-8  ">
+        <div className="container m-auto w-full pt-6 pb-8 md:pt-8">
           {isLoading ? (
             <Skeleton className="aspect-[3/2] w-full rounded-2xl sm:aspect-[2/1] lg:h-[min(50vh,520px)]" />
           ) : (
@@ -121,7 +122,6 @@ export function GalleryBlock() {
                     category={category}
                     items={result.data?.items ?? []}
                     isLoading={result.isLoading}
-                    direction={index % 2 === 0 ? "ltr" : "rtl"}
                   />
                 )
               })}

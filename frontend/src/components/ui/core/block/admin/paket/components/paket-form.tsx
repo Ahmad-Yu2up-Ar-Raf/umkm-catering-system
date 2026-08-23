@@ -7,6 +7,7 @@ import {
   Dish01Icon,
   PackageIcon,
   Restaurant01Icon,
+  Image01Icon,
 } from "@hugeicons/core-free-icons"
 import {
   PAKET_KATEGORI_OPTIONS,
@@ -20,7 +21,8 @@ interface PaketFormProps {
 }
 
 /**
- * Shared Create/Update Paket form. Grouped into Required (top) vs Optional (bottom).
+ * Shared Create/Update Paket form.
+ * Updated to Desktop Two-Column Layout with Sticky Right Sidebar for Media.
  */
 export default function PaketForm({ form, children }: PaketFormProps) {
   return (
@@ -30,157 +32,202 @@ export default function PaketForm({ form, children }: PaketFormProps) {
         e.stopPropagation()
         form.handleSubmit()
       }}
-      className="show-scrollbar flex flex-1 flex-col gap-8 overflow-y-auto overscroll-contain"
+      className="flex flex-1 flex-col overflow-hidden"
     >
-      <main className="flex flex-col gap-8 p-10">
-        {/* Required Section */}
-        <FieldGroup className="flex flex-col gap-6">
-          <form.AppField name="nama_paket">
-            {(field) => (
-              <field.Input
-                label="Nama Paket"
-                LeftIcon={Dish01Icon}
-                placeholder="Contoh: Nasi Box Hemat"
-              />
-            )}
-          </form.AppField>
+      {/* Scrollbar ada di <main> */}
+      <main className="show-scrollbar flex-1 overflow-y-auto overscroll-contain">
+        {/* Container grid dengan items-start PENTING agar sticky berfungsi! */}
+        <div className="grid grid-cols-1 items-start gap-10 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)]">
+          {/* KOLOM KIRI: Input Form Utama */}
+          <div className="flex flex-col gap-12">
+            {/* Required Section */}
+            <section>
+              <header className="mb-6">
+                <h2 className="font-heading text-xl font-semibold">
+                  Informasi Dasar
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Data wajib untuk paket catering ini.
+                </p>
+              </header>
+              <FieldGroup className="flex flex-col gap-6">
+                <form.AppField name="nama_paket">
+                  {(field) => (
+                    <field.Input
+                      label="Nama Paket"
+                      LeftIcon={Dish01Icon}
+                      placeholder="Contoh: Nasi Box Hemat"
+                    />
+                  )}
+                </form.AppField>
 
-          <form.AppField name="kategori_paket">
-            {(field) => (
-              <field.Select
-                label="Kategori Paket"
-                options={PAKET_KATEGORI_OPTIONS}
-              />
-            )}
-          </form.AppField>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <form.AppField name="kategori_paket">
+                    {(field) => (
+                      <field.Select
+                        label="Kategori Paket"
+                        options={PAKET_KATEGORI_OPTIONS}
+                      />
+                    )}
+                  </form.AppField>
+                  <form.AppField name="harga_per_porsi">
+                    {(field) => (
+                      <field.CurrencyInput
+                        label="Harga per Porsi"
+                        LeftIcon={CalculatorIcon}
+                        placeholder="Contoh: Rp 22.000"
+                      />
+                    )}
+                  </form.AppField>
+                </div>
 
-          <form.AppField name="harga_per_porsi">
-            {(field) => (
-              <field.CurrencyInput
-                label="Harga per Porsi"
-                LeftIcon={CalculatorIcon}
-                placeholder="Contoh: Rp 22.000"
-              />
-            )}
-          </form.AppField>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <form.AppField name="min_order">
+                    {(field) => (
+                      <field.Input
+                        label="Min. Order"
+                        type="number"
+                        inputMode="numeric"
+                        min={1}
+                        placeholder="Contoh: 1 (per paket)"
+                      />
+                    )}
+                  </form.AppField>
+                  <form.AppField name="jenis_kemasan">
+                    {(field) => (
+                      <field.Input
+                        label="Jenis Kemasan"
+                        LeftIcon={PackageIcon}
+                        placeholder="Contoh: Box kertas, Besek"
+                      />
+                    )}
+                  </form.AppField>
+                </div>
 
-          <form.AppField name="min_order">
-            {(field) => (
-              <field.Input
-                label="Min. Order"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                placeholder="Contoh: 1 atau 10 (per paket)"
-              />
-            )}
-          </form.AppField>
+                <form.AppField name="menu_utama">
+                  {(field) => (
+                    <field.TagInput
+                      label="Menu Utama"
+                      placeholder="Contoh: Ayam goreng (Enter untuk menambah)"
+                    />
+                  )}
+                </form.AppField>
 
-          <form.AppField name="jenis_kemasan">
-            {(field) => (
-              <field.Input
-                label="Jenis Kemasan"
-                LeftIcon={PackageIcon}
-                placeholder="Contoh: Box kertas, Besek, melamin"
-              />
-            )}
-          </form.AppField>
+                <form.AppField name="deskripsi">
+                  {(field) => (
+                    <field.TextArea
+                      label="Deskripsi"
+                      LeftIcon={Restaurant01Icon}
+                      placeholder="Isi paket, porsi, atau nilai jual unik paket ini..."
+                    />
+                  )}
+                </form.AppField>
+              </FieldGroup>
+            </section>
 
-          <form.AppField name="menu_utama">
-            {(field) => (
-              <field.TagInput
-                label="Menu Utama"
-                placeholder="Contoh: Ayam goreng (Enter untuk menambah)"
-              />
-            )}
-          </form.AppField>
+            {/* Optional Section */}
+            <section className="border-t border-border pt-8">
+              <header className="mb-6">
+                <h2 className="font-heading text-xl font-semibold">
+                  Detail Tambahan
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Informasi opsional untuk melengkapi data paket.
+                </p>
+              </header>
 
-          <form.AppField name="deskripsi">
-            {(field) => (
-              <field.TextArea
-                label="Deskripsi"
-                LeftIcon={Restaurant01Icon}
-                placeholder="Isi paket, porsi, atau nilai jual unik paket ini..."
-              />
-            )}
-          </form.AppField>
+              <FieldGroup className="flex flex-col gap-6">
+                <form.AppField name="kategori_acara">
+                  {(field) => (
+                    <field.Select
+                      label="Kategori Acara"
+                      options={KATEGORI_ACARA_OPTIONS}
+                      noneLabel="— Bukan untuk acara tertentu —"
+                    />
+                  )}
+                </form.AppField>
 
-          <form.AppField name="thumbnail">
-            {(field) => <field.ImageUpload label="Foto Utama / Thumbnail" />}
-          </form.AppField>
-        </FieldGroup>
+                <form.AppField name="kapasitas_produksi">
+                  {(field) => (
+                    <field.Input
+                      label="Kapasitas Produksi"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      placeholder="Opsional — maksimum porsi per event"
+                    />
+                  )}
+                </form.AppField>
 
-        {/* Optional Section */}
-        <div className="space-y-6 border-t border-border pt-4">
-          <header className="mb-4">
-            <h1 className="text-lg font-semibold">Detail Tambahan</h1>
-            <p className="text-sm text-muted-foreground">
-              Informasi opsional untuk melengkapi data
-            </p>
-          </header>
+                <form.AppField name="menu_tambahan">
+                  {(field) => (
+                    <field.TagInput
+                      label="Menu Tambahan"
+                      placeholder="Opsional — contoh: Sambal, kerupuk"
+                    />
+                  )}
+                </form.AppField>
 
-          <FieldGroup className="flex flex-col gap-6">
-            <form.AppField name="images">
-              {(field) => (
-                <field.ImagesUpload label="Galeri Gambar" maxFiles={8} />
-              )}
-            </form.AppField>
-            <form.AppField name="kategori_acara">
-              {(field) => (
-                <field.Select
-                  label="Kategori Acara"
-                  options={KATEGORI_ACARA_OPTIONS}
-                  noneLabel="— Bukan untuk acara tertentu —"
-                />
-              )}
-            </form.AppField>
+                <form.AppField name="fasilitas_termasuk">
+                  {(field) => (
+                    <field.TagInput
+                      label="Fasilitas Termasuk"
+                      placeholder="Opsional — contoh: Sendok, garpu, tissue"
+                    />
+                  )}
+                </form.AppField>
 
-            <form.AppField name="kapasitas_produksi">
-              {(field) => (
-                <field.Input
-                  label="Kapasitas Produksi"
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  placeholder="Opsional — maksimum porsi per event"
-                />
-              )}
-            </form.AppField>
+                <form.AppField name="catatan_alergen">
+                  {(field) => (
+                    <field.TextArea
+                      label="Catatan Alergen"
+                      placeholder="Opsional — contoh: mengandung kacang, seafood"
+                    />
+                  )}
+                </form.AppField>
 
-            <form.AppField name="menu_tambahan">
-              {(field) => (
-                <field.TagInput
-                  label="Menu Tambahan"
-                  placeholder="Opsional — contoh: Sambal, kerupuk"
-                />
-              )}
-            </form.AppField>
+                <form.AppField name="is_best_seller">
+                  {(field) => (
+                    <field.Checkbox label="Tandai sebagai Best Seller" />
+                  )}
+                </form.AppField>
+              </FieldGroup>
+            </section>
+          </div>
 
-            <form.AppField name="fasilitas_termasuk">
-              {(field) => (
-                <field.TagInput
-                  label="Fasilitas Termasuk"
-                  placeholder="Opsional — contoh: Sendok, garpu, tissue"
-                />
-              )}
-            </form.AppField>
+          {/* KOLOM KANAN: Sticky Sidebar untuk Media */}
+          <aside className="sticky top-6 flex flex-col gap-6 rounded-2xl border bg-secondary/20 p-6 sm:top-10 lg:p-7">
+            <header className="flex items-center gap-2 border-b pb-4">
+              {/* <HugeImage01Icon className="size-5 text-primary" /> */}
+              <div>
+                <h2 className="font-heading text-lg font-semibold tracking-tight">
+                  Media & Foto
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Visual untuk paket ini.
+                </p>
+              </div>
+            </header>
 
-            <form.AppField name="catatan_alergen">
-              {(field) => (
-                <field.TextArea
-                  label="Catatan Alergen"
-                  placeholder="Opsional — contoh: mengandung kacang, seafood"
-                />
-              )}
-            </form.AppField>
+            <div className="flex flex-col gap-8">
+              {/* Thumbnail ditarik kesini supaya stand-out */}
+              <form.AppField name="thumbnail">
+                {(field) => (
+                  <field.ImageUpload label="Foto Utama (Thumbnail)" />
+                )}
+              </form.AppField>
 
-            <form.AppField name="is_best_seller">
-              {(field) => <field.Checkbox label="Tandai sebagai Best Seller" />}
-            </form.AppField>
-          </FieldGroup>
+              <form.AppField name="images">
+                {(field) => (
+                  <field.ImagesUpload label="Galeri Gambar" maxFiles={8} />
+                )}
+              </form.AppField>
+            </div>
+          </aside>
         </div>
       </main>
 
+      {/* Footer tetep lengket di bawah */}
       {children}
     </form>
   )

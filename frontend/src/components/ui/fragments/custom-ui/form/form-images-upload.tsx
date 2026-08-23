@@ -13,14 +13,15 @@ interface FormImagesUploadProps extends Omit<
 }
 
 /**
- * FormImagesUpload — multi-image gallery field. Value is an array of canonical
- * Cloudinary URLs (`string[]`).
+ * FormImagesUpload — multi-image gallery field. Holds canonical Cloudinary
+ * URLs (existing assets) and/or raw `File`s (pending deferred uploads;
+ * resolved to URLs during form submit).
  */
 export function FormImagesUpload({
   maxFiles = 8,
   ...props
 }: FormImagesUploadProps) {
-  const field = useFieldContext<string[]>()
+  const field = useFieldContext<Array<string | File>>()
 
   const isSubmitting = useStore(
     field.form.baseStore,
@@ -38,11 +39,11 @@ export function FormImagesUpload({
   return (
     <FormBase {...props}>
       <MediaDropzone
-        urls={value}
-        onChange={(urls) => {
-          field.handleChange(urls)
+        items={value}
+        onChange={(items) => {
+          field.handleChange(items)
           // Dropzone has no native blur — run blur validation explicitly so
-          // stale gallery errors clear the moment URLs resolve.
+          // stale gallery errors clear the moment picks land.
           field.handleBlur()
         }}
         multiple

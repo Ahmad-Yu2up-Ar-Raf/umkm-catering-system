@@ -2,9 +2,8 @@
 
 namespace App\Services;
 
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Thin Cloudinary REST client — proven patterns copied from PaketSeeder:
@@ -65,12 +64,21 @@ class CloudinaryService
     }
 
     /**
-     * Destroy many images from canonical URLs or public ids — batched,
-     * concurrent (Http::pool), best-effort. Never throws; a failed delete
-     * leaves an orphan asset but never breaks the HTTP request.
+     * Destroy many images from canonical URLs or public ids.
+     *
+     * Uses the ADMIN API bulk delete (`DELETE /resources/image/upload` with
+     * `public_ids[]`) authenticated via HTTP Basic auth (api_key:api_secret)
+     * — the SAME proven mechanism as `purgeByPrefix` and PaketSeeder. The
+     * signed Upload-API `/image/destroy` endpoint was tried before and
+     * silently 401'd; do not go back to it.
+     *
+     * Never throws. Every failure is logged with status + body + ids so
+     * orphans are diagnosable in storage/logs/laravel.log.
      */
-    public function destroyMany(array $urlsOrIds, int $concurrency = 5): int
+    public function destroyMany(array $urlsOrIds): int
     {
+        Log::info('CLOUDINARY destroyMany CALLED', ['input' => $urlsOrIds]);
+
         if (! $this->isConfigured()) {
             logger()->warning('Cloudinary destroy skipped: credentials not configured');
 
@@ -78,44 +86,69 @@ class CloudinaryService
         }
 
         $publicIds = $this->resolvePublicIds($urlsOrIds);
+        Log::info('CLOUDINARY RESOLVED PUBLIC IDS', ['public_ids' => $publicIds]);
+
         if ($publicIds === []) {
+            logger()->warning('Cloudinary destroy skipped: no public_ids resolved', [
+                'input' => array_values(array_filter($urlsOrIds)),
+            ]);
+
             return 0;
         }
 
-        $timestamp = now()->timestamp;
+        $endpoint = 'https://api.cloudinary.com/v1_1/'.$this->cloudName.'/resources/image/upload';
+        $deleted = 0;
 
-        try {
-            $responses = Http::pool(fn (Pool $pool) => collect($publicIds)
-                ->map(fn (string $id) => $pool
-                    ->asForm()
-                    ->withBasicAuth($this->apiKey, $this->apiSecret)
-                    ->post('https://api.cloudinary.com/v1_1/'.$this->cloudName.'/image/destroy', [
-                        'public_id' => $id,
-                        'timestamp' => $timestamp,
-                    ]))
-                ->all());
+        // Admin API caps public_ids at 100 per call.
+        foreach (array_chunk($publicIds, 100) as $chunk) {
+            try {
+                $urlWithQuery = $endpoint.'?'.http_build_query(['public_ids' => $chunk]);
+                Log::info('CLOUDINARY DELETE REQUEST', ['endpoint' => $urlWithQuery, 'chunk' => $chunk]);
 
-            $failed = collect($responses)
-                ->filter(fn ($r) => ! ($r instanceof \Illuminate\Http\Client\Response && $r->ok()))
-                ->isNotEmpty();
+                $response = Http::withBasicAuth($this->apiKey, $this->apiSecret)
+                    // Hard bounds so a blackholed Cloudinary connection can
+                    // NEVER pin the (single-worker) PHP process — the whole
+                    // request queue hangs while this socket is open.
+                    ->connectTimeout(3)
+                    ->timeout(8)
+                    ->delete($urlWithQuery);
 
-            if ($failed) {
-                logger()->warning('Cloudinary destroy: some assets failed to delete', [
-                    'requested' => $publicIds,
+                Log::info('CLOUDINARY DELETE RESPONSE', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+
+                if ($response->ok()) {
+                    // Response body: {"deleted": {"<id>": "deleted"|"not_found"}}
+                    // Count ONLY genuine deletions — "not_found" keys would
+                    // otherwise mask wrong-ID regressions in the logs.
+                    $map = (array) $response->json('deleted');
+                    $reallyDeleted = count(array_filter($map, fn ($v) => $v === 'deleted'));
+                    $notFound = count($map) - $reallyDeleted;
+                    $deleted += $reallyDeleted;
+
+                    if ($notFound > 0) {
+                        logger()->info('Cloudinary delete: some ids not found (already gone)', [
+                            'not_found_count' => $notFound,
+                            'public_ids' => $chunk,
+                        ]);
+                    }
+                } else {
+                    logger()->error('Cloudinary admin delete failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                        'public_ids' => $chunk,
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                logger()->error('Cloudinary admin delete exception', [
+                    'error' => $e->getMessage(),
+                    'public_ids' => $chunk,
                 ]);
             }
-
-            return collect($responses)
-                ->filter(fn ($r) => $r instanceof \Illuminate\Http\Client\Response && $r->ok())
-                ->count();
-        } catch (ConnectionException $e) {
-            logger()->warning('Cloudinary destroy: connection failure', [
-                'error' => $e->getMessage(),
-                'requested' => $publicIds,
-            ]);
-
-            return 0; // network blip — assets are orphaned, not corrupted
         }
+
+        return $deleted;
     }
 
     /**
@@ -134,6 +167,8 @@ class CloudinaryService
 
         do {
             $response = Http::withBasicAuth($this->apiKey, $this->apiSecret)
+                ->connectTimeout(3)
+                ->timeout(8)
                 ->delete($endpoint, ['prefix' => rtrim($prefix, '/').'/'] + ($next !== null ? ['next_cursor' => $next] : []));
 
             if ($response->failed()) {
@@ -147,23 +182,62 @@ class CloudinaryService
         return $removed;
     }
 
-    /** Extract the Cloudinary public_id (with folder path) from a canonical URL. */
+    /** Known image extensions eligible for stripping off a canonical URL. */
+    private const IMAGE_EXTENSIONS = [
+        'jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'tif', 'tiff', 'bmp',
+    ];
+
+    /**
+     * Extract the Cloudinary public_id (folder path included) from a
+     * canonical URL — using ONLY str* functions.
+     *
+     * ponytail: preg_* was removed deliberately. The previous regex emitted
+     * "Unknown modifier ']'" on the production host (ErrorException caught
+     * upstream), silently killing every deletion. Plain string parsing is
+     * deterministic and cannot fail this way.
+     */
     public function extractPublicIdFromUrl(string $url): ?string
     {
-        // Strip query string / fragment before matching.
-        $url = preg_replace('#[?#].*$#', '', $url) ?? $url;
+        Log::info('EXTRACT PUBLIC ID INPUT', ['url' => $url]);
+
+        // Strip query string / fragment: cut at the first '?' or '#'.
+        $cut = strpbrk($url, '?#');
+        if ($cut !== false) {
+            $url = substr($url, 0, -strlen($cut));
+        }
 
         // https://res.cloudinary.com/<cloud>/image/upload/v<ts>/<folder>/<file>.<ext>
-        // The extension is only stripped when it is a KNOWN image extension —
-        // Cloudinary public_ids may contain dots ("foto.v2.jpg"), so a greedy
-        // strip would mangle them and destroy() would hit a nonexistent id.
-        if (! preg_match('#/upload/(?:v\d+/)?(.+?)(?:\.(?:jpe?g|png|webp|gif|avif|tiff?|bmp))?$#i', $url, $match)) {
+        $marker = '/upload/';
+        $pos = strpos($url, $marker);
+        if ($pos === false) {
+            Log::warning('EXTRACT PUBLIC ID FAILED: /upload/ marker not found', ['url' => $url]);
             return null;
         }
 
-        $publicId = $match[1];
+        $publicId = substr($url, $pos + strlen($marker));
 
-        return $publicId === '' ? null : $publicId;
+        // Drop a leading version segment ("v1234567890/") when present.
+        if (str_starts_with($publicId, 'v')) {
+            $slash = strpos($publicId, '/');
+            if ($slash !== false && ctype_digit(substr($publicId, 1, $slash - 1))) {
+                $publicId = substr($publicId, $slash + 1);
+            }
+        }
+
+        // Strip the extension ONLY when it is a known image extension —
+        // Cloudinary public_ids may contain dots ("foto.v2.jpg").
+        $dot = strrpos($publicId, '.');
+        if ($dot !== false) {
+            $ext = strtolower(substr($publicId, $dot + 1));
+            if (in_array($ext, self::IMAGE_EXTENSIONS, true)) {
+                $publicId = substr($publicId, 0, $dot);
+            }
+        }
+
+        $result = $publicId === '' ? null : $publicId;
+        Log::info('EXTRACT PUBLIC ID RESULT', ['url' => $url, 'public_id' => $result]);
+
+        return $result;
     }
 
     /**

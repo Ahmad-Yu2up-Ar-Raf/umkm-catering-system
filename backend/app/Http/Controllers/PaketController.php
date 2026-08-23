@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\KategoriAcaraEnum;
+use App\Enums\PaketKategoriEnum;
 use App\Http\Requests\Paket\PaketStoreRequest;
 use App\Http\Requests\Paket\PaketUpdateRequest;
 use App\Http\Resources\PaketResource;
+use App\Jobs\PurgeCloudinaryAssets;
 use App\Models\Paket;
-use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -18,8 +20,18 @@ class PaketController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $kategoriPaket = $request->input('kategori_paket');
-        $kategoriAcara = $request->input('kategori_acara');
+
+        // Multi-select OR legacy single-string filter values, whitelist-
+        // validated against the enum cases (SQLi-safe: never interpolated).
+        $kategoriPaket = $this->normalizeEnumFilter(
+            $request->input('kategori_paket'),
+            array_map(fn ($case) => $case->value, PaketKategoriEnum::cases())
+        );
+        $kategoriAcara = $this->normalizeEnumFilter(
+            $request->input('kategori_acara'),
+            array_map(fn ($case) => $case->value, KategoriAcaraEnum::cases())
+        );
+
         $sortBy = $request->input('sort_by', 'created_at');
         $sortDir = $request->input('sort_dir', 'desc');
         $page = $request->integer('page', 1);
@@ -34,12 +46,12 @@ class PaketController extends Controller
             });
         }
 
-        if ($kategoriPaket) {
-            $query->where('kategori_paket', $kategoriPaket);
+        if ($kategoriPaket !== []) {
+            $query->whereIn('kategori_paket', $kategoriPaket);
         }
 
-        if ($kategoriAcara) {
-            $query->where('kategori_acara', $kategoriAcara);
+        if ($kategoriAcara !== []) {
+            $query->whereIn('kategori_acara', $kategoriAcara);
         }
 
         // Validate allowed sort columns to prevent SQL injection
@@ -55,7 +67,7 @@ class PaketController extends Controller
             'kategori_acara' => $kategoriAcara,
             'sort_by' => $sortBy,
             'sort_dir' => $sortDir,
-        ], fn ($value) => ! is_null($value) && $value !== '');
+        ], fn ($value) => ! is_null($value) && $value !== '' && $value !== []);
 
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Paket $item) => new PaketResource($item)),
@@ -125,7 +137,14 @@ class PaketController extends Controller
         $this->syncImages($paket, $newImages);
 
         if ($oldThumbnail && $paket->thumbnail !== $oldThumbnail) {
-            $this->purgeAssets([$oldThumbnail]);
+            try {
+                (new PurgeCloudinaryAssets([$oldThumbnail]))->handle();
+            } catch (\Throwable $e) {
+                Log::error('CLOUDINARY PURGE FAILED (non-fatal, update)', [
+                    'url' => $oldThumbnail,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->json([
@@ -140,7 +159,16 @@ class PaketController extends Controller
      */
     public function destroy(Paket $paket)
     {
+        Log::info('DELETE ROUTE HIT', ['id' => $paket->id]);
+        Log::info('PAKET FOUND', ['paket' => $paket->toArray()]);
+
+        // Guard: active orders block deletion (409 Conflict).
         if ($paket->pesanan()->exists()) {
+            Log::warning('DELETE BLOCKED: pesanan exists', [
+                'paket_id' => $paket->id,
+                'pesanan_count' => $paket->pesanan()->count(),
+            ]);
+
             return response()->json([
                 'status' => false,
                 'message' => 'Paket tidak dapat dihapus karena masih memiliki pesanan terkait.',
@@ -148,16 +176,56 @@ class PaketController extends Controller
             ], 409);
         }
 
-        $urls = $paket->images()->pluck('image_url')->all();
-        if ($paket->thumbnail) {
-            $urls[] = $paket->thumbnail;
+        // Extract media references BEFORE deleting the model — after delete()
+        // relations are gone and URLs would be lost.
+        try {
+            $urls = $paket->images()->pluck('image_url')->all();
+            if ($paket->thumbnail) {
+                $urls[] = $paket->thumbnail;
+            }
+            Log::info('MEDIA URLS EXTRACTED', ['urls' => $urls]);
+        } catch (\Throwable $e) {
+            Log::critical('MEDIA EXTRACTION FAILED — purge skipped', [
+                'paket_id' => $paket->id,
+                'error' => $e->getMessage(),
+            ]);
+            $urls = [];
         }
 
-        $paket->delete(); // paket_images rows cascade
+        // DB deletion is the ONLY critical-path work. Cloudinary is fully
+        // decoupled below so a third-party failure can NEVER roll this back
+        // or crash the response.
+        try {
+            $deleted = $paket->delete();
+            Log::info('DB DELETION SUCCESSFUL', ['id' => $paket->id, 'result' => (bool) $deleted]);
+        } catch (\Throwable $e) {
+            Log::error('DB DELETION FAILED', [
+                'paket_id' => $paket->id,
+                'error' => $e->getMessage(),
+                'sql_state' => method_exists($e, 'getCode') ? $e->getCode() : null,
+            ]);
 
-        // Synchronous purge — URLs were extracted before the delete, so model
-        // context loss is impossible. Failures are logged, never fatal.
-        $this->purgeAssets($urls);
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal menghapus paket dari database: '.$e->getMessage(),
+                'data' => null,
+            ], 500);
+        }
+
+        // Cloudinary purge — run synchronously inside a robust try/catch so it
+        // executes immediately in the request lifecycle without requiring a
+        // queue worker, while guaranteeing a Cloudinary failure NEVER crashes
+        // the DB deletion response.
+        try {
+            (new PurgeCloudinaryAssets($urls))->handle();
+            Log::info('CLOUDINARY PURGE COMPLETED SYNC', ['url_count' => count($urls)]);
+        } catch (\Throwable $e) {
+            Log::error('CLOUDINARY PURGE FAILED (non-fatal)', [
+                'urls' => $urls,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+        }
 
         return response()->json([
             'status' => true,
@@ -179,7 +247,14 @@ class PaketController extends Controller
 
         if ($removed !== []) {
             $paket->images()->whereIn('image_url', $removed)->delete();
-            $this->purgeAssets($removed);
+            try {
+                (new PurgeCloudinaryAssets($removed))->handle();
+            } catch (\Throwable $e) {
+                Log::error('CLOUDINARY PURGE FAILED (non-fatal, syncImages)', [
+                    'urls' => $removed,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         foreach ($added as $url) {
@@ -192,33 +267,38 @@ class PaketController extends Controller
     }
 
     /**
-     * Destroy Cloudinary assets synchronously. Never throws: a storage
-     * failure is logged (with the offending URLs) but never breaks the
-     * HTTP response or the DB mutation it accompanies.
+     * Normalize an enum-column filter value into a whitelisted array.
      *
-     * @param  list<string>  $urls  canonical Cloudinary URLs
+     * Accepts all three wire shapes the API must support:
+     *   - `?kategori_paket[]=A&kategori_paket[]=B`  (multi-select, array)
+     *   - `?kategori_paket=A`                       (legacy single string)
+     *   - absent / null                             (no filter → [])
+     *
+     * Every entry is intersected with `$allowed` (the enum cases), so the
+     * values are parameter-bound by Eloquent's `whereIn` and can never
+     * inject SQL — invalid entries are silently dropped rather than 422-ing,
+     * keeping the filter forgiving for stale UI state.
+     *
+     * @param  mixed  $input    string|array|null from the query string
+     * @param  list<string>  $allowed  whitelisted enum values
+     * @return list<string>
      */
-    private function purgeAssets(array $urls): void
+    private function normalizeEnumFilter(mixed $input, array $allowed): array
     {
-        if ($urls === []) {
-            return;
+        if (is_string($input)) {
+            $input = [$input];
         }
 
-        try {
-            $deleted = CloudinaryService::fromConfig()->destroyMany($urls);
-
-            if ($deleted < count($urls)) {
-                Log::warning('Cloudinary purge incomplete', [
-                    'requested' => count($urls),
-                    'deleted' => $deleted,
-                    'urls' => $urls,
-                ]);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Cloudinary purge failed', [
-                'urls' => $urls,
-                'error' => $e->getMessage(),
-            ]);
+        if (! is_array($input)) {
+            return [];
         }
+
+        $filtered = array_values(array_unique(array_filter(
+            $input,
+            fn ($value) => is_string($value) && in_array($value, $allowed, true)
+        )));
+
+        return $filtered;
     }
 }
+

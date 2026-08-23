@@ -1,14 +1,19 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 
 import { ArrowRight } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { motion, useAnimationFrame, useMotionValue, type Variants } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/fragments/shadcn-ui/carousel"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
-import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { cn } from "@/lib/utils"
 
 import type { GalleryCategory } from "../types/gallery-types"
@@ -19,7 +24,7 @@ import { GalleryCard } from "./gallery-card"
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 
 /**
- * Coordinated scroll reveal: heading/CTA first, marquee content after.
+ * Coordinated scroll reveal: heading/CTA first, carousel content after.
  * Elegant blur + fade-up, once per section as it enters the viewport.
  * `MotionConfig reducedMotion="user"` (storefront root) collapses the
  * transform/filter to a plain opacity fade automatically.
@@ -41,269 +46,24 @@ const lineVariants: Variants = {
   },
 }
 
-/** Marquee velocity — deliberately SLOW & chill (px/sec). At 35px/s a full
- *  pass of an 8-card strip takes well over a minute: relaxed, never rushed. */
-const MARQUEE_SPEED = 35
-
-/** Drag-vs-click: pointer movement below this (px) is a click, so the card's
- *  onClick (the global lightbox) fires. At or above it, the gesture is a
- *  drag and the resulting click is suppressed. */
-const DRAG_THRESHOLD_PX = 5
-
 /**
- * GalleryMarquee — one infinite, smooth, slow rail.
- *
- * Architecture: a DOUBLED track (items × 2) translated at constant velocity
- * via `useAnimationFrame` + a single `useMotionValue`. When the offset crosses
- * ± half the track width it wraps by that amount → a seamless, continuous
- * loop (same seam mathematics as the house `--animate-marquee` token, but
- * driven by JS so dragging can own the same value).
- *
- *  - Autoplay: slow, linear, never snapping.
- *  - Pause on hover: hover sets a `paused` flag; the frame loop stops driving
- *    the value, which freezes in place and resumes on leave (constant-
- *    velocity resume, no jump).
- *  - Drag/swipe: pointer capture scrubs the SAME `x` motion value while
- *    dragging (play paused during the gesture) and resumes on release.
- *  - Direction: `ltr` = track moves left, `rtl` = moves right — alternating
- *    sections zig-zag across the storefront.
- *  - Edge fade: `mask-image` gradient on both extremes (house pattern).
- *  - `prefers-reduced-motion` → static single list, no movement, no drag
- *    (`MotionConfig reducedMotion="user"` already wraps the storefront).
- */
-function GalleryMarquee({
-  items,
-  direction = "ltr",
-}: {
-  items: GalleryItem[]
-  direction?: "ltr" | "rtl"
-}) {
-  const reduced = useReducedMotion()
-  const trackRef = useRef<HTMLDivElement>(null)
-  const x = useMotionValue(0)
-
-  const [halfWidth, setHalfWidth] = useState(0)
-  const pausedRef = useRef(false)
-  const dragRef = useRef<{
-    id: number
-    startX: number
-    startY: number
-    lastX: number
-    active: boolean
-  } | null>(null)
-
-  // Half point = one full copy of the doubled track. Measured once mounted +
-  // on resize; the seam stays exact because the strip is `w-max` with uniform
-  // `mr-3` per card.
-  useEffect(() => {
-    const el = trackRef.current
-    if (!el) return
-    const measure = () => setHalfWidth(Math.max(el.scrollWidth / 2, 1))
-    measure()
-    window.addEventListener("resize", measure)
-    return () => window.removeEventListener("resize", measure)
-  }, [])
-
-  /**
-   * Bidirectional seam wrap. The offset is kept in the half-open range
-   * [-halfWidth, 0] — the doubled track then always covers the viewport:
-   *   • offset ≤ 0  ⇒ the track's left edge is at/behind the viewport's left
-   *                    edge, so no empty space can ever appear on the LEFT;
-   *   • offset ≥ -halfWidth ⇒ the track's right edge stays at/over the
-   *     viewport's right edge (one copy is wider than the viewport).
-   * Left-moving rows descend toward -halfWidth and wrap back to 0; right-
-   * moving rows rise toward 0 and wrap back to -halfWidth. Both wrap points
-   * land on the copy boundary (copy A ≡ copy B), so the seam is invisible in
-   * both directions. The old ±halfWidth wrap let the offset go positive,
-   * which dragged the track's left edge past the viewport → the reported
-   * empty gap on the left of right-moving rows.
-   */
-  const wrap = useCallback(
-    (v: number) => {
-      if (v > 0) v -= halfWidth
-      else if (v <= -halfWidth) v += halfWidth
-      return v
-    },
-    [halfWidth]
-  )
-
-  // Continuous slow motion — paused while hovered or actively dragging.
-  useAnimationFrame((_, delta) => {
-    if (reduced) return
-    if (pausedRef.current) return
-    if (halfWidth <= 0) return // not measured yet — don't drift before first measure
-    const dt = Math.min(delta, 64) / 1000
-    const sign = direction === "rtl" ? 1 : -1
-    x.set(wrap(x.get() + sign * MARQUEE_SPEED * dt))
-  })
-
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      if (reduced) return
-      if (e.pointerType === "mouse" && e.button !== 0) return
-      // Record the gesture WITHOUT capturing — a stationary press must keep
-      // reaching the card's onClick (the lightbox). Pointer capture and pause
-      // only kick in once movement crosses the drag threshold.
-      dragRef.current = {
-        id: e.pointerId,
-        startX: e.clientX,
-        startY: e.clientY,
-        lastX: e.clientX,
-        active: false,
-      }
-    },
-    [reduced]
-  )
-
-  const onPointerMove = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      const drag = dragRef.current
-      if (!drag) return
-      if (!drag.active) {
-        if (
-          Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) <
-          DRAG_THRESHOLD_PX
-        ) {
-          return // still a candidate click — let it be
-        }
-        // Crossed the threshold: the gesture is a drag. Take the pointer over.
-        drag.active = true
-        pausedRef.current = true
-        try {
-          e.currentTarget.setPointerCapture(e.pointerId)
-        } catch {
-          /* already captured / lost — ignore */
-        }
-      }
-      const dx = e.clientX - drag.lastX
-      drag.lastX = e.clientX
-      // Scrub the SAME motion value the loop drives — autoplay and drag never
-      // fight; on release the loop continues from wherever the user left it.
-      x.set(wrap(x.get() - dx)) // drag right → content follows the pointer
-    },
-    [wrap, x]
-  )
-
-  const endPointer = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      const drag = dragRef.current
-      dragRef.current = null
-      pausedRef.current = false
-      if (!drag?.active) return
-      try {
-        e.currentTarget.releasePointerCapture(drag.id)
-      } catch {
-        /* already released — ignore */
-      }
-      // A real drag followed by pointerup still synthesizes a click; it would
-      // otherwise blow through to the card underneath and open the lightbox
-      // against the user's intent. Kill the one click in the capture phase.
-      const killClick = (ev: MouseEvent) => {
-        ev.stopPropagation()
-        ev.preventDefault()
-        e.currentTarget.removeEventListener("click", killClick, true)
-      }
-      const el = e.currentTarget
-      el.addEventListener("click", killClick, true)
-      // Click is dispatched synchronously after pointerup — this only cleans
-      // up for the (rare) case the browser suppresses the click entirely.
-      window.setTimeout(() => el.removeEventListener("click", killClick, true), 0)
-    },
-    []
-  )
-
-  // A full copy of the strip — the track = copy A + copy B (aria-hidden) so
-  // translateX wraps at exactly half the width. Lowercase helper (returns
-  // JSX, is NOT a component) so `react-hooks/static-components` stays happy.
-  const cards = (hidden: boolean) => (
-    <div className="flex shrink-0" aria-hidden={hidden || undefined}>
-      {items.map((item, i) => (
-        <GalleryCardWrapper
-          key={`${item.id}-${hidden ? "b" : "a"}`}
-          item={item}
-          index={i}
-          scope={items}
-        />
-      ))}
-    </div>
-  )
-
-  // Reduced motion ⇒ one static copy, no movement.
-  const loop = !reduced && items.length > 0
-
-  return (
-    <div
-      aria-label="Pratinjau momen per kategori"
-      className="overflow-hidden py-2 [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]"
-    >
-      <div
-        ref={trackRef}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endPointer}
-        onPointerCancel={endPointer}
-        onMouseEnter={() => {
-          if (loop) pausedRef.current = true
-        }}
-        onMouseLeave={() => {
-          if (!dragRef.current?.active) pausedRef.current = false
-        }}
-        className="group/gallery-marquee cursor-grab touch-pan-y select-none active:cursor-grabbing"
-      >
-        <motion.div
-          style={{ x }}
-          className={cn("flex w-max", loop && "will-change-transform transform-gpu")}
-        >
-          {cards(false)}
-          {loop && cards(true)}
-        </motion.div>
-      </div>
-    </div>
-  )
-}
-
-/** Sized card wrapper — one card, uniform `mr-3` spacing on the strip. */
-function GalleryCardWrapper({
-  item,
-  index,
-  scope,
-}: {
-  item: GalleryItem
-  index: number
-  scope: GalleryItem[]
-}) {
-  return (
-    <div className="mr-3 shrink-0">
-      <GalleryCard
-        item={item}
-        index={index}
-        scope={scope}
-        className="aspect-[16/10] w-[72vw] max-w-[300px] sm:w-[280px] md:w-[300px] lg:w-[320px]"
-      />
-    </div>
-  )
-}
-
-/**
- * GalleryCategorySection — one editorial MARQUEE rail on the storefront.
+ * GalleryCategorySection — one editorial rail on the storefront.
  *
  * Heading (category label) → "Lihat Semua" CTA deep-linking into
- * `/galeri/:slug` → a continuous, slow, infinite marquee of the PREVIEW items
- * with edge fades, hover-pause, and pointer drag/swipe. No Prev/Next buttons.
- * `direction` lets alternating sections zig-zag (row 1 → ltr, row 2 → rtl, …).
- * The lightbox scope = this rail's real items only, in display order. Reveals
- * when the section enters the viewport (once — no re-animation on scroll).
+ * `/galeri/:slug` (where the heavy dataset lives) → a Shadcn `Carousel`
+ * (Embla) of the PREVIEW items with a mobile peek. Prev/Next round buttons on
+ * desktop, native swipe + edge drag on touch. The lightbox scope = this
+ * rail's items only, in display order. Reveals when the section enters the
+ * viewport (once — no re-animation on scroll).
  */
 export function GalleryCategorySection({
   category,
   items,
   isLoading,
-  direction = "ltr",
 }: {
   category: GalleryCategory
   items: GalleryItem[]
   isLoading: boolean
-  direction?: "ltr" | "rtl"
 }) {
   const headingId = `galeri-rail-${category.slug}`
 
@@ -347,16 +107,35 @@ export function GalleryCategorySection({
             {Array.from({ length: 4 }, (_, j) => (
               <Skeleton
                 key={j}
-                className="aspect-[16/10] w-[240px] shrink-0 rounded-2xl sm:w-[280px]"
+                className="aspect-[16/10] shrink-0 basis-[72%] rounded-2xl sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
               />
             ))}
           </div>
         ) : items.length === 0 ? null : (
-          <GalleryMarquee items={items} direction={direction} />
+          <Carousel
+            opts={{ align: "start", containScroll: "trimSnaps" }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-3">
+              {items.map((item, index) => (
+                <CarouselItem
+                  key={item.id}
+                  className="basis-[72%] pl-3 sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
+                >
+                  <GalleryCard
+                    item={item}
+                    index={index}
+                    scope={items}
+                    className="aspect-[16/10] w-full"
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="-left-4 hidden border-border bg-background text-foreground shadow-sm hover:bg-muted sm:flex" />
+            <CarouselNext className="-right-4 hidden border-border bg-background text-foreground shadow-sm hover:bg-muted sm:flex" />
+          </Carousel>
         )}
       </motion.div>
     </motion.section>
   )
 }
-
-export default GalleryCategorySection

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\CloudinaryService;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
@@ -12,7 +13,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // The service's constructor takes primitive strings, so the container
+        // cannot auto-resolve it — any accidental DI (job method injection,
+        // listener, etc.) throws BindingResolutionException and the Cloudinary
+        // work silently dies. Bind it explicitly via fromConfig().
+        $this->app->singleton(
+            CloudinaryService::class,
+            fn () => CloudinaryService::fromConfig()
+        );
     }
 
     /**

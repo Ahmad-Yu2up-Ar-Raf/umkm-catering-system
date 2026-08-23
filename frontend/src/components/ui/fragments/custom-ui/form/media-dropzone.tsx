@@ -1,61 +1,59 @@
 "use client"
 
-import { memo, useCallback, useEffect, useRef, useState } from "react"
-import { useMediaDrop, type MediaDropFile } from "react-mediadrop"
+import { useCallback, useRef, useState } from "react"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Cancel01Icon,
-  Image01Icon,
-  RefreshIcon,
-  Upload01Icon,
-} from "@hugeicons/core-free-icons"
-import { adjustActiveUploads } from "@/store/paket-upload-store"
-import {
-  cloudinaryTransport,
-  toCanonicalCloudinaryUrl,
-} from "@/lib/cloudinary"
+import { Cancel01Icon, Image01Icon, Upload01Icon } from "@hugeicons/core-free-icons"
 import { cn } from "@/lib/utils"
 
+export type ImageItem = File | string
+
 interface MediaDropzoneProps {
-  urls: string[]
-  onChange: (urls: string[]) => void
+  items: ImageItem[]
+  onChange: (items: ImageItem[]) => void
   multiple?: boolean
   maxFiles?: number
   isInvalid?: boolean
   disabled?: boolean
 }
 
-interface UploadResultLike {
-  public_id?: string
-  version?: number | string
-  format?: string
-  secure_url?: string
+const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp"]
+const MAX_BYTES = 5 * 1024 * 1024
+
+/**
+ * Object-URL cache for local File previews. ponytail: URLs live for the page
+ * session and are revoked when their tile is removed — a handful of preview
+ * URLs per form session is a negligible ceiling.
+ */
+const previewUrls = new WeakMap<File, string>()
+
+function previewFor(file: File): string {
+  let url = previewUrls.get(file)
+  if (!url) {
+    url = URL.createObjectURL(file)
+    previewUrls.set(file, url)
+  }
+  return url
 }
 
-const readCanonical = (input: unknown): string =>
-  toCanonicalCloudinaryUrl(input as UploadResultLike)
+const itemKey = (item: ImageItem, index: number): string =>
+  typeof item === "string"
+    ? `u-${item}`
+    : `f-${item.name}-${item.size}-${item.lastModified}-${index}`
 
-const sameUrlList = (a: string[], b: string[]): boolean =>
-  a.length === b.length && a.every((url, i) => url === b[i])
+const itemMatches = (a: ImageItem, b: ImageItem): boolean =>
+  a === b || (typeof a !== "string" && typeof b !== "string" && a === b)
 
-/* ------------------------------------------------------------------ *
- * Memoized tiles — one upload's progress tick never re-renders its
- * siblings. Keys are stable: `stored-${url}` / `file.id`.
- * ------------------------------------------------------------------ */
-
-interface StoredTileProps {
-  url: string
+interface TileProps {
+  item: ImageItem
   isInvalid: boolean
-  onRemove: (url: string) => void
+  onRemove: (item: ImageItem) => void
 }
 
-const StoredTile = memo(function StoredTile({
-  url,
-  isInvalid,
-  onRemove,
-}: StoredTileProps) {
+const Tile = function Tile({ item, isInvalid, onRemove }: TileProps) {
+  const isFile = typeof item !== "string"
+
   return (
     <div
       className={cn(
@@ -63,288 +61,105 @@ const StoredTile = memo(function StoredTile({
         isInvalid ? "border-destructive" : "border-border"
       )}
     >
-      <MediaItem
-        webViewLink={url}
-        alt="Gambar paket"
-        layout="constrained"
-        width={240}
-        height={240}
-        className="size-full"
-      />
+      {isFile ? (
+        <div
+          role="img"
+          aria-label={item.name}
+          className="size-full bg-cover bg-center"
+          style={{ backgroundImage: `url(${previewFor(item)})` }}
+        />
+      ) : (
+        <MediaItem
+          webViewLink={item}
+          alt="Gambar paket"
+          layout="constrained"
+          width={240}
+          height={240}
+          className="size-full"
+        />
+      )}
+      {isFile && (
+        <span className="absolute bottom-1.5 left-1.5 rounded-full bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground">
+          Siap diunggah
+        </span>
+      )}
       <Button
         type="button"
         aria-label="Hapus gambar"
         variant="ghost"
         size="icon-xs"
         className="absolute top-1.5 right-1.5 rounded-full border border-border bg-background/90 text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
-        onClick={() => onRemove(url)}
+        onClick={() => onRemove(item)}
       >
         <HugeiconsIcon icon={Cancel01Icon} />
       </Button>
     </div>
   )
-})
-
-interface PendingTileProps {
-  file: MediaDropFile
-  onRemove: (file: MediaDropFile) => void
-  onRetry: (id: string) => void
 }
 
-const PendingTile = memo(function PendingTile({
-  file,
-  onRemove,
-  onRetry,
-}: PendingTileProps) {
-  const status = file.uploadStatus ?? "queued"
-  const url = readCanonical(file.uploadResult)
-  const hasError = status === "error"
-
-  return (
-    <div
-      className={cn(
-        "relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border p-2 text-center",
-        hasError ? "border-destructive bg-destructive/10" : "border-border bg-muted/30"
-      )}
-    >
-      {url ? (
-        <MediaItem
-          webViewLink={url}
-          alt={file.name}
-          layout="constrained"
-          width={240}
-          height={240}
-          className="size-full"
-        />
-      ) : (
-        <HugeiconsIcon
-          icon={Image01Icon}
-          className={cn(
-            "size-6",
-            hasError ? "text-destructive" : "text-muted-foreground"
-          )}
-        />
-      )}
-
-      {status === "uploading" && (
-        <div className="absolute inset-x-2 bottom-1.5 space-y-1">
-          <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full bg-primary transition-[width]"
-              style={{
-                width: `${
-                  file.progress?.total
-                    ? Math.round(
-                        ((file.progress.loaded ?? 0) / file.progress.total) * 100
-                      )
-                    : 30
-                }%`,
-              }}
-            />
-          </div>
-          <p className="truncate text-[10px] text-muted-foreground">
-            {file.name} · Mengunggah…
-          </p>
-        </div>
-      )}
-
-      {status === "queued" && (
-        <p className="truncate text-[10px] text-muted-foreground">
-          {file.name} · Menunggu…
-        </p>
-      )}
-
-      {hasError && (
-        <p className="truncate text-[10px] text-destructive">
-          {file.uploadError?.message ?? file.errors[0]?.message ?? "Gagal"}
-        </p>
-      )}
-
-      <div className="absolute top-1.5 right-1.5 flex gap-1">
-        {hasError && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            aria-label="Coba lagi"
-            className="rounded-full border border-destructive bg-destructive/10 transition-colors hover:bg-destructive hover:text-destructive-foreground"
-            onClick={() => onRetry(file.id)}
-          >
-            <HugeiconsIcon icon={RefreshIcon} />
-          </Button>
-        )}
-        <Button
-          type="button"
-          aria-label={`Hapus ${file.name}`}
-          variant="ghost"
-          size="icon-xs"
-          className={cn(
-            "rounded-full border transition-colors",
-            hasError
-              ? "border-destructive bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              : "border-border bg-background/90 text-destructive hover:text-destructive"
-          )}
-          onClick={() => onRemove(file)}
-        >
-          <HugeiconsIcon icon={Cancel01Icon} />
-        </Button>
-      </div>
-    </div>
-  )
-})
-
 /**
- * Headless mediadrop dropzone + tile grid.
+ * Deferred-upload dropzone. Holds raw `File` objects (local previews) and
+ * committed Cloudinary URLs side by side; NOTHING touches the network here.
+ * Files are uploaded to Cloudinary only during form submit (see
+ * `usePaketForm.onSubmit`), so cancelling a draft or removing a tile can
+ * never orphan a remote asset.
  */
 export function MediaDropzone({
-  urls,
+  items,
   onChange,
   multiple = false,
   maxFiles = 8,
   isInvalid = false,
   disabled = false,
 }: MediaDropzoneProps) {
-  const [localUrls, setLocalUrls] = useState<string[]>(urls)
-  const onChangeRef = useRef(onChange)
-  useEffect(() => {
-    onChangeRef.current = onChange
-  }, [onChange])
+  const [isDragActive, setIsDragActive] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  /** Canonical URLs already folded into the form value — prevents re-folding
-   * after an external reset wipes `localUrls`. State (not a ref) so render
-   * can derive `pendingFiles` from it. */
-  const [foldedUrls, setFoldedUrls] = useState<ReadonlySet<string>>(() => new Set())
-
-  const {
-    getRootProps,
-    getInputProps,
-    acceptedFiles,
-    isDragActive,
-    isDragReject,
-    removeFile,
-    uploadAll,
-    retryUpload,
-  } = useMediaDrop({
-    transport: cloudinaryTransport,
-    concurrency: 3,
-    retries: 1,
-    retryDelays: [1500, 3000],
-    restrictions: {
-      accept: ["image/png", "image/jpeg", "image/webp"],
-      maxFiles,
-      maxSize: 5 * 1024 * 1024,
-    },
-  })
-
-  // Auto-queue freshly accepted files.
-  useEffect(() => {
-    const fresh = acceptedFiles.some(
-      (f) => f.status === "accepted" && !f.uploadStatus
-    )
-    if (fresh) uploadAll()
-  }, [acceptedFiles, uploadAll])
-
-  // Fold completed uploads into the value exactly once per canonical URL.
-  useEffect(() => {
-    const fresh = acceptedFiles
-      .filter((f) => f.uploadStatus === "done" && f.uploadResult)
-      .map((f) => readCanonical(f.uploadResult))
-      .filter((url) => url !== "" && !foldedUrls.has(url))
-    if (fresh.length === 0) return
-
-    // Folding settled upload results into form value is the effect's job;
-    // both updates land in one batched commit.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setFoldedUrls((prev) => {
-      const next = new Set(prev)
-      fresh.forEach((url) => next.add(url))
-      return next
-    })
-    setLocalUrls((prev) => {
-      if (!multiple) return [fresh[fresh.length - 1]]
-      return [...prev, ...fresh.filter((url) => !prev.includes(url))]
-    })
-  }, [acceptedFiles, multiple, foldedUrls])
-
-  // Adopt EXTERNAL value changes (form.reset / drawer seeding) via React's
-  // render-time derived-state pattern. Our own emits round-trip back as an
-  // identical list, so they are no-ops here.
-  const [prevExternalUrls, setPrevExternalUrls] = useState(urls)
-  if (!sameUrlList(prevExternalUrls, urls)) {
-    setPrevExternalUrls(urls)
-    if (!sameUrlList(localUrls, urls)) {
-      setLocalUrls(urls)
-    }
-  }
-
-  // Emit upward.
-  useEffect(() => {
-    onChangeRef.current(localUrls)
-  }, [localUrls])
-
-  // Reconcile in-flight uploads.
-  const uploading = acceptedFiles.some(
-    (f) => !f.uploadStatus || f.uploadStatus === "queued" || f.uploadStatus === "uploading"
-  )
-  useEffect(() => {
-    adjustActiveUploads(uploading ? 1 : 0)
-    return () => adjustActiveUploads(uploading ? -1 : 0)
-  }, [uploading])
-
-  const handleRemoveStored = useCallback((url: string) => {
-    setLocalUrls((prev) => prev.filter((u) => u !== url))
-  }, [])
-
-  const handleRemovePending = useCallback(
-    (file: MediaDropFile) => {
-      const canonical = readCanonical(file.uploadResult)
-      if (canonical) {
-        setFoldedUrls((prev) => new Set(prev).add(canonical))
-        setLocalUrls((prev) => prev.filter((u) => u !== canonical))
+  const addFiles = useCallback(
+    (incoming: FileList | File[]) => {
+      const accepted: File[] = []
+      for (const file of Array.from(incoming)) {
+        if (!ACCEPTED_TYPES.includes(file.type) || file.size > MAX_BYTES) continue
+        if (items.some((it) => it !== file && it instanceof File && it.name === file.name && it.size === file.size)) continue
+        accepted.push(file)
+        if (!multiple) break
       }
-      removeFile(file.id)
+      if (accepted.length === 0) return
+
+      const next = multiple
+        ? [...items, ...accepted].slice(0, maxFiles)
+        : [accepted[accepted.length - 1]]
+      onChange(next)
     },
-    [removeFile]
+    [items, multiple, maxFiles, onChange]
   )
 
-  const handleRetry = useCallback(
-    (id: string) => retryUpload(id),
-    [retryUpload]
+  const handleRemove = useCallback(
+    (target: ImageItem) => {
+      if (typeof target !== "string") {
+        const url = previewUrls.get(target)
+        if (url) {
+          URL.revokeObjectURL(url)
+          previewUrls.delete(target)
+        }
+      }
+      onChange(items.filter((it) => !itemMatches(it, target)))
+    },
+    [items, onChange]
   )
 
-  const storedUrls = localUrls
-  const pendingFiles = acceptedFiles.filter((file) => {
-    if (file.uploadStatus === "done") {
-      const canonical = readCanonical(file.uploadResult)
-      return canonical === "" || !foldedUrls.has(canonical)
-    }
-    return true
-  })
-
-  const hasAccepted = acceptedFiles.length > 0
-  const atLimit = multiple
-    ? hasAccepted && acceptedFiles.length >= maxFiles
-    : hasAccepted || storedUrls.length > 0
+  const atLimit = items.length >= (multiple ? maxFiles : 1)
 
   return (
     <div className={cn("flex w-full flex-col gap-3", disabled && "pointer-events-none opacity-50")}>
-      {(storedUrls.length > 0 || pendingFiles.length > 0) && (
+      {items.length > 0 && (
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {storedUrls.map((url) => (
-            <StoredTile
-              key={`stored-${url}`}
-              url={url}
+          {items.map((item, index) => (
+            <Tile
+              key={itemKey(item, index)}
+              item={item}
               isInvalid={isInvalid}
-              onRemove={handleRemoveStored}
-            />
-          ))}
-
-          {pendingFiles.map((file) => (
-            <PendingTile
-              key={file.id}
-              file={file}
-              onRemove={handleRemovePending}
-              onRetry={handleRetry}
+              onRemove={handleRemove}
             />
           ))}
         </div>
@@ -352,40 +167,53 @@ export function MediaDropzone({
 
       {!atLimit && (
         <div
-          {...getRootProps()}
           data-drag-active={isDragActive || undefined}
-          data-drag-reject={isDragReject || undefined}
           aria-invalid={isInvalid || undefined}
+          onClick={() => inputRef.current?.click()}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setIsDragActive(true)
+          }}
+          onDragLeave={() => setIsDragActive(false)}
+          onDrop={(e) => {
+            e.preventDefault()
+            setIsDragActive(false)
+            if (!disabled) addFiles(e.dataTransfer.files)
+          }}
           className={cn(
             "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed p-4 text-center transition-all",
             isDragActive && "border-primary bg-primary/5",
-            isDragReject && "border-destructive/60 bg-destructive/5",
             isInvalid && "border-destructive bg-destructive/10",
-            !isDragActive && !isDragReject && !isInvalid && "border-border bg-background/40 hover:border-primary/50 hover:bg-muted/30"
+            !isDragActive && !isInvalid && "border-border bg-background/40 hover:border-primary/50 hover:bg-muted/30"
           )}
         >
-          <input {...getInputProps()} aria-label="Unggah gambar" />
-          <HugeiconsIcon
-            icon={Upload01Icon}
-            className={cn(
-              "size-5",
-              isInvalid ? "text-destructive" : "text-muted-foreground"
-            )}
+          <input
+            ref={inputRef}
+            type="file"
+            accept={ACCEPTED_TYPES.join(",")}
+            multiple={multiple}
+            aria-label="Unggah gambar"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files) addFiles(e.target.files)
+              e.target.value = ""
+            }}
           />
-          <p className={cn(
-            "text-xs font-medium",
-            isInvalid ? "text-destructive" : "text-foreground"
-          )}>
+          <HugeiconsIcon
+            icon={Image01Icon}
+            className={cn("size-5", isInvalid ? "text-destructive" : "text-muted-foreground")}
+          />
+          <p className={cn("text-xs font-medium", isInvalid ? "text-destructive" : "text-foreground")}>
             {isDragActive
               ? "Lepaskan gambar di sini"
               : "Letakkan gambar di sini, atau klik untuk memilih"}
           </p>
-          <p className={cn(
-            "text-[11px]",
-            isInvalid ? "text-destructive/80" : "text-muted-foreground"
-          )}>
+          <p className={cn("text-[11px]", isInvalid ? "text-destructive/80" : "text-muted-foreground")}>
             PNG, JPG atau WebP — maks 5MB per file
           </p>
+          <span className="sr-only">
+            <HugeiconsIcon icon={Upload01Icon} className="size-4" />
+          </span>
         </div>
       )}
     </div>

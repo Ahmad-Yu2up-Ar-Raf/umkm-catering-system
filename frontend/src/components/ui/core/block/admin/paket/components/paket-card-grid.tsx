@@ -6,6 +6,9 @@ import { Edit01Icon, Delete01Icon, EyeIcon } from "@hugeicons/core-free-icons"
 import { PaketCard } from "@/components/ui/core/block/paket/components/paket-card"
 import { usePaketDeleteMutation } from "../hooks/use-paket-mutations"
 import type { Paket } from "../../../paket/types/paket-types"
+import { useSidebar } from "@/components/ui/fragments/shadcn-ui/sidebar"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { cn } from "@/lib/utils"
 
 interface PaketCardGridProps {
   items: Paket[]
@@ -18,10 +21,20 @@ interface PaketCardGridProps {
  * with admin actions overlaid.
  */
 export function PaketCardGrid({ items, onEdit, onDelete }: PaketCardGridProps) {
-  const { isPending: isDeleting, variables: deleteVariables } = usePaketDeleteMutation()
+  const isMobile = useIsMobile()
+  const { open, openMobile } = useSidebar()
+  const sidebarOpen = isMobile ? openMobile : open
+  const { isPending: isDeleting, variables: deleteVariables } =
+    usePaketDeleteMutation()
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+    <div
+      className={cn(
+        "grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-4",
+
+        sidebarOpen ? "xl:grid-cols-3" : "xl:grid-cols-4"
+      )}
+    >
       {items.map((paket) => {
         const isThisDeleting = isDeleting && deleteVariables?.id === paket.id
 

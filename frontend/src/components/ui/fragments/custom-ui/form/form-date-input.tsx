@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useStore } from "@tanstack/react-store"
-import { format, parse } from "date-fns"
+import { format, parse, isValid } from "date-fns"
 import { id } from "date-fns/locale"
 import { useFieldContext } from "@/hooks/use-form"
 import {
@@ -16,15 +16,40 @@ import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 export type FormDateInputProps = FormControlProps & {
   defaultMonthFallback?: Date
   disableFuture?: boolean
-  disablePast?: boolean // 👈 Tambahkan ini untuk mematikan tanggal lalu
+  disablePast?: boolean
   captionLayout?:
     "label" | "dropdown" | "dropdown-months" | "dropdown-years" | undefined
+}
+
+/**
+ * Parse date string from API which may be in various formats:
+ * - "yyyy-MM-dd" (bare date)
+ * - "yyyy-MM-ddTHH:mm:ss.sssZ" (ISO datetime)
+ * - "yyyy-MM-dd HH:mm:ss" (Carbon/MySQL datetime)
+ * Returns a valid Date or undefined.
+ */
+function parseApiDate(value: string | undefined): Date | undefined {
+  if (!value || value.trim() === "") return undefined
+
+  // Try ISO format first (most common from Laravel API resources)
+  const isoDate = new Date(value)
+  if (isValid(isoDate)) return isoDate
+
+  // Try parsing as bare date
+  const bareDate = parse(value, "yyyy-MM-dd", new Date())
+  if (isValid(bareDate)) return bareDate
+
+  // Try parsing as Carbon/MySQL datetime
+  const carbonDate = parse(value, "yyyy-MM-dd HH:mm:ss", new Date())
+  if (isValid(carbonDate)) return carbonDate
+
+  return undefined
 }
 
 export function FormDateInput({
   defaultMonthFallback,
   disableFuture = false,
-  disablePast = false, // 👈 Default false
+  disablePast = false,
   captionLayout,
   ...props
 }: FormDateInputProps) {
@@ -50,10 +75,11 @@ export function FormDateInput({
   const isInvalid = hasErrors && submissionAttempts > 0
   const isValid = hasValue && !hasErrors
 
-  const dateValue = value ? parse(value, "yyyy-MM-dd", new Date()) : undefined
+  const dateValue = parseApiDate(value)
 
   const handleSelect = (date: Date | undefined) => {
-    field.handleChange(date ? format(date, "yyyy-MM-dd") : "")
+    const dateString = date ? format(date, "yyyy-MM-dd") : ""
+    field.handleChange(dateString)
     // Calendar selection has no native blur — run blur validation so stale
     // error rings/messages clear instantly on pick.
     field.handleBlur()

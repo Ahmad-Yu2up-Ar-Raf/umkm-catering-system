@@ -11,13 +11,13 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "g-primary border-transparent shadow-sm/2 focus-visible:ring-ring",
+          "g-primary border-transparent   focus-visible:ring-ring",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground focus-visible:ring-ring",
         destructive:
-          "text-destructive-foreground border-transparent bg-destructive shadow-sm/2 focus-visible:ring-destructive",
+          "text-destructive-foreground border-transparent bg-destructive  focus-visible:ring-destructive",
         outline:
-          "border-border text-foreground shadow-sm/2 focus-visible:ring-ring",
+          "border-border text-foreground  focus-visible:ring-ring",
         ghost: "border-transparent text-foreground focus-visible:ring-ring",
       },
       size: {

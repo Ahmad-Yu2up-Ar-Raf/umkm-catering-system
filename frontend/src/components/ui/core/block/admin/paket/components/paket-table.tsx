@@ -11,7 +11,10 @@ import {
   PlateIcon,
   Sorting01Icon,
 } from "@hugeicons/core-free-icons"
-import { Avatar, AvatarFallback } from "@/components/ui/fragments/shadcn-ui/avatar"
+import {
+  Avatar,
+  AvatarFallback,
+} from "@/components/ui/fragments/shadcn-ui/avatar"
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import {
@@ -62,7 +65,8 @@ export function PaketTable({
   sortDir,
   onSortChange,
 }: PaketTableProps) {
-  const { isPending: isDeleting, variables: deleteVariables } = usePaketDeleteMutation()
+  const { isPending: isDeleting, variables: deleteVariables } =
+    usePaketDeleteMutation()
 
   // Column visibility state
   const [hiddenCols, setHiddenCols] = useState<Record<string, boolean>>({})
@@ -82,25 +86,28 @@ export function PaketTable({
             size="sm"
             className={cn(
               "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:bg-muted/50",
-              isSorted && "text-foreground font-semibold"
+              isSorted && "font-semibold text-foreground"
             )}
           >
             <span className="flex-1">{title}</span>
             <HugeiconsIcon
-              icon={isSorted
-                ? sortDir === "asc"
-                  ? ArrowUp01Icon
-                  : ArrowDown01Icon
-                : Sorting01Icon
+              icon={
+                isSorted
+                  ? sortDir === "asc"
+                    ? ArrowUp01Icon
+                    : ArrowDown01Icon
+                  : Sorting01Icon
               }
               className={cn(
                 "size-3.5 shrink-0 transition-opacity",
-                isSorted ? "text-foreground" : "text-muted-foreground opacity-0 group-hover:opacity-100"
+                isSorted
+                  ? "text-foreground"
+                  : "text-muted-foreground opacity-0 group-hover:opacity-100"
               )}
             />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-40 z-[9999]">
+        <DropdownMenuContent align="start" className="z-[9999] w-40">
           <DropdownMenuItem onClick={() => onSortChange?.(columnKey, "asc")}>
             <HugeiconsIcon icon={ArrowUp01Icon} className="size-3.5" />
             Sort Ascending
@@ -120,32 +127,46 @@ export function PaketTable({
   }
 
   return (
-    <Table className="bg-transparent">
+    <Table className="relative bg-transparent">
       <TableHeader>
         <TableRow className="border-border hover:bg-transparent">
           {!hiddenCols.nama_paket && (
-            <TableHead className="min-w-64">{renderSortHeader("Paket", "nama_paket")}</TableHead>
+            <TableHead className="min-w-64">
+              {renderSortHeader("Paket", "nama_paket")}
+            </TableHead>
           )}
           {!hiddenCols.kategori_paket && (
-            <TableHead className="min-w-36">{renderSortHeader("Kategori", "kategori_paket")}</TableHead>
+            <TableHead className="min-w-36">
+              {renderSortHeader("Kategori", "kategori_paket")}
+            </TableHead>
           )}
           {!hiddenCols.kategori_acara && (
-            <TableHead className="min-w-32">{renderSortHeader("Acara", "kategori_acara")}</TableHead>
+            <TableHead className="min-w-32">
+              {renderSortHeader("Acara", "kategori_acara")}
+            </TableHead>
           )}
           {!hiddenCols.harga_per_porsi && (
-            <TableHead className="min-w-36">{renderSortHeader("Harga / Porsi", "harga_per_porsi")}</TableHead>
+            <TableHead className="min-w-36">
+              {renderSortHeader("Harga / Porsi", "harga_per_porsi")}
+            </TableHead>
           )}
           {!hiddenCols.min_order && (
-            <TableHead className="min-w-28">{renderSortHeader("Min. Order", "min_order")}</TableHead>
+            <TableHead className="min-w-28">
+              {renderSortHeader("Min. Order", "min_order")}
+            </TableHead>
           )}
           {!hiddenCols.pesanan && (
             <TableHead className="min-w-24">Terjual</TableHead>
           )}
           {!hiddenCols.status && (
-            <TableHead className="min-w-28">{renderSortHeader("Status", "is_best_seller")}</TableHead>
+            <TableHead className="min-w-28">
+              {renderSortHeader("Status", "is_best_seller")}
+            </TableHead>
           )}
           {!hiddenCols.created_at && (
-            <TableHead className="min-w-32">{renderSortHeader("Dibuat", "created_at")}</TableHead>
+            <TableHead className="min-w-32">
+              {renderSortHeader("Dibuat", "created_at")}
+            </TableHead>
           )}
           <TableHead className="w-12 text-right">
             <span className="sr-only">Aksi</span>
@@ -166,7 +187,7 @@ export function PaketTable({
               {!hiddenCols.nama_paket && (
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Avatar className="size-10 shrink-0 rounded-lg border border-border bg-muted/40">
+                    <Avatar className="size-10 shrink-0 rounded-full border border-border bg-muted/40">
                       {paket.thumbnail ? (
                         <MediaItem
                           webViewLink={paket.thumbnail}
@@ -174,7 +195,7 @@ export function PaketTable({
                           layout="constrained"
                           width={80}
                           height={80}
-                          className="size-full"
+                          className="size-ful rounded-xl"
                         />
                       ) : (
                         <AvatarFallback className="rounded-xl text-muted-foreground">
@@ -200,7 +221,7 @@ export function PaketTable({
                     icon={categoryIcon}
                     variant="outline"
                     className={cn(
-                      "w-fit gap-1.5 border-0 text-accent-foreground shadow-none text-xs",
+                      "w-fit gap-1.5 border-0 text-xs text-accent-foreground shadow-none",
                       categoryColor
                     )}
                   >
@@ -220,7 +241,9 @@ export function PaketTable({
                         getAcaraColor(paket.kategori_acara)
                       )}
                     >
-                      <span className="font-medium">{paket.kategori_acara}</span>
+                      <span className="font-medium">
+                        {paket.kategori_acara}
+                      </span>
                     </Badge>
                   ) : (
                     <span className="text-xs text-muted-foreground">—</span>
@@ -229,19 +252,19 @@ export function PaketTable({
               )}
 
               {!hiddenCols.harga_per_porsi && (
-                <TableCell className="font-medium tabular-nums whitespace-nowrap">
+                <TableCell className="font-medium whitespace-nowrap tabular-nums">
                   {formatIDR(paket.harga_per_porsi)}
                 </TableCell>
               )}
 
               {!hiddenCols.min_order && (
-                <TableCell className="tabular-nums whitespace-nowrap">
+                <TableCell className="whitespace-nowrap tabular-nums">
                   {paket.min_order} porsi
                 </TableCell>
               )}
 
               {!hiddenCols.pesanan && (
-                <TableCell className="tabular-nums text-muted-foreground">
+                <TableCell className="text-muted-foreground tabular-nums">
                   {paket.pesanan_count ?? 0}x
                 </TableCell>
               )}
@@ -252,7 +275,7 @@ export function PaketTable({
                     <Badge
                       variant="outline"
                       icon={HeartIcon}
-                      className="border-destructive bg-destructive/5 text-destructive text-xs [&_svg]:fill-destructive [&_svg]:text-destructive"
+                      className="border-destructive bg-destructive/5 text-xs text-destructive [&_svg]:fill-destructive [&_svg]:text-destructive"
                     >
                       Best Seller
                     </Badge>
@@ -263,7 +286,7 @@ export function PaketTable({
               )}
 
               {!hiddenCols.created_at && (
-                <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
                   {paket.created_at
                     ? format(new Date(paket.created_at), "dd MMM yyyy")
                     : "—"}

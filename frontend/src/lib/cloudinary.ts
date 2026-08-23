@@ -4,6 +4,22 @@ import type { UploadTransport } from "react-mediadrop"
 /** Canonical Cloudinary product folder — identical prefix to PaketSeeder. */
 export const CLOUDINARY_PRODUCTS_FOLDER = "catering-nusantara/products"
 
+/**
+ * Fire-and-forget orphan sweep: deletes Cloudinary assets that were uploaded
+ * during a draft session but never committed (drawer discarded/cancelled, or
+ * an individual preview tile removed via its X button).
+ *
+ * Backend endpoint: DELETE /admin/cloudinary { urls } — best-effort; errors
+ * are swallowed (storage hygiene flow, never user-facing).
+ */
+export function purgeCloudinaryImages(urls: string[]): void {
+  const canonical = [...new Set(urls.filter((u) => u.startsWith("http")))]
+  if (canonical.length === 0) return
+  void api
+    .delete("admin/cloudinary", { json: { urls: canonical } })
+    .catch(() => {})
+}
+
 interface SignatureResponse {
   signature: string
   timestamp: number
@@ -24,6 +40,63 @@ async function getUploadSignature(): Promise<SignatureResponse> {
     cachedSignature = res.data
   }
   return cachedSignature
+}
+
+/** Get a signature for a specific Cloudinary folder (bypasses cache). */
+async function getUploadSignatureForFolder(folder: string): Promise<SignatureResponse> {
+  const res = await api
+    .post("admin/cloudinary/signature", { json: { kategori_acara: folder } })
+    .json<{ data: SignatureResponse }>()
+  return res.data
+}
+
+/**
+ * Transport that uploads one file straight to Cloudinary using a specific folder.
+ */
+export function createCloudinaryTransportForFolder(folder: string): UploadTransport {
+  return {
+    async upload(file, { onProgress, signal }) {
+      const signature = await getUploadSignatureForFolder(folder)
+
+      const formData = new FormData()
+      formData.append("file", file.file)
+      formData.append("api_key", signature.apiKey)
+      formData.append("timestamp", String(signature.timestamp))
+      formData.append("signature", signature.signature)
+      formData.append("folder", signature.folder)
+
+      const result = await new Promise<Record<string, unknown>>((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open("POST", `https://api.cloudinary.com/v1_1/${signature.cloudName}/image/upload`)
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            onProgress({ loaded: event.loaded, total: event.total })
+          }
+        }
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText) as Record<string, unknown>)
+          } else {
+            const error = new Error("Upload gagal") as Error & { status?: number }
+            error.status = xhr.status
+            reject(error)
+          }
+        }
+        xhr.onerror = () => reject(new Error("Gagal terhubung ke Cloudinary"))
+        signal.addEventListener(
+          "abort",
+          () => {
+            xhr.abort()
+            reject(new Error("Upload dibatalkan"))
+          },
+          { once: true }
+        )
+        xhr.send(formData)
+      })
+
+      return { response: result }
+    },
+  }
 }
 
 /**

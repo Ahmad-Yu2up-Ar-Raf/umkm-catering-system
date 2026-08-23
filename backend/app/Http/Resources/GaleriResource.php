@@ -20,6 +20,8 @@ class GaleriResource extends JsonResource
             'kategori_acara' => $this->kategori_acara?->value ?? 'Lainnya',
             'deskripsi_acara' => $this->deskripsi_acara,
             'gambar_acara' => $this->gambar_acara,
+            'thumbnail' => $this->thumbnail,
+            'images' => $this->images ?? [],
             'tanggal_acara' => $this->tanggal_acara,
             'lokasi' => $this->lokasi,
             'jumlah_tamu' => $this->jumlah_tamu,

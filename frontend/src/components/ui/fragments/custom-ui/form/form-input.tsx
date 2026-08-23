@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState } from "react"
 import { useStore } from "@tanstack/react-store"
 import { useFieldContext } from "@/hooks/use-form"
@@ -6,7 +8,7 @@ import { FormBase, type FormControlProps } from "./form-base"
 import { cn } from "@/lib/utils"
 
 export function FormInput(props: FormControlProps) {
-  const field = useFieldContext<string | number>()
+  const field = useFieldContext<string | number | null>()
   const [isFocused, setIsFocused] = useState(false)
 
   const isSubmitting = useStore(
@@ -18,16 +20,13 @@ export function FormInput(props: FormControlProps) {
     (state) => state.submissionAttempts
   )
 
-  // 🚨 FIX ROOT CAUSE: Subscribe ke value & errors dari field.store
-  // agar setiap ketikan (onChange) merender ulang UI secara realtime.
   const errors = useStore(field.store, (state) => state.meta.errors)
   const value = useStore(field.store, (state) => state.value)
 
-  // 1. LOGIKA VALIDASI
+  // 1. LOGIKA VALIDASI (FIXED: null & undefined dihitung sebagai KOSONG)
   const hasErrors = errors.length > 0
-  const hasValue = value !== undefined && value !== ""
+  const hasValue = value !== undefined && value !== null && value !== ""
 
-  // Tahan error dan validasi hijau sebelum submit pertama
   const isInvalid = hasErrors && submissionAttempts > 0
   const isValid = hasValue && !hasErrors
 
@@ -37,9 +36,9 @@ export function FormInput(props: FormControlProps) {
   const validClass = props.isValidClassName || "border-primary bg-primary/5"
   const invalidClass =
     props.isInvalidClassName ||
-    "border-destructive  bg-destructive/8  focus-visible:text-destructive focus-visible:placeholder:text-destructive"
+    "border-destructive bg-destructive/8 focus-visible:text-destructive focus-visible:placeholder:text-destructive/70"
 
-  // 3. PRIORITAS VISUAL (Invalid > Valid > Focus > Normal)
+  // 3. PRIORITAS VISUAL
   let containerStateClass = "border-border "
 
   if (isInvalid) {
@@ -50,23 +49,22 @@ export function FormInput(props: FormControlProps) {
     containerStateClass = focusClass
   }
 
-  // 4. INTERCEPTOR ONCHANGE
+  // 4. INTERCEPTOR ONCHANGE (FIXED: Kembalikan null saat input dibersihkan)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value
 
     if (props.inputMode === "numeric") {
-      val = val.replace(/[^0-9]/g, "") // Blokir semua huruf seketika
+      val = val.replace(/[^0-9]/g, "")
     }
 
     if (props.type === "number") {
       field.handleChange(
-        (val === "" ? undefined : Number(val)) as string | number
+        (val === "" ? null : Number(val)) as string | number | null
       )
     } else {
-      field.handleChange(val)
+      field.handleChange(val === "" ? null : val)
     }
-    // Every keystroke is a commit — run blur validation so stale errors
-    // clear on the first valid character.
+
     field.handleBlur()
   }
 
@@ -80,17 +78,6 @@ export function FormInput(props: FormControlProps) {
           props.className
         )}
       >
-        {/* {props.LeftIcon && (
-          <div
-            className={cn(
-              "absolute left-4 z-10 flex h-full items-center justify-center transition-colors [&_svg]:size-4 [&_svg]:shrink-0",
-              iconStateColor
-            )}
-          >
-            <HugeiconsIcon icon={props.LeftIcon} />
-          </div>
-        )} */}
-
         <Input
           id={field.name}
           name={field.name}
@@ -111,13 +98,10 @@ export function FormInput(props: FormControlProps) {
           }}
           className={cn(
             "right-0 h-full border-0 bg-transparent px-3 text-sm shadow-none transition-colors focus-visible:ring-0",
-            // props.LeftIcon ? "pl-7" : "pl-4", // Fix padding agar icon tidak bertumpuk
-
-            // Text Priority Logic
             isInvalid &&
-              "text-destructive placeholder:text-destructive focus-visible:text-destructive focus-visible:placeholder:text-destructive",
+              "text-destructive placeholder:text-destructive/70 focus-visible:text-destructive focus-visible:placeholder:text-destructive/70",
             isValid && "font-medium text-primary",
-            !isInvalid && defaultInputColor
+            !isInvalid && !isValid && defaultInputColor
           )}
         />
       </div>

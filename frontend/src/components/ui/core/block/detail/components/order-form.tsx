@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
 import { createOrderSchema } from "../validations/order-schema"
+import type { OrderFormValues } from "../validations/order-schema"
 import { buildWaOrderMessage, calculateOrder } from "../utils/order-calculator"
 import type { DetailViewModel } from "../utils/detail-view-model"
 import { OrderSummaryPanel } from "./order-summary-panel"
@@ -27,51 +28,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/fragments/shadcn-ui/dialog"
+
+/** Pristine order-draft shape — the baseline for dirty tracking. */
+export const orderFormDefaults = (minOrder: number): OrderFormValues => ({
+  nama: "",
+  lokasi_acara: "",
+  tanggal_acara: "",
+  jumlah_porsi: minOrder,
+  lauk_pelengkap: [],
+  catatan: "",
+})
+
 /**
- * OrderForm — interactive order & calculation form, shared verbatim by the
- * desktop Dialog and the mobile Drawer shells (`OrderCalculationDialog`).
- *
- * TanStack Form (`useAppForm`) + the Zod schema factory parametrized by the
- * package's runtime capacity. `form.AppForm` (form context provider) wraps
- * BOTH the summary panel (live estimate) and the fields; validators run on
- * submit. Scrolling is owned by the shell, so this component stays surface-
- * agnostic — only the internal rail classes here.
- *
- * Submit: validate → build the structured WA message → open `wa.me` →
- * success toast → close. The estimate is a UX-only preview; the server still
- * owns `total_harga`.
+ * Owns the order form instance so the SHELL (`OrderCalculationDialog`) can
+ * read draft state (`isDirty` / `reset`) for close interception — same
+ * ownership pattern as `usePaketForm` + `CreatePaketDrawer`.
  */
-export function OrderForm({
-  vm,
-  onSuccess,
-}: {
-  vm: DetailViewModel
-  onSuccess: () => void
-}) {
-  // ONE schema drives every validation phase. TanStack v1 purges a field's
-  // submit error whenever a change/blur validation runs WITHOUT an error;
-  // giving those phases the real rules keeps genuinely-invalid fields red
-  // (their phase errors), while a truly-fixed field clears immediately.
-  // Schema for the form's `onSubmit` — `useAppForm` automatically reuses it
-  // for onChange/onBlur so invalid fields keep their errors until fixed, and
+export function useOrderForm(vm: DetailViewModel, onSuccess: () => void) {
+  // ONE schema drives every validation phase. `useAppForm` reuses it for
+  // onChange/onBlur so invalid fields keep their errors until fixed, and
   // injects the global error toast + first-error auto-focus on failed submit.
   const orderSchema = createOrderSchema({
     capacity: vm.capacity,
     addonOptions: vm.menuExtra ?? [],
   })
 
-  const form = useAppForm({
+  return useAppForm({
     validators: {
       onSubmit: orderSchema,
     },
-    defaultValues: {
-      nama: "",
-      lokasi_acara: "",
-      tanggal_acara: "",
-      jumlah_porsi: vm.minOrder,
-      lauk_pelengkap: [] as string[],
-      catatan: "",
-    },
+    defaultValues: orderFormDefaults(vm.minOrder),
     onSubmit: async ({ value }) => {
       const calc = calculateOrder({
         jumlahPorsi: value.jumlah_porsi,
@@ -84,7 +70,22 @@ export function OrderForm({
       onSuccess()
     },
   })
+}
 
+export type OrderFormApi = ReturnType<typeof useOrderForm>
+
+/**
+ * OrderForm — the interactive order & calculation fields, shared verbatim by
+ * the desktop Dialog and the mobile Drawer shells. Pure presentation + field
+ * wiring: state ownership lives in `useOrderForm` (consumed by the shell).
+ */
+export function OrderForm({
+  vm,
+  form,
+}: {
+  vm: DetailViewModel
+  form: OrderFormApi
+}) {
   const values = useStore(form.baseStore, (s) => s.values)
   const isSubmitting = useStore(form.baseStore, (s) => s.isSubmitting)
 
@@ -107,7 +108,7 @@ export function OrderForm({
 
         {/* right rail — the SHELL owns max-height/scroll containment */}
         <div className="pt-0 lg:py-6">
-          <DialogHeader className="flex flex-row items-center gap-4 border-b pb-8  mb-8">
+          <DialogHeader className="flex flex-row items-center gap-4 border-b pb-8 mb-8">
             <div className="flex flex-col gap-2">
               <DialogTitle className="font-heading text-3xl">
                 Pesan{" "}

@@ -11,7 +11,6 @@ interface PaketFormActionsProps {
   onCancel: () => void
 }
 
-/** Footer actions shared by the Create/Update Sheet & Drawer shells. */
 export function PaketFormActions({
   form,
   submitLabel,
@@ -38,7 +37,7 @@ export function PaketFormActions({
               Batalkan
             </Button>
             <Button
-              type="submit"
+              type="submit" // <-- Kembalikan jadi type="submit" murni
               disabled={isSubmitting || uploading}
               className="w-fit"
               title={uploading ? "Tunggu upload gambar selesai" : undefined}

@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Model;
     'kategori_acara',
     'deskripsi_acara',
     'gambar_acara',
+    'thumbnail',
+    'images',
     'tanggal_acara',
     'lokasi',
     'jumlah_tamu',
@@ -41,6 +43,7 @@ class Galeri extends Model
             'kategori_acara' => GaleriKategoriEnum::class,
             'jumlah_tamu' => 'integer',
             'is_featured' => 'boolean',
+            'images' => 'array',
         ];
     }
 

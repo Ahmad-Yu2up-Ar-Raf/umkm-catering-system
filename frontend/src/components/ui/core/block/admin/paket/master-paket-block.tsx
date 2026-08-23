@@ -32,8 +32,8 @@ function MasterPaketBlock() {
 
   const viewMode = usePaketViewStore((s) => s.viewMode)
 
-  const [kategoriPaket, setKategoriPaket] = useState("")
-  const [kategoriAcara, setKategoriAcara] = useState("")
+  const [kategoriPaket, setKategoriPaket] = useState<string[]>([])
+  const [kategoriAcara, setKategoriAcara] = useState<string[]>([])
   const [sortBy, setSortBy] = useState("created_at")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [page, setPage] = useState(1)
@@ -56,10 +56,11 @@ function MasterPaketBlock() {
   const [updateTarget, setUpdateTarget] = useState<Paket | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Paket | null>(null)
 
-  const { mutate: deletePaket, isPending: isDeleting } = usePaketDeleteMutation()
+  const { mutate: deletePaket, isPending: isDeleting } =
+    usePaketDeleteMutation()
 
-  const handleFilterChange = (setter: (value: string) => void) => {
-    return (value: string) => {
+  const handleFilterChange = <T,>(setter: (value: T) => void) => {
+    return (value: T) => {
       setter(value)
       setPage(1)
     }
@@ -85,20 +86,20 @@ function MasterPaketBlock() {
 
   const clearAllFilters = () => {
     setSearchInput("")
-    setKategoriPaket("")
-    setKategoriAcara("")
+    setKategoriPaket([])
+    setKategoriAcara([])
     setSortBy("created_at")
     setSortDir("desc")
     setPage(1)
   }
 
   const hasActiveFilters =
-    searchInput !== "" || kategoriPaket !== "" || kategoriAcara !== ""
+    searchInput !== "" || kategoriPaket.length > 0 || kategoriAcara.length > 0
 
   return (
     <div
       className={cn(
-        "flex h-full w-full flex-1 flex-col gap-6 rounded-xl px-4 py-8 sm:px-8 lg:px-10",
+        "flex h-full w-full min-w-0 flex-1 flex-col gap-6 rounded-xl px-4 py-8 sm:px-8 lg:px-10", // <-- Tambahkan min-w-0 di sini
         isMobile && "px-3"
       )}
     >
@@ -138,19 +139,21 @@ function MasterPaketBlock() {
               ))}
             </div>
           ) : (
-            <DataTableSkeleton
-              columnCount={8}
-              rowCount={5}
-              withViewOptions={false}
-              withPagination={false}
-            />
+            <>
+              <DataTableSkeleton
+                columnCount={8}
+                rowCount={5}
+                withViewOptions={false}
+                withPagination={false}
+              />
+            </>
           )
         ) : isError ? (
           <div className="rounded-xl border border-border py-12 text-center text-destructive">
             Gagal memuat data dari server. Muat ulang halaman dan coba lagi.
           </div>
         ) : items.length === 0 ? (
-          <div className="rounded-xl border border-border py-16 text-center bg-transparent">
+          <div className="rounded-xl border border-border bg-transparent py-16 text-center">
             <p className="text-sm text-muted-foreground">
               Tidak ada paket ditemukan.
             </p>
@@ -165,7 +168,7 @@ function MasterPaketBlock() {
             onDelete={setDeleteTarget}
           />
         ) : (
-          <div className="overflow-hidden bg-transparent">
+          <div className="overflow-hidden rounded-xl bg-transparent">
             <PaketTable
               items={items}
               onEdit={setUpdateTarget}

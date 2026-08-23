@@ -21,7 +21,10 @@ import {
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { usePaketUploadStore } from "@/store/paket-upload-store"
-import { usePaketForm, purgeUncommittedPaketImages } from "../hooks/use-paket-mutations"
+import {
+  usePaketForm,
+  purgeUncommittedPaketImages,
+} from "../hooks/use-paket-mutations"
 import { toFormDefaults, areFormValuesEqual } from "../utils/paket-form-mapper"
 import type { Paket } from "../../../paket/types/paket-types"
 import PaketForm from "./paket-form"
@@ -33,7 +36,6 @@ interface UpdatePaketDrawerProps {
   onOpenChange: (open: boolean) => void
 }
 
-/** Responsive Update shell — Dialog on desktop (≥md), Drawer on mobile (<md). */
 export function UpdatePaketDrawer({
   paket,
   open,
@@ -55,12 +57,9 @@ export function UpdatePaketDrawer({
   const hasActualChanges = () => {
     const currentValues = form.store.state.values
     const originalValues = toFormDefaults(paket)
-    
     return !areFormValuesEqual(currentValues, originalValues)
   }
 
-  /** On discard, sweep only uploads that were ADDED this session (not in the
-   * original paket) — originals stay referenced by the DB and must survive. */
   const discardUncommittedUploads = () => {
     const current = form.store.state.values
     const original = toFormDefaults(paket)
@@ -68,16 +67,16 @@ export function UpdatePaketDrawer({
       ...(typeof original.thumbnail === "string" && original.thumbnail
         ? [original.thumbnail]
         : []),
-      ...(original.images ?? []).filter((img): img is string =>
-        typeof img === "string"
+      ...(original.images ?? []).filter(
+        (img): img is string => typeof img === "string"
       ),
     ])
     purgeUncommittedPaketImages(
       [
         typeof current.thumbnail === "string" ? current.thumbnail : "",
-        ...((current.images ?? []).filter(
+        ...(current.images ?? []).filter(
           (img): img is string => typeof img === "string"
-        )),
+        ),
       ].filter((url) => url !== "" && !known.has(url))
     )
   }
@@ -120,24 +119,23 @@ export function UpdatePaketDrawer({
     return (
       <>
         <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent className="flex flex-col">
-            <DrawerHeader className="border-b p-4 text-left">
+          <DrawerContent className="flex max-h-[95svh] flex-col overflow-hidden">
+            <DrawerHeader className="shrink-0 border-b p-4 text-left">
               <DrawerTitle>Ubah Paket</DrawerTitle>
               <DrawerDescription>
                 Perbarui detail paket "{paket.nama_paket}".
               </DrawerDescription>
             </DrawerHeader>
-            <div className="overflow-y-auto px-4 pb-4">
-              <PaketForm key={open ? "open" : "closed"} form={form}>
-                <DrawerFooter className="px-0 pb-0">
-                  <PaketFormActions
-                    form={form}
-                    submitLabel="Simpan Perubahan"
-                    onCancel={handleCancel}
-                  />
-                </DrawerFooter>
-              </PaketForm>
-            </div>
+
+            <PaketForm key={open ? "open" : "closed"} form={form}>
+              <DrawerFooter className="shrink-0 border-t p-4">
+                <PaketFormActions
+                  form={form}
+                  submitLabel="Simpan Perubahan"
+                  onCancel={handleCancel}
+                />
+              </DrawerFooter>
+            </PaketForm>
           </DrawerContent>
         </Drawer>
 
@@ -156,24 +154,26 @@ export function UpdatePaketDrawer({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-          <DialogHeader className="sticky top-0 z-30 flex flex-row items-center gap-4 border-b bg-background px-6 py-5 sm:px-10">
-            <DialogTitle>Ubah Paket</DialogTitle>
+        {/* max-width dan max-height dioptimalkan layaknya layar pesanan */}
+        <DialogContent className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[70em]">
+          <DialogHeader className="flex shrink-0 flex-row items-center gap-4 border-b bg-background px-6 py-6 sm:px-10">
+            <DialogTitle className="font-heading text-2xl">
+              Ubah Paket
+            </DialogTitle>
             <DialogDescription className="hidden sm:block">
               Perbarui detail paket "{paket.nama_paket}".
             </DialogDescription>
           </DialogHeader>
-          <div className="show-scrollbar flex-1 overflow-y-auto overscroll-contain p-6">
-            <PaketForm key={open ? "open" : "closed"} form={form}>
-              <DialogFooter className="sticky bottom-0 z-50 flex w-full flex-row justify-end gap-3 border-t bg-background px-6 py-4">
-                <PaketFormActions
-                  form={form}
-                  submitLabel="Simpan Perubahan"
-                  onCancel={handleCancel}
-                />
-              </DialogFooter>
-            </PaketForm>
-          </div>
+
+          <PaketForm key={open ? "open" : "closed"} form={form}>
+            <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t bg-background px-6 py-5">
+              <PaketFormActions
+                form={form}
+                submitLabel="Simpan Perubahan"
+                onCancel={handleCancel}
+              />
+            </DialogFooter>
+          </PaketForm>
         </DialogContent>
       </Dialog>
 
