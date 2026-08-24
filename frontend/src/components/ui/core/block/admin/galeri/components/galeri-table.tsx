@@ -141,9 +141,9 @@ export function GaleriTable({
     )
   }
 
-  /** Resolve the best image URL for preview: thumbnail → gambar_acara → images[0] */
+  /** Resolve the best image URL for preview: thumbnail → images[0] */
   const getPreviewImage = (galeri: Galeri): string | undefined => {
-    return galeri.thumbnail ?? galeri.gambar_acara ?? galeri.images?.[0]
+    return galeri.thumbnail ?? galeri.images?.[0]
   }
 
   /** Open the global image modal with the galeri's image(s) */
@@ -155,8 +155,7 @@ export function GaleriTable({
     const scopeImages = [
       previewImage,
       ...(galeri.thumbnail && galeri.thumbnail !== previewImage ? [galeri.thumbnail] : []),
-      ...(galeri.gambar_acara && galeri.gambar_acara !== previewImage ? [galeri.gambar_acara] : []),
-      ...galeri.images.filter((img) => img !== previewImage && img !== galeri.thumbnail && img !== galeri.gambar_acara),
+      ...galeri.images.filter((img) => img !== previewImage && img !== galeri.thumbnail),
     ]
 
     openImageModal(

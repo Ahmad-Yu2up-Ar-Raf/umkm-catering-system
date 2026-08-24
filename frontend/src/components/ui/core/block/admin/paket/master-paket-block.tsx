@@ -20,6 +20,7 @@ import { CreatePaketDrawer } from "./components/create-paket-drawer"
 import { UpdatePaketDrawer } from "./components/update-paket-drawer"
 import { PaketDeleteDialog } from "./components/paket-delete-dialog"
 import { cn } from "@/lib/utils"
+import { useSidebar } from "@/components/ui/fragments/shadcn-ui/sidebar"
 
 /**
  * Master Paket — the admin MDM block.
@@ -96,6 +97,8 @@ function MasterPaketBlock() {
   const hasActiveFilters =
     searchInput !== "" || kategoriPaket.length > 0 || kategoriAcara.length > 0
 
+  const { open, openMobile } = useSidebar()
+  const sidebarOpen = isMobile ? openMobile : open
   return (
     <div
       className={cn(
@@ -129,7 +132,13 @@ function MasterPaketBlock() {
       >
         {isLoading ? (
           viewMode === "grid" ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div
+              className={cn(
+                "grid grid-cols-1 gap-6 md:grid-cols-2 2xl:grid-cols-4",
+
+                sidebarOpen ? "xl:grid-cols-3" : "xl:grid-cols-4"
+              )}
+            >
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="flex flex-col gap-3">
                   <Skeleton className="aspect-square w-full rounded-xl" />
@@ -164,6 +173,7 @@ function MasterPaketBlock() {
         ) : viewMode === "grid" ? (
           <PaketCardGrid
             items={items}
+            sidebarOpen={sidebarOpen}
             onEdit={setUpdateTarget}
             onDelete={setDeleteTarget}
           />

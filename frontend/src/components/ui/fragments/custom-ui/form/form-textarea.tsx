@@ -3,7 +3,7 @@ import { useStore } from "@tanstack/react-store"
 import { FormBase, type FormControlProps } from "./form-base"
 import { useFieldContext } from "@/hooks/use-form"
 import { cn } from "@/lib/utils"
-import { Textarea } from "../../shadcn-ui/textarea" // Sesuaikan path jika beda
+import { Textarea } from "../../shadcn-ui/textarea"
 
 export type FormTextAreaProps = FormControlProps &
   React.TextareaHTMLAttributes<HTMLTextAreaElement>
@@ -21,18 +21,17 @@ export function FormTextArea(props: FormTextAreaProps) {
     (state) => state.submissionAttempts
   )
 
-  // 🚨 FIX ROOT CAUSE: Subscribe realtime ke store agar bebas bug delay render!
   const errors = useStore(field.store, (state) => state.meta.errors)
   const value = useStore(field.store, (state) => state.value)
 
-  // 1. LOGIKA VALIDASI
+  // 1. LOGIKA VALIDASI (FIXED)
   const hasErrors = errors.length > 0
-  const hasValue = value !== undefined && value !== ""
+  const hasValue = value !== undefined && value !== null && value !== ""
 
   const isInvalid = hasErrors && submissionAttempts > 0
   const isValid = hasValue && !hasErrors
 
-  // 2. THEMING SYSTEM (Persis seperti FormInput)
+  // 2. THEMING SYSTEM
   const defaultInputColor = props.inputClassName || "text-primary"
   const focusClass = props.isFocusClassName || "border-primary bg-primary/5"
   const validClass = props.isValidClassName || "border-primary bg-primary/5"
@@ -40,7 +39,7 @@ export function FormTextArea(props: FormTextAreaProps) {
     props.isInvalidClassName ||
     "border-destructive bg-destructive/5 focus-visible:text-destructive focus-visible:placeholder:text-destructive"
 
-  // 3. PRIORITAS VISUAL (Invalid > Valid > Focus > Normal)
+  // 3. PRIORITAS VISUAL
   let containerStateClass = "border-border bg-card"
 
   if (isInvalid) {
@@ -56,23 +55,12 @@ export function FormTextArea(props: FormTextAreaProps) {
       <div
         className={cn(
           "relative flex w-full overflow-hidden rounded-2xl border border-border/40 transition-all duration-300 ease-in-out",
-          "min-h-[120px]", // 🎯 TINGGI TEXTAREA: Jauh lebih tinggi dari FormInput
+          "min-h-[120px]",
           containerStateClass,
           isSubmitting && "pointer-events-none opacity-50",
           props.className
         )}
       >
-        {/* {props.LeftIcon && (
-          <div
-            className={cn(
-              "absolute top-4 left-2.5 z-10 flex items-center justify-center transition-colors [&_svg]:size-5 [&_svg]:shrink-0",
-              iconStateColor
-            )}
-          >
-            <HugeiconsIcon icon={props.LeftIcon} />
-          </div>
-        )} */}
-
         <Textarea
           id={field.name}
           name={field.name}
@@ -80,11 +68,9 @@ export function FormTextArea(props: FormTextAreaProps) {
           disabled={isSubmitting}
           aria-invalid={isInvalid}
           placeholder={props.placeholder}
-          rows={props.rows || 4} // Default 4 baris
+          rows={props.rows || 4}
           onChange={(e) => {
             field.handleChange(e.target.value)
-            // Every keystroke is a commit — run blur validation so stale
-            // errors clear on the first valid character.
             field.handleBlur()
           }}
           onFocus={() => setIsFocused(true)}
@@ -94,8 +80,6 @@ export function FormTextArea(props: FormTextAreaProps) {
           }}
           className={cn(
             "w-full resize-none border-0 bg-transparent px-5 py-4 pr-4 text-sm shadow-none transition-colors focus-visible:ring-0",
-            // props.LeftIcon ? "pl-16" : "pl-4", // Padding kiri yang aman untuk Icon
-            // Text Priority Logic
             isInvalid &&
               "text-destructive placeholder:text-destructive focus-visible:text-destructive focus-visible:placeholder:text-destructive",
             isValid && "font-medium text-primary",

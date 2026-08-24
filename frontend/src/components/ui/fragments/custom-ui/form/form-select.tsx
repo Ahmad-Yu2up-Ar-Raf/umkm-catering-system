@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useStore } from "@tanstack/react-store"
 import { useFieldContext } from "@/hooks/use-form"
 import {
@@ -35,6 +36,7 @@ export function FormSelect({
   ...props
 }: FormSelectProps) {
   const field = useFieldContext<string | null>()
+  const [isOpen, setIsOpen] = useState(false)
 
   const isSubmitting = useStore(
     field.form.baseStore,
@@ -47,8 +49,31 @@ export function FormSelect({
   const errors = useStore(field.store, (state) => state.meta.errors)
   const value = useStore(field.store, (state) => state.value)
 
+  // 1. LOGIKA VALIDASI
   const hasErrors = errors.length > 0
+  const hasValue = value !== undefined && value !== null && value !== ""
   const isInvalid = hasErrors && submissionAttempts > 0
+  const isValid = hasValue && !hasErrors
+
+  // 2. THEMING SYSTEM
+  const defaultInputColor = props.inputClassName || "text-primary"
+  const focusClass = props.isFocusClassName || "border-primary bg-primary/5"
+  const validClass = props.isValidClassName || "border-primary bg-primary/5"
+  const invalidClass =
+    props.isInvalidClassName ||
+    "border-destructive bg-destructive/8 text-destructive focus:ring-destructive/20"
+
+  // 3. PRIORITAS VISUAL
+  // FIX: Reset bg jadi transparan by default supaya gak kecampur bg-background milik shadcn.
+  let containerStateClass = "border-border bg-transparent"
+
+  if (isInvalid) {
+    containerStateClass = invalidClass
+  } else if (isValid) {
+    containerStateClass = validClass
+  } else if (isOpen) {
+    containerStateClass = focusClass
+  }
 
   const selectValue = value === null || value === undefined ? "" : value
 
@@ -60,6 +85,7 @@ export function FormSelect({
           field.handleChange(v === NONE_VALUE || v === "" ? null : v)
           field.handleBlur()
         }}
+        onOpenChange={setIsOpen}
         disabled={isSubmitting}
       >
         <SelectTrigger
@@ -67,13 +93,15 @@ export function FormSelect({
           aria-invalid={isInvalid}
           onBlur={field.handleBlur}
           className={cn(
-            "h-12 w-full rounded-2xl border-border bg-background transition-colors",
-            "focus:border-primary focus:ring-primary/20 data-[state=open]:border-primary",
-            selectValue &&
-              !isInvalid &&
-              "data-[state=closed]:border-primary/50",
+            "w-full border px-3 text-sm shadow-none transition-all duration-300 ease-in-out",
+            "focus:ring-0 focus:ring-offset-0 focus:outline-none data-[state=open]:ring-0",
+            // FIX: Tambahkan !h-12 dan !rounded-2xl untuk menumbangkan styling bawaan data-[size=default]:h-9 dan rounded-full
+            "!h-12 !rounded-2xl",
+            containerStateClass,
             isInvalid &&
-              "border-destructive bg-destructive/8 text-destructive focus:ring-destructive/20"
+              "placeholder:text-destructive/70 data-placeholder:text-destructive/70",
+            isValid && "font-medium text-primary",
+            !isInvalid && !isValid && defaultInputColor
           )}
         >
           <SelectValue

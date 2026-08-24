@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Edit01Icon, Delete01Icon, EyeIcon } from "@hugeicons/core-free-icons"
+import { Edit01Icon, Delete01Icon } from "@hugeicons/core-free-icons"
 import { GalleryCard } from "@/components/ui/core/block/galeri/components/gallery-card"
 import type { GalleryItem } from "@/components/ui/core/block/galeri/types/gallery-types"
 import type { Galeri } from "@/components/ui/core/block/admin/galeri/types/galeri-types"
@@ -19,7 +19,8 @@ interface GaleriAdminCardProps {
 
 /**
  * Admin wrapper around the public GalleryCard.
- * Adds admin action buttons (Preview, Edit, Delete) on hover.
+ * Adds admin action buttons (Edit, Delete) on hover.
+ * No "Pratinjau" button — clicking the card image already opens the modal.
  */
 export function GaleriAdminCard({
   item,
@@ -31,7 +32,7 @@ export function GaleriAdminCard({
   isDeleting = false,
 }: GaleriAdminCardProps) {
   return (
-    <div className="relative group">
+    <div className="relative group overflow-hidden">
       <GalleryCard
         item={item}
         index={index}
@@ -40,19 +41,6 @@ export function GaleriAdminCard({
       />
       {/* Admin actions overlay — appears on hover */}
       <div className="absolute bottom-0 left-0 right-0 p-2 bg-background/95 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2 justify-center">
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-          onClick={() => {
-            // Trigger the global image modal via GalleryCard's onClick
-            // GalleryCard already handles this via its onClick
-          }}
-        >
-          <HugeiconsIcon icon={EyeIcon} className="size-3.5" />
-          Pratinjau
-        </Button>
         <Button
           type="button"
           variant="outline"

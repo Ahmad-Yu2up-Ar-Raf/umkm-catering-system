@@ -37,12 +37,15 @@ export function FormCheckbox({ label, ...props }: FormCheckboxProps) {
 
   return (
     <FormBase {...props}>
-      <div
+      {/*
+        FIX 1: Ubah div jadi <label> supaya seluruh card (wrapper) jadi clickable hitbox.
+        Tambah cursor-pointer dan efek hover biar user tau ini bisa diklik satu kotak full.
+      */}
+      <label
+        htmlFor={field.name}
         className={cn(
-          "flex w-full items-center gap-3 rounded-2xl border p-4 transition-all duration-200",
-          value
-            ? "border-primary bg-primary/5"
-            : "border-border bg-card",
+          "flex w-full cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-all duration-200 hover:bg-muted/40",
+          value ? "border-primary bg-primary/5" : "border-border bg-card",
           isInvalid && "border-destructive/40",
           isSubmitting && "pointer-events-none opacity-50"
         )}
@@ -58,13 +61,9 @@ export function FormCheckbox({ label, ...props }: FormCheckboxProps) {
           }}
           disabled={isSubmitting}
         />
-        <label
-          htmlFor={field.name}
-          className="text-sm font-medium select-none"
-        >
-          {label}
-        </label>
-      </div>
+        {/* FIX 1: Ubah tag label di dalem sini jadi <span> karena luarnya udah dilapisin <label> */}
+        <span className="text-sm font-medium select-none">{label}</span>
+      </label>
     </FormBase>
   )
 }

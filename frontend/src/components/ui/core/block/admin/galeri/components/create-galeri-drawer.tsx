@@ -115,19 +115,19 @@ export function CreateGaleriDrawer({
     return (
       <>
         <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent className="flex flex-col">
-            <DrawerHeader className="border-b p-4 text-left">
+          <DrawerContent className="flex max-h-[95svh] flex-col overflow-hidden">
+            <DrawerHeader className="shrink-0 border-b p-4 text-left">
               <DrawerTitle>Tambah Galeri</DrawerTitle>
               <DrawerDescription>
                 Lengkapi detail galeri baru di bawah ini.
               </DrawerDescription>
             </DrawerHeader>
-            <div className="overflow-y-auto px-4 pb-4">
+            <div className="overflow-y-auto">
               <GaleriForm key={open ? "open" : "closed"} form={form}>
-                <DrawerFooter className="px-0 pb-0">
+                <DrawerFooter className="shrink-0 border-t p-4">
                   <GaleriFormActions
                     form={form}
-                    submitLabel="Simpan"
+                    submitLabel="Simpan Galeri"
                     onCancel={handleCancel}
                   />
                 </DrawerFooter>
@@ -151,19 +151,22 @@ export function CreateGaleriDrawer({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-          <DialogHeader className="sticky top-0 z-30 flex flex-col items-center gap-2 border-b bg-background px-6 py-5 sm:px-10">
-            <DialogTitle className="text-2xl">Tambah Galeri</DialogTitle>
+        <DialogContent className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]">
+          <DialogHeader className="flex sr-only shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
+            <DialogTitle className="font-heading text-3xl">
+              Buat{" "}
+              <span className="font-accent text-primary italic">Galeri</span>
+            </DialogTitle>
             <DialogDescription className="hidden sm:block">
               Lengkapi detail galeri baru di bawah ini.
             </DialogDescription>
           </DialogHeader>
 
           <GaleriForm key={open ? "open" : "closed"} form={form}>
-            <DialogFooter className="sticky bottom-0 z-50 flex w-full flex-row justify-end gap-3 border-t bg-background px-6 py-4">
+            <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t px-6 py-3">
               <GaleriFormActions
                 form={form}
-                submitLabel="Simpan"
+                submitLabel="Simpan Galeri"
                 onCancel={handleCancel}
               />
             </DialogFooter>

@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils"
 interface PaketCardGridProps {
   items: Paket[]
   onEdit: (paket: Paket) => void
+  sidebarOpen: boolean
   onDelete: (paket: Paket) => void
 }
 
@@ -20,10 +21,12 @@ interface PaketCardGridProps {
  * Admin card grid — reuses the official storefront PaketCard component
  * with admin actions overlaid.
  */
-export function PaketCardGrid({ items, onEdit, onDelete }: PaketCardGridProps) {
-  const isMobile = useIsMobile()
-  const { open, openMobile } = useSidebar()
-  const sidebarOpen = isMobile ? openMobile : open
+export function PaketCardGrid({
+  items,
+  onEdit,
+  onDelete,
+  sidebarOpen,
+}: PaketCardGridProps) {
   const { isPending: isDeleting, variables: deleteVariables } =
     usePaketDeleteMutation()
 

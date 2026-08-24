@@ -12,7 +12,7 @@ import type { GalleryItem } from "@/components/ui/core/block/galeri/types/galler
  * Map admin Galeri to public GalleryItem for reuse of GalleryCard.
  */
 function toGalleryItem(galeri: Galeri): GalleryItem {
-  const previewImage = galeri.thumbnail ?? galeri.gambar_acara ?? galeri.images?.[0] ?? ""
+  const previewImage = galeri.thumbnail ?? galeri.images?.[0] ?? ""
   return {
     id: String(galeri.id),
     category: galeri.kategori_acara as GalleryItem["category"],

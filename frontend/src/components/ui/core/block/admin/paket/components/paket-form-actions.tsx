@@ -28,6 +28,7 @@ export function PaketFormActions({
               {uploading && "Mengunggah gambar…"}
             </span>
             <Button
+              size={"lg"}
               type="button"
               variant="outline"
               onClick={onCancel}
@@ -37,6 +38,7 @@ export function PaketFormActions({
               Batalkan
             </Button>
             <Button
+              size={"lg"}
               type="submit" // <-- Kembalikan jadi type="submit" murni
               disabled={isSubmitting || uploading}
               className="w-fit"

@@ -120,19 +120,19 @@ export function UpdateGaleriDrawer({
     return (
       <>
         <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent className="flex flex-col">
-            <DrawerHeader className="border-b p-4 text-left">
+          <DrawerContent className="flex max-h-[95svh] flex-col overflow-hidden">
+            <DrawerHeader className="shrink-0 border-b p-4 text-left">
               <DrawerTitle>Ubah Galeri</DrawerTitle>
               <DrawerDescription>
                 Perbarui detail galeri "{galeri.nama_acara}".
               </DrawerDescription>
             </DrawerHeader>
-            <div className="overflow-y-auto px-4 pb-4">
+            <div className="overflow-y-auto">
               <GaleriForm key={open ? "open" : "closed"} form={form}>
-                <DrawerFooter className="px-0 pb-0">
+                <DrawerFooter className="shrink-0 border-t p-4">
                   <GaleriFormActions
                     form={form}
-                    submitLabel="Simpan Perubahan"
+                    submitLabel="Simpan Perubahan Galeri"
                     onCancel={handleCancel}
                   />
                 </DrawerFooter>
@@ -156,24 +156,26 @@ export function UpdateGaleriDrawer({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-          <DialogHeader className="sticky top-0 z-30 flex flex-row items-center gap-4 border-b bg-background px-6 py-5 sm:px-10">
-            <DialogTitle>Ubah Galeri</DialogTitle>
+        <DialogContent className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]">
+          <DialogHeader className="flex sr-only shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
+            <DialogTitle className="font-heading text-3xl">
+              Ubah{" "}
+              <span className="font-accent text-primary italic">Galeri</span>
+            </DialogTitle>
             <DialogDescription className="hidden sm:block">
               Perbarui detail galeri "{galeri.nama_acara}".
             </DialogDescription>
           </DialogHeader>
-          <div className="show-scrollbar flex-1 overflow-y-auto overscroll-contain p-6">
-            <GaleriForm key={open ? "open" : "closed"} form={form}>
-              <DialogFooter className="sticky bottom-0 z-50 flex w-full flex-row justify-end gap-3 border-t bg-background px-6 py-4">
-                <GaleriFormActions
-                  form={form}
-                  submitLabel="Simpan Perubahan"
-                  onCancel={handleCancel}
-                />
-              </DialogFooter>
-            </GaleriForm>
-          </div>
+
+          <GaleriForm key={open ? "open" : "closed"} form={form}>
+            <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t px-6 py-3">
+              <GaleriFormActions
+                form={form}
+                submitLabel="Simpan Perubahan Galeri"
+                onCancel={handleCancel}
+              />
+            </DialogFooter>
+          </GaleriForm>
         </DialogContent>
       </Dialog>
 

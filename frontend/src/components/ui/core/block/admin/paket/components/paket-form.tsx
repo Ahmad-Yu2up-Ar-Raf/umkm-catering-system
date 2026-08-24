@@ -7,7 +7,6 @@ import {
   Dish01Icon,
   PackageIcon,
   Restaurant01Icon,
-  Image01Icon,
 } from "@hugeicons/core-free-icons"
 import {
   PAKET_KATEGORI_OPTIONS,
@@ -20,10 +19,6 @@ interface PaketFormProps {
   children?: ReactNode
 }
 
-/**
- * Shared Create/Update Paket form.
- * Updated to Desktop Two-Column Layout with Sticky Right Sidebar for Media.
- */
 export default function PaketForm({ form, children }: PaketFormProps) {
   return (
     <form
@@ -34,13 +29,11 @@ export default function PaketForm({ form, children }: PaketFormProps) {
       }}
       className="flex flex-1 flex-col overflow-hidden"
     >
-      {/* Scrollbar ada di <main> */}
       <main className="show-scrollbar flex-1 overflow-y-auto overscroll-contain">
-        {/* Container grid dengan items-start PENTING agar sticky berfungsi! */}
-        <div className="grid grid-cols-1 items-start gap-10 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)]">
+        {/* FIX WIDTH GRID: 1.2fr Kiri, 0.8fr Kanan biar proporsional */}
+        <div className="grid grid-cols-1 items-start gap-10 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
           {/* KOLOM KIRI: Input Form Utama */}
           <div className="flex flex-col gap-12">
-            {/* Required Section */}
             <section>
               <header className="mb-6">
                 <h2 className="font-heading text-xl font-semibold">
@@ -137,6 +130,12 @@ export default function PaketForm({ form, children }: PaketFormProps) {
               </header>
 
               <FieldGroup className="flex flex-col gap-6">
+                {/* DIPINDAHKAN: Galeri Gambar ke Detail Tambahan */}
+                <form.AppField name="images">
+                  {(field) => (
+                    <field.ImagesUpload label="Galeri Gambar" maxFiles={8} />
+                  )}
+                </form.AppField>
                 <form.AppField name="kategori_acara">
                   {(field) => (
                     <field.Select
@@ -195,10 +194,9 @@ export default function PaketForm({ form, children }: PaketFormProps) {
             </section>
           </div>
 
-          {/* KOLOM KANAN: Sticky Sidebar untuk Media */}
-          <aside className="sticky top-6 flex flex-col gap-6 rounded-2xl border bg-secondary/20 p-6 sm:top-10 lg:p-7">
+          {/* KOLOM KANAN: Sticky Sidebar cuma buat Thumbnail Utama */}
+          <aside className="sticky top-4 flex flex-col gap-6 rounded-2xl border bg-secondary/20 p-6 sm:top-10 lg:p-7">
             <header className="flex items-center gap-2 border-b pb-4">
-              {/* <HugeImage01Icon className="size-5 text-primary" /> */}
               <div>
                 <h2 className="font-heading text-lg font-semibold tracking-tight">
                   Media & Foto
@@ -210,24 +208,15 @@ export default function PaketForm({ form, children }: PaketFormProps) {
             </header>
 
             <div className="flex flex-col gap-8">
-              {/* Thumbnail ditarik kesini supaya stand-out */}
               <form.AppField name="thumbnail">
                 {(field) => (
                   <field.ImageUpload label="Foto Utama (Thumbnail)" />
-                )}
-              </form.AppField>
-
-              <form.AppField name="images">
-                {(field) => (
-                  <field.ImagesUpload label="Galeri Gambar" maxFiles={8} />
                 )}
               </form.AppField>
             </div>
           </aside>
         </div>
       </main>
-
-      {/* Footer tetep lengket di bawah */}
       {children}
     </form>
   )

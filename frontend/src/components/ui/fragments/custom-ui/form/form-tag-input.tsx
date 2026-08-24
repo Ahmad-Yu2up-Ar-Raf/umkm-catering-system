@@ -20,6 +20,7 @@ interface FormTagInputProps extends Omit<
 export function FormTagInput(props: FormTagInputProps) {
   const field = useFieldContext<string[]>()
   const [draft, setDraft] = useState("")
+  const [isFocused, setIsFocused] = useState(false)
 
   const isSubmitting = useStore(
     field.form.baseStore,
@@ -32,7 +33,31 @@ export function FormTagInput(props: FormTagInputProps) {
   const errors = useStore(field.store, (state) => state.meta.errors)
   const value = useStore(field.store, (state) => state.value) ?? []
 
-  const isInvalid = errors.length > 0 && submissionAttempts > 0
+  // 1. LOGIKA VALIDASI
+  const hasErrors = errors.length > 0
+  const hasValue = value && value.length > 0
+  const isInvalid = hasErrors && submissionAttempts > 0
+  const isValid = hasValue && !hasErrors
+
+  // 2. THEMING SYSTEM (Persis FormInput)
+  const defaultInputColor = props.inputClassName || "text-primary"
+  const focusClass = props.isFocusClassName || "border-primary bg-primary/5"
+  const validClass = props.isValidClassName || "border-primary bg-primary/5"
+  const invalidClass =
+    props.isInvalidClassName ||
+    "border-destructive bg-destructive/8 focus-visible:text-destructive focus-visible:placeholder:text-destructive/70"
+
+  // 3. PRIORITAS VISUAL
+  // FIX: Hapus opasitas /4 agar border solid, dan pastikan bg transparan
+  let containerStateClass = "border-border bg-transparent"
+
+  if (isInvalid) {
+    containerStateClass = invalidClass
+  } else if (isValid) {
+    containerStateClass = validClass
+  } else if (isFocused) {
+    containerStateClass = focusClass
+  }
 
   const addTag = () => {
     const tag = draft.trim()
@@ -71,6 +96,7 @@ export function FormTagInput(props: FormTagInputProps) {
                 {tag}
                 <Button
                   type="button"
+                variant={"outline"}
                   aria-label={`Hapus ${tag}`}
                   onClick={() => removeTag(index)}
                   className="flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-destructive/20 hover:text-destructive"
@@ -83,12 +109,11 @@ export function FormTagInput(props: FormTagInputProps) {
         )}
 
         <div className="flex gap-2">
-          {/* Kontainer Input Utama disesuaikan dengan Design Token FormInput */}
+          {/* Kontainer Utama */}
           <div
             className={cn(
-              "relative flex h-12 flex-1 items-center overflow-hidden rounded-2xl border border-border bg-background transition-all duration-300 ease-in-out",
-              isInvalid &&
-                "border-destructive bg-destructive/8 text-destructive"
+              "relative flex h-12 flex-1 items-center overflow-hidden rounded-2xl border transition-all duration-300 ease-in-out",
+              containerStateClass
             )}
           >
             <Input
@@ -103,12 +128,18 @@ export function FormTagInput(props: FormTagInputProps) {
                   addTag()
                 }
               }}
-              onBlur={field.handleBlur}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => {
+                setIsFocused(false)
+                field.handleBlur()
+              }}
               disabled={isSubmitting}
               className={cn(
-                "h-full border-0 bg-transparent px-4 text-sm shadow-none focus-visible:ring-0",
+                "h-full border-0 bg-transparent px-3 text-sm shadow-none focus-visible:ring-0",
                 isInvalid &&
-                  "text-destructive placeholder:text-destructive/70 focus-visible:text-destructive"
+                  "text-destructive placeholder:text-destructive/70 focus-visible:text-destructive focus-visible:placeholder:text-destructive/70",
+                isValid && "font-medium text-primary",
+                !isInvalid && !isValid && defaultInputColor
               )}
             />
           </div>

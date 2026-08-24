@@ -155,10 +155,11 @@ export function UpdatePaketDrawer({
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         {/* max-width dan max-height dioptimalkan layaknya layar pesanan */}
-        <DialogContent className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[70em]">
-          <DialogHeader className="flex shrink-0 flex-row items-center gap-4 border-b bg-background px-6 py-6 sm:px-10">
-            <DialogTitle className="font-heading text-2xl">
-              Ubah Paket
+        <DialogContent className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]">
+          <DialogHeader className="sr-only flex shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
+            <DialogTitle className="font-heading text-3xl">
+              Ubah{" "}
+              <span className="font-accent text-primary italic">Paket</span>
             </DialogTitle>
             <DialogDescription className="hidden sm:block">
               Perbarui detail paket "{paket.nama_paket}".
@@ -166,7 +167,7 @@ export function UpdatePaketDrawer({
           </DialogHeader>
 
           <PaketForm key={open ? "open" : "closed"} form={form}>
-            <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t bg-background px-6 py-5">
+            <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t px-6 py-3">
               <PaketFormActions
                 form={form}
                 submitLabel="Simpan Perubahan"
