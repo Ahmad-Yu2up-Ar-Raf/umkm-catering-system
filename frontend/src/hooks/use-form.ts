@@ -21,6 +21,7 @@ import { FormTagInput } from "@/components/ui/fragments/custom-ui/form/form-tag-
 import { FormImageUpload } from "@/components/ui/fragments/custom-ui/form/form-image-upload"
 import { FormImagesUpload } from "@/components/ui/fragments/custom-ui/form/form-images-upload"
 import { FormCurrencyInput } from "@/components/ui/fragments/custom-ui/form/form-currency-input"
+import { FormCombobox } from "@/components/ui/fragments/custom-ui/form/form-combobox"
 
 const fieldComponents = {
   Input: FormInput,
@@ -33,6 +34,7 @@ const fieldComponents = {
   ImageUpload: FormImageUpload,
   ImagesUpload: FormImagesUpload,
   CurrencyInput: FormCurrencyInput,
+  Combobox: FormCombobox,
 } as const
 
 const formComponents = {} as Record<string, never>

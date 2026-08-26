@@ -57,6 +57,7 @@ All under `/api/v1/admin`.
 
 | Method | Path | Purpose |
 |---|---|---|
+| `GET` | `/admin/paket/search?q=` | Lightweight package lookup for the POS combobox (`id`, `nama_paket`, `min_order`, `harga_per_porsi`, `kapasitas_produksi`; limit 20). Registered **before** the resource route so `/search` is never captured by `{paket}`. |
 | `GET` | `/admin/paket` | List packages (admin CRUD) |
 | `POST` | `/admin/paket` | Create package |
 | `GET` | `/admin/paket/{paket}` | Show package |
@@ -66,10 +67,11 @@ All under `/api/v1/admin`.
 | `POST` | `/admin/galeri` | Create gallery entry |
 | `GET` | `/admin/galeri/{galeri}` | Show gallery entry |
 | `DELETE` | `/admin/galeri/{galeri}` | Delete gallery entry |
-| `GET` | `/admin/pesanan` | List orders |
+| `GET` | `/admin/pesanan` | List orders — supports `page`, `perPage` (default 15), repeated `status_pesanan[]` (whitelisted: `pending`/`confirmed`/`completed`/`cancelled`), `search` (LIKE across `nomor_struk`, `nama_pemesan`, `no_telepon`), `sort_by` (whitelist: `created_at`, `total_harga`, `nomor_struk`, `nama_pemesan`), `sort_dir` (`asc`\|`desc`) |
 | `POST` | `/admin/pesanan` | Create order |
 | `GET` | `/admin/pesanan/{pesanan}` | Show order |
-| `PUT` | `/admin/pesanan/{pesanan}` | Update order |
+| `PUT` | `/admin/pesanan/{pesanan}` | Update order (status/catatan only) |
+| `DELETE` | `/admin/pesanan/{pesanan}` | Delete order (permanent; struk becomes unretrievable) |
 | `GET` | `/admin/pesanan/{pesanan}/struk` | Order receipt (`nomor_struk`) |
 | `POST` | `/admin/cloudinary/signature` | Signed upload params for direct browser upload to Cloudinary |
 | `DELETE` | `/admin/cloudinary` | Bulk-delete Cloudinary assets by canonical URLs (rollback/orphan sweep) |

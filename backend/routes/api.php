@@ -28,6 +28,10 @@ Route::prefix('v1')->group(function () {
     // Admin (auth:sanctum) — resource names prefixed to avoid colliding
     // with the public paket/galeri routes.
     Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+        // Literal path MUST precede apiResource('paket') so '/admin/paket/search'
+        // resolves as its own route, never the resource's '{paket}' wildcard.
+        Route::get('/paket/search', [PaketController::class, 'search'])
+            ->name('admin.paket.search');
         Route::apiResource('paket', PaketController::class)->names('admin.paket');
         Route::apiResource('galeri', AdminGaleriController::class)->names('admin.galeri');
 
@@ -41,6 +45,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');
         Route::get('/pesanan/{pesanan}', [PesananController::class, 'show'])->name('pesanan.show');
         Route::put('/pesanan/{pesanan}', [PesananController::class, 'update'])->name('pesanan.update');
+        Route::delete('/pesanan/{pesanan}', [PesananController::class, 'destroy'])->name('pesanan.destroy');
         Route::get('/pesanan/{pesanan}/struk', [PesananController::class, 'struk'])->name('pesanan.struk');
     });
 });

@@ -12,27 +12,54 @@ use Illuminate\Http\Request;
 
 class PesananController extends Controller
 {
+    /** Whitelisted sort columns — never interpolate user input into orderBy. */
+    private const SORTABLE = ['created_at', 'total_harga', 'nomor_struk', 'nama_pemesan'];
+
+    private const STATUSES = ['pending', 'confirmed', 'completed', 'cancelled'];
+
     public function __construct(private PesananService $service) {}
 
     /**
      * Display a paginated listing of the resource (admin).
+     *
+     * Supports: multi-select status filter (`status_pesanan[]`), debounced
+     * `search` across nomor_struk/nama_pemesan/no_telepon, and whitelisted
+     * `sort_by`/`sort_dir`.
      */
     public function index(Request $request)
     {
-        $status = $request->input('status_pesanan') ?? $request->input('status');
-        $page = $request->integer('page', 1);
-        $perPage = $request->integer('perPage', 15);
+        $statuses = collect((array) $request->input('status_pesanan'))
+            ->flatten()
+            ->filter(fn ($value) => in_array($value, self::STATUSES, true))
+            ->values();
+
+        $sortBy = in_array($request->input('sort_by'), self::SORTABLE, true)
+            ? $request->input('sort_by')
+            : 'created_at';
+        $sortDir = strtolower((string) $request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $search = trim((string) $request->input('search', ''));
 
         $query = Pesanan::query()->with('paket');
 
-        if ($status) {
-            $query->where('status_pesanan', $status);
+        if ($statuses->isNotEmpty()) {
+            $query->whereIn('status_pesanan', $statuses->all());
         }
 
-        $paginate = $query->latest()->paginate($perPage, ['*'], 'page', $page);
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('nomor_struk', 'like', "%{$search}%")
+                    ->orWhere('nama_pemesan', 'like', "%{$search}%")
+                    ->orWhere('no_telepon', 'like', "%{$search}%");
+            });
+        }
+
+        $paginate = $query
+            ->orderBy($sortBy, $sortDir)
+            ->paginate($request->integer('perPage', 15), ['*'], 'page', $request->integer('page', 1));
 
         $filters = array_filter([
-            'status_pesanan' => $status,
+            'status_pesanan' => $statuses->isNotEmpty() ? $statuses->all() : null,
+            'search' => $search !== '' ? $search : null,
         ], fn ($value) => ! is_null($value) && $value !== '');
 
         return response()->json($this->respondWithPagination(
@@ -107,6 +134,20 @@ class PesananController extends Controller
                 'status_pesanan' => $pesanan->status_pesanan,
                 'created_at' => $pesanan->created_at,
             ],
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage (admin).
+     */
+    public function destroy(Pesanan $pesanan)
+    {
+        $pesanan->delete();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Pesanan deleted successfully',
+            'data' => null,
         ]);
     }
 }

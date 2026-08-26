@@ -91,6 +91,33 @@ class PaketController extends Controller
     }
 
     /**
+     * Lightweight package lookup for the POS combobox (admin).
+     *
+     * Returns ONLY the columns the order form needs (id, nama_paket,
+     * min_order, harga_per_porsi, kapasitas_produksi) — full PaketResource
+     * payloads (menu arrays, images) would be wasteful for a selector.
+     * Registered BEFORE Route::apiResource('paket', ...) in routes/api.php
+     * so '/admin/paket/search' resolves as a literal path, never the
+     * '{paket}' wildcard binding.
+     */
+    public function search(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        $items = Paket::query()
+            ->when($q !== '', fn ($query) => $query->where('nama_paket', 'like', "%{$q}%"))
+            ->orderBy('nama_paket')
+            ->limit(20)
+            ->get(['id', 'nama_paket', 'min_order', 'harga_per_porsi', 'kapasitas_produksi']);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data retrieved successfully',
+            'data' => $items,
+        ]);
+    }
+
+    /**
      * Display the specified resource (public).
      */
     public function show(Paket $paket)
