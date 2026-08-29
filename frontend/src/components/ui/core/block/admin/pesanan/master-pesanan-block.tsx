@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useDebouncedValue } from "../paket/hooks/use-debounced-value"
 import { usePesananList } from "./hooks/use-pesanan-query"
 import { usePesananDeleteMutation } from "./hooks/use-pesanan-mutations"
+import { useStruk } from "./hooks/use-struk-query"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
 import type { Pesanan, PesananSortColumn, StatusPesanan } from "./types/pesanan-types"
 import { PesananToolbar } from "./components/pesanan-toolbar"
@@ -15,6 +16,7 @@ import { PesananTable } from "./components/pesanan-table"
 import { CreatePesananDrawer } from "./components/create-pesanan-drawer"
 import { UpdatePesananDrawer } from "./components/update-pesanan-drawer"
 import { PesananDeleteDialog } from "./components/pesanan-delete-dialog"
+import { InvoicePreviewDialog } from "@/components/pdf/invoice-preview-dialog"
 import { cn } from "@/lib/utils"
 
 /**
@@ -47,6 +49,7 @@ function MasterPesananBlock() {
   const [createOpen, setCreateOpen] = useState(false)
   const [updateTarget, setUpdateTarget] = useState<Pesanan | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Pesanan | null>(null)
+  const [strukTarget, setStrukTarget] = useState<Pesanan | null>(null)
 
   const { mutate: deletePesanan, isPending: isDeleting } =
     usePesananDeleteMutation()
@@ -71,6 +74,10 @@ function MasterPesananBlock() {
     })
   }
 
+  const handleStruk = (pesanan: Pesanan) => {
+    setStrukTarget(pesanan)
+  }
+
   const clearAllFilters = () => {
     setSearchInput("")
     setStatuses([])
@@ -81,6 +88,19 @@ function MasterPesananBlock() {
 
   const hasActiveFilters =
     searchInput !== "" || statuses.length > 0
+
+  const { data: strukData, isLoading: strukLoading } = useStruk(strukTarget?.id ?? null)
+
+  const strukDialog = strukTarget ? (
+    <InvoicePreviewDialog
+      data={strukData!}
+      open={!!strukTarget}
+      onOpenChange={(next: boolean) => {
+        if (!next) setStrukTarget(null)
+      }}
+      isLoading={strukLoading}
+    />
+  ) : null
 
   return (
     <div
@@ -139,7 +159,7 @@ function MasterPesananBlock() {
               items={items}
               onEdit={setUpdateTarget}
               onDelete={setDeleteTarget}
-              onStruk={() => {}} // Phase 6: wire to struk preview
+              onStruk={handleStruk}
               sortBy={sortBy}
               sortDir={sortDir}
               onSortChange={handleSortChange}
@@ -181,7 +201,9 @@ function MasterPesananBlock() {
         }}
         isPending={isDeleting}
         onConfirm={handleDelete}
-      />
+      />}
+
+      {strukDialog}
     </div>
   )
 }

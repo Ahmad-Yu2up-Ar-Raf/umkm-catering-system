@@ -126,5 +126,6 @@ export function UpdatePesananForm({
         </button>
       </DialogFooter>
     </form>
+  </div>
   )
 }

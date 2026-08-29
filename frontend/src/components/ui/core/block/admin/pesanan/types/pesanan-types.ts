@@ -161,6 +161,7 @@ export interface StrukPayload {
   biaya_tambahan: string
   total_harga: string
   status_pesanan: StatusPesanan
+  catatan: string | null
   created_at: string
 }
 
