@@ -7,9 +7,9 @@ import { DialogFooter } from "@/components/ui/fragments/shadcn-ui/dialog"
 
 interface UpdatePesananFormProps {
   pesanan: Pesanan
-  status: string
+  status: StatusPesanan
   catatan: string
-  onStatusChange: (value: string) => void
+  onStatusChange: (value: StatusPesanan) => void
   onCatatanChange: (value: string) => void
   handleSubmit: () => void
   isUpdating: boolean
@@ -125,7 +125,6 @@ export function UpdatePesananForm({
           {isUpdating ? "Menyimpan..." : "Simpan Perubahan"}
         </button>
       </DialogFooter>
-    </form>
   </div>
   )
 }

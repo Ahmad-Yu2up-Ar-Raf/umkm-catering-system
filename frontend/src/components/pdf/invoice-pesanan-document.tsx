@@ -1,7 +1,7 @@
 "use client"
 
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer"
-import { InvoiceThemeProvider, useInvoiceTheme, rupiah, defaultInvoiceTheme } from "./invoice-theme"
+import { InvoiceThemeProvider, useInvoiceTheme, rupiah, defaultInvoiceTheme } from "./invoice-theme.tsx"
 import type { StrukPayload } from "@/components/ui/core/block/admin/pesanan/types/pesanan-types"
 
 const styles = StyleSheet.create({

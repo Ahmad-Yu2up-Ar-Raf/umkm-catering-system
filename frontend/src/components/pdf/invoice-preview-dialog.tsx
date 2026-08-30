@@ -11,22 +11,24 @@ import {
   DialogTitle,
 } from "@/components/ui/fragments/shadcn-ui/dialog"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
+import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import { InvoicePesananDocument } from "./invoice-pesanan-document"
 import type { StrukPayload } from "@/components/ui/core/block/admin/pesanan/types/pesanan-types"
 
 interface Props {
-  data: StrukPayload
+  data: StrukPayload | null
   open: boolean
   onOpenChange: (open: boolean) => void
   isLoading?: boolean
 }
 
-export function InvoicePreviewDialog({ data, open, onOpenChange }: Props) {
+export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = false }: Props) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
 
   const generate = useCallback(async () => {
+    if (!data) return
     setGenerating(true)
     setError(null)
     try {
@@ -36,7 +38,6 @@ export function InvoicePreviewDialog({ data, open, onOpenChange }: Props) {
         size: "a4",
         fonts,
         margin: { top: 48, bottom: 56, left: 48, right: 48 },
-        // PDF/A-3 for archival compliance
         pdfa: "3b",
         tagged: "ua1",
         metadata: {
@@ -66,15 +67,14 @@ export function InvoicePreviewDialog({ data, open, onOpenChange }: Props) {
       try {
         const fonts = await googleFonts(["Space Grotesk", "Fraunces", "Instrument Serif"])
 
-        const pdfBytes = await render(<InvoicePesananDocument data={data} />, {
+        const pdfBytes = await render(<InvoicePesananDocument data={data!} />, {
           size: "a4",
           fonts,
           margin: { top: 48, bottom: 56, left: 48, right: 48 },
-          // PDF/A-3 for archival compliance
           pdfa: "3b",
           tagged: "ua1",
           metadata: {
-            title: `Invoice ${data.nomor_struk}`,
+            title: `Invoice ${data?.nomor_struk}`,
             creationDate: new Date().toISOString().split("T")[0],
           },
         })
@@ -102,20 +102,13 @@ export function InvoicePreviewDialog({ data, open, onOpenChange }: Props) {
     }
   }, [data, open])
 
-  // Revoke object URLs to avoid memory leaks across opens.
-  useEffect(() => {
-    return () => {
-      if (blobUrl) URL.revokeObjectURL(blobUrl)
-    }
-  }, [blobUrl])
-
   const downloadPdf = useCallback(() => {
     if (!blobUrl) return
     const a = document.createElement("a")
     a.href = blobUrl
-    a.download = `Invoice-${data.nomor_struk}.pdf`
+    a.download = `Invoice-${data?.nomor_struk}.pdf`
     a.click()
-  }, [blobUrl, data.nomor_struk])
+  }, [blobUrl, data?.nomor_struk])
 
   const printPdf = useCallback(() => {
     if (!blobUrl) return
@@ -126,23 +119,40 @@ export function InvoicePreviewDialog({ data, open, onOpenChange }: Props) {
     iframe.onload = () => iframe.contentWindow?.print()
   }, [blobUrl])
 
+  // Loading skeleton while fetching struk data
+  if (isLoading || !data) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden rounded-xl shadow-xl">
+          <DialogHeader className="p-4 border-b">
+            <DialogTitle className="font-heading">Pratinjau Invoice</DialogTitle>
+            <DialogDescription>Memuat data struk...</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 flex items-center justify-center">
+            <Skeleton className="h-64 w-full" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden rounded-xl shadow-xl">
         <DialogHeader className="p-4 border-b">
-          <DialogTitle className="font-heading">Pratinjau Invoice: {data.nomor_struk}</DialogTitle>
+          <DialogTitle className="font-heading">Pratinjau Invoice: {data?.nomor_struk}</DialogTitle>
           <DialogDescription>
-            {data.nama_pemesan} · {new Date(data.created_at).toLocaleDateString("id-ID")}
+            {data?.nama_pemesan} · {new Date(data?.created_at).toLocaleDateString("id-ID")}
           </DialogDescription>
         </DialogHeader>
         <div className="p-4 flex gap-2 border-b bg-muted/30">
-          <Button variant="outline" size="sm" onClick={generate} disabled={generating}>
+          <Button variant="outline" size="sm" onClick={generate} disabled={generating || !data}>
             {generating ? "Memproses..." : "Segarkan"}
           </Button>
-          <Button variant="outline" size="sm" onClick={downloadPdf} disabled={!blobUrl}>
+          <Button variant="outline" size="sm" onClick={downloadPdf} disabled={!blobUrl || !data}>
             Unduh PDF
           </Button>
-          <Button variant="outline" size="sm" onClick={printPdf} disabled={!blobUrl}>
+          <Button variant="outline" size="sm" onClick={printPdf} disabled={!blobUrl || !data}>
             Cetak
           </Button>
         </div>
@@ -155,7 +165,7 @@ export function InvoicePreviewDialog({ data, open, onOpenChange }: Props) {
           <iframe
             src={blobUrl}
             className="w-full h-[calc(85vh-200px)] border-0"
-            title={`Invoice ${data.nomor_struk}`}
+            title={`Invoice ${data?.nomor_struk}`}
           />
         ) : (
           <div className="flex h-[60vh] items-center justify-center text-muted-foreground">

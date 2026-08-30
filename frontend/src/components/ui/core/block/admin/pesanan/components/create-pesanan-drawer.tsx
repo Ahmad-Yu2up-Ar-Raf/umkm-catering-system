@@ -23,6 +23,7 @@ import { usePesananCreateForm } from "../hooks/use-pesanan-form"
 import { CreatePesananForm } from "./create-pesanan-form"
 import type { PaketSearchOption } from "../types/pesanan-types"
 import { validateAgainstPaket } from "../schemas/pesanan-schema"
+import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 
 interface CreatePesananDrawerProps {
   open: boolean
@@ -35,7 +36,9 @@ export function CreatePesananDrawer({
 }: CreatePesananDrawerProps) {
   const isMobile = useIsMobile()
   const [confirmDiscard, setConfirmDiscard] = useState(false)
-  const [selectedPaket, setSelectedPaket] = useState<PaketSearchOption | null>(null)
+  const [selectedPaket, setSelectedPaket] = useState<PaketSearchOption | null>(
+    null
+  )
 
   const form = usePesananCreateForm({
     onSuccessCallback: () => {
@@ -140,10 +143,7 @@ export function CreatePesananDrawer({
               </DrawerDescription>
             </DrawerHeader>
 
-            <CreatePesananForm
-              form={form}
-              onPaketSelect={handlePaketSelect}
-            />
+            <CreatePesananForm form={form} onPaketSelect={handlePaketSelect} />
 
             <DrawerFooter className="shrink-0 border-t p-4">
               <div className="flex w-full justify-end gap-3">
@@ -160,7 +160,9 @@ export function CreatePesananDrawer({
                   disabled={form.store.state.isSubmitting}
                   className="flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
                 >
-                  {form.store.state.isSubmitting ? "Menyimpan..." : "Simpan Pesanan"}
+                  {form.store.state.isSubmitting
+                    ? "Menyimpan..."
+                    : "Simpan Pesanan"}
                 </button>
               </div>
             </DrawerFooter>
@@ -182,8 +184,8 @@ export function CreatePesananDrawer({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex h-full max-h-[95vh] w-full max-w-5xl flex-col gap-0 overflow-hidden p-0">
-          <DialogHeader className="flex sr-only shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
+        <DialogContent className="flex h-full max-h-[95vh] w-full flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]">
+          <DialogHeader className="sr-only flex shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
             <DialogTitle className="font-heading text-3xl">
               Buat{" "}
               <span className="font-accent text-primary italic">Pesanan</span>
@@ -202,26 +204,17 @@ export function CreatePesananDrawer({
             }}
             className="flex flex-1 flex-col overflow-hidden"
           >
-            <CreatePesananForm
-              form={form}
-              onPaketSelect={handlePaketSelect}
-            />
+            <CreatePesananForm form={form} onPaketSelect={handlePaketSelect} />
 
             <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t px-6 py-3">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-              >
+              <Button type="button" onClick={handleCancel}>
                 Batal
-              </button>
-              <button
-                type="submit"
-                disabled={form.store.state.isSubmitting}
-                className="flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-              >
-                {form.store.state.isSubmitting ? "Menyimpan..." : "Simpan Pesanan"}
-              </button>
+              </Button>
+              <Button type="submit" disabled={form.store.state.isSubmitting}>
+                {form.store.state.isSubmitting
+                  ? "Menyimpan..."
+                  : "Simpan Pesanan"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

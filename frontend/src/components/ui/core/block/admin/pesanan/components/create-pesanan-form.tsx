@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useRef } from "react"
+import React from "react"
 import { useStore } from "@tanstack/react-store"
 import { DialogFooter } from "@/components/ui/fragments/shadcn-ui/dialog"
 import { PesananCalcPanel } from "./pesanan-calc-panel"
@@ -41,13 +41,15 @@ export function CreatePesananForm({
           <div className="flex flex-col gap-8">
             <section>
               <header className="mb-6">
-                <h2 className="font-heading text-xl font-semibold">Informasi Pesanan</h2>
+                <h2 className="font-heading text-xl font-semibold">
+                  Informasi Pesanan
+                </h2>
                 <p className="text-sm text-muted-foreground">
                   Lengkapi detail pesanan di bawah ini.
                 </p>
               </header>
               <div className="flex flex-col gap-6">
-                <form.AppField name="paket_id">
+<form.AppField name="paket_id">
                   {(field) => (
                     <field.Combobox
                       label="Paket"

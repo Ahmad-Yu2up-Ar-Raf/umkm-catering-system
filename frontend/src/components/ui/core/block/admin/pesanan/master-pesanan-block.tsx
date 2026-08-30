@@ -10,7 +10,11 @@ import { usePesananList } from "./hooks/use-pesanan-query"
 import { usePesananDeleteMutation } from "./hooks/use-pesanan-mutations"
 import { useStruk } from "./hooks/use-struk-query"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
-import type { Pesanan, PesananSortColumn, StatusPesanan } from "./types/pesanan-types"
+import type {
+  Pesanan,
+  PesananSortColumn,
+  StatusPesanan,
+} from "./types/pesanan-types"
 import { PesananToolbar } from "./components/pesanan-toolbar"
 import { PesananTable } from "./components/pesanan-table"
 import { CreatePesananDrawer } from "./components/create-pesanan-drawer"
@@ -86,10 +90,11 @@ function MasterPesananBlock() {
     setPage(1)
   }
 
-  const hasActiveFilters =
-    searchInput !== "" || statuses.length > 0
+  const hasActiveFilters = searchInput !== "" || statuses.length > 0
 
-  const { data: strukData, isLoading: strukLoading } = useStruk(strukTarget?.id ?? null)
+  const { data: strukData, isLoading: strukLoading } = useStruk(
+    strukTarget?.id ?? null
+  )
 
   const strukDialog = strukTarget ? (
     <InvoicePreviewDialog
@@ -119,7 +124,9 @@ function MasterPesananBlock() {
         search={searchInput}
         onSearchChange={setSearchInput}
         statuses={statuses}
-        onStatusesChange={handleFilterChange(setStatuses as (value: string[]) => void)}
+        onStatusesChange={handleFilterChange(
+          setStatuses as (value: string[]) => void
+        )}
         onClearFilters={clearAllFilters}
         hasActiveFilters={hasActiveFilters}
         onAdd={() => setCreateOpen(true)}
@@ -201,7 +208,7 @@ function MasterPesananBlock() {
         }}
         isPending={isDeleting}
         onConfirm={handleDelete}
-      />}
+      />
 
       {strukDialog}
     </div>
