@@ -1,10 +1,11 @@
 "use client"
 
 import { HugeiconsIcon } from "@hugeicons/react"
-import { SearchIcon } from "@hugeicons/core-free-icons"
+import { PlusSignIcon, SearchIcon } from "@hugeicons/core-free-icons"
 import { MultiSelectFilter } from "@/components/ui/core/block/admin/shared/multi-select-filter"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { STATUS_FILTER_OPTIONS } from "../constants/pesanan-enum-options"
+import { SearchBar } from "../../../paket/components/search-bar"
 
 interface PesananToolbarProps {
   search: string
@@ -27,20 +28,25 @@ export function PesananToolbar({
 }: PesananToolbarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3 flex-1">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-1 items-center gap-3">
+        <SearchBar
+          search={search}
+          onSearchChange={onSearchChange}
+          className="w-full xl:max-w-xs"
+        />
+        {/* <div className="relative max-w-md flex-1">
           <HugeiconsIcon
             icon={SearchIcon}
-            className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground"
+            className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
           />
           <input
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Cari nomor struk, nama pemesan, atau no. telepon…"
-            className="h-9 w-full pl-10 pr-4 rounded-full border border-border bg-background text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
+            placeholder="Cari nomor struk"
+            className="h-9 w-full rounded-full border border-border bg-background pr-4 pl-10 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
           />
-        </div>
+        </div> */}
 
         <MultiSelectFilter
           options={STATUS_FILTER_OPTIONS}
@@ -64,7 +70,7 @@ export function PesananToolbar({
           </Button>
         )}
         <Button onClick={onAdd} size="sm">
-          <HugeiconsIcon icon={SearchIcon} className="size-4 mr-2" />
+          <HugeiconsIcon icon={PlusSignIcon} className="mr-2 size-4" />
           Tambah Pesanan
         </Button>
       </div>

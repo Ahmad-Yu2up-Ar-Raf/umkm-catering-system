@@ -108,7 +108,7 @@ class PaketController extends Controller
             ->when($q !== '', fn ($query) => $query->where('nama_paket', 'like', "%{$q}%"))
             ->orderBy('nama_paket')
             ->limit(20)
-            ->get(['id', 'nama_paket', 'min_order', 'harga_per_porsi', 'kapasitas_produksi']);
+            ->get(['id', 'nama_paket', 'thumbnail', 'min_order', 'harga_per_porsi', 'kapasitas_produksi']);
 
         return response()->json([
             'status' => true,

@@ -37,6 +37,7 @@ interface PesananTableProps {
   onEdit: (pesanan: Pesanan) => void
   onDelete: (pesanan: Pesanan) => void
   onStruk: (pesanan: Pesanan) => void
+  onDownload: (pesanan: Pesanan) => void
   sortBy?: string
   sortDir?: "asc" | "desc"
   onSortChange?: (column: string, dir: "asc" | "desc") => void
@@ -50,6 +51,7 @@ export function PesananTable({
   onEdit,
   onDelete,
   onStruk,
+  onDownload,
   sortBy,
   sortDir,
   onSortChange,
@@ -215,9 +217,11 @@ export function PesananTable({
                   onEdit={() => onEdit(pesanan)}
                   onDelete={() => onDelete(pesanan)}
                   onPreview={() => onStruk(pesanan)}
+                  onDownload={() => onDownload(pesanan)}
                   editLabel="Ubah"
                   deleteLabel="Hapus"
                   previewLabel="Struk"
+                  downloadLabel="Download"
                   deleteDisabled={isThisDeleting}
                 />
               </TableCell>

@@ -91,6 +91,7 @@ Route::prefix('v1')->group(function () {
 
     // Admin (auth:sanctum + role guard)
     Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
+        Route::get('/overview', [OverviewController::class, 'index'])->name('overview.index');
         Route::apiResource('paket', PaketController::class);
         Route::apiResource('galeri', GaleriController::class)->except('update');
         Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');

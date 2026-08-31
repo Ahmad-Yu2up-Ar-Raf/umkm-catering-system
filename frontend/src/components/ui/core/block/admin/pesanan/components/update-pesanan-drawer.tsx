@@ -108,7 +108,7 @@ export function UpdatePesananDrawer({
               </DrawerDescription>
             </DrawerHeader>
 
-<PesananForm key={open ? "open" : "closed"} form={form} initialPaket={pesanan.paket ? { id: pesanan.paket.id, nama_paket: pesanan.paket.nama_paket, min_order: pesanan.paket.min_order, harga_per_porsi: pesanan.paket.harga_per_porsi, kapasitas_produksi: pesanan.paket.kapasitas_produksi } : null}>
+<PesananForm key={open ? "open" : "closed"} form={form} initialPaket={pesanan.paket ? { id: pesanan.paket.id, nama_paket: pesanan.paket.nama_paket, thumbnail: pesanan.paket.thumbnail, min_order: pesanan.paket.min_order, harga_per_porsi: pesanan.paket.harga_per_porsi, kapasitas_produksi: pesanan.paket.kapasitas_produksi } : null}>
               <DrawerFooter className="shrink-0 border-t p-4">
                 <PesananFormActions
                   form={form}
@@ -146,7 +146,7 @@ export function UpdatePesananDrawer({
             </DialogDescription>
           </DialogHeader>
 
-          <PesananForm key={open ? "open" : "closed"} form={form} initialPaket={pesanan.paket ? { id: pesanan.paket.id, nama_paket: pesanan.paket.nama_paket, min_order: pesanan.paket.min_order, harga_per_porsi: pesanan.paket.harga_per_porsi, kapasitas_produksi: pesanan.paket.kapasitas_produksi } : null}>
+          <PesananForm key={open ? "open" : "closed"} form={form} initialPaket={pesanan.paket ? { id: pesanan.paket.id, nama_paket: pesanan.paket.nama_paket, thumbnail: pesanan.paket.thumbnail, min_order: pesanan.paket.min_order, harga_per_porsi: pesanan.paket.harga_per_porsi, kapasitas_produksi: pesanan.paket.kapasitas_produksi } : null}>
             <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t px-6 py-3">
               <PesananFormActions
                 form={form}

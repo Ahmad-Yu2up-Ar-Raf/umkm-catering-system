@@ -6,6 +6,7 @@ import { useMemo } from "react"
 import { FieldGroup } from "@/components/ui/fragments/shadcn-ui/field"
 import { PesananCalcPanel } from "./pesanan-calc-panel"
 import { usePaketSearch } from "../hooks/use-paket-search"
+import { usePaketDetail } from "../hooks/use-paket-detail"
 import type { PesananFormReturnType } from "../hooks/use-pesanan-form"
 import type { PesananCreateFormValues } from "../schemas/pesanan-schema"
 import type { PaketSearchOption } from "../types/pesanan-types"
@@ -23,7 +24,14 @@ export function PesananForm({
   initialPaket,
 }: PesananFormProps) {
   const paketId = useStore(form.store, (s) => s.values.paket_id) as number | null
-  const { data: paketOptions } = usePaketSearch(paketId ? paketId.toString() : "")
+
+  // --- List query: lightweight, stable, NOT dependent on selection ---
+  // Fetches up to 20 packages for the dropdown (q=""). Local filtering in
+  // FormCombobox handles search-as-you-type.
+  const { data: paketOptions } = usePaketSearch("")
+
+  // --- Detail query: fetch-on-select, triggers skeleton in calc panel ---
+  const { data: paketDetail, isLoading: isDetailLoading } = usePaketDetail(paketId)
 
   // Ensure initialPaket is always in options (for update drawer)
   const mergedPaketOptions = useMemo(() => {
@@ -34,17 +42,28 @@ export function PesananForm({
     return [initialPaket, ...baseOptions]
   }, [paketOptions, initialPaket])
 
-  // Resolve selected package from options or from the paket_id if not in search results
-  // This ensures the calculator panel always has the selected package data
-  const selectedPaket = useMemo(() => {
+  // Resolve selected package for fallback label (before detail loads)
+  const selectedPaketFallback = useMemo(() => {
     if (!paketId) return null
-    // First try to find in merged options (includes initialPaket)
     const fromSearch = mergedPaketOptions?.find((p) => p.id === paketId)
     if (fromSearch) return fromSearch
-    // Fallback to initialPaket if it matches
     if (initialPaket && initialPaket.id === paketId) return initialPaket
     return null
   }, [paketId, mergedPaketOptions, initialPaket])
+
+  // Prefer full detail (with thumbnail) when available, fallback to search option
+  const calcPaket = paketDetail
+    ? {
+        id: paketDetail.id,
+        nama_paket: paketDetail.nama_paket,
+        thumbnail: paketDetail.thumbnail,
+        harga_per_porsi: paketDetail.harga_per_porsi,
+        min_order: paketDetail.min_order,
+        kapasitas_produksi: paketDetail.kapasitas_produksi,
+      }
+    : selectedPaketFallback
+
+  const isCalcLoading = !!paketId && isDetailLoading
 
   return (
     <form
@@ -78,7 +97,6 @@ export function PesananForm({
                         label: p.nama_paket,
                         value: p.id,
                       })) ?? []}
-                      disablePortal
                     />
                   )}
                 </form.AppField>
@@ -146,9 +164,13 @@ export function PesananForm({
             </section>
           </div>
 
-          {/* RIGHT PANE: Live Calculation Panel */}
-          <aside className="hidden lg:flex">
-            <PesananCalcPanel form={form} selectedPaket={selectedPaket} />
+          {/* RIGHT PANE: Live Calculation Panel — now with thumbnail + skeleton */}
+          <aside className="hidden lg:flex lg:flex-col">
+            <PesananCalcPanel
+              form={form}
+              paketDetail={calcPaket}
+              isLoading={isCalcLoading}
+            />
           </aside>
         </div>
       </main>

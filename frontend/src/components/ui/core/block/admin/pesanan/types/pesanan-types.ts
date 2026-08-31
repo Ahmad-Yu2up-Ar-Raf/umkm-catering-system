@@ -27,6 +27,7 @@ export const STATUS_LABELS: Record<StatusPesanan, string> = {
 export interface PaketSearchOption {
   id: number
   nama_paket: string
+  thumbnail: string | null
   min_order: number | null
   /** decimal:2 cast — arrives as a string. */
   harga_per_porsi: string

@@ -1,8 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { render } from "takumi-pdf"
-import { googleFonts } from "@takumi-rs/helpers"
 import {
   Dialog,
   DialogContent,
@@ -20,18 +18,32 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   isLoading?: boolean
+  onRefresh?: () => void
 }
 
-export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = false }: Props) {
+export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = false, onRefresh }: Props) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
 
   const generate = useCallback(async () => {
-    if (!data) return
+    if (!data) {
+      setError("Data struk belum tersedia.")
+      return
+    }
     setGenerating(true)
     setError(null)
+    // Revoke previous blob to avoid leaks before creating new one
+    setBlobUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev)
+      return null
+    })
     try {
+      // Lazy-load heavy engine only on demand — keeps main bundle lean
+      const [{ render }, { googleFonts }] = await Promise.all([
+        import("takumi-pdf"),
+        import("@takumi-rs/helpers"),
+      ])
       const fonts = await googleFonts(["Space Grotesk", "Fraunces", "Instrument Serif"])
 
       const pdfBytes = await render(<InvoicePesananDocument data={data} />, {
@@ -41,7 +53,7 @@ export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = fal
         pdfa: "3b",
         tagged: "ua1",
         metadata: {
-          title: `Invoice ${data.nomor_struk}`,
+          title: `Invoice ${String(data.nomor_struk ?? "-")}`,
           creationDate: new Date().toISOString().split("T")[0],
         },
       })
@@ -50,66 +62,48 @@ export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = fal
       const url = URL.createObjectURL(blob)
       setBlobUrl(url)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Gagal generate PDF")
+      setError(e instanceof Error ? e.message : "Gagal generate PDF: validation failed")
     } finally {
       setGenerating(false)
     }
   }, [data])
 
+  // Auto-generate when dialog opens and data is ready
   useEffect(() => {
     if (!open) return
+    if (isLoading || !data) return
+    void generate()
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+  }, [open, data, isLoading, generate])
 
-    let cancelled = false
-
-    async function generatePdf() {
-      if (!data) return
-      setGenerating(true)
-      setError(null)
-      try {
-        const fonts = await googleFonts(["Space Grotesk", "Fraunces", "Instrument Serif"])
-
-        const pdfBytes = await render(<InvoicePesananDocument data={data!} />, {
-          size: "a4",
-          fonts,
-          margin: { top: 48, bottom: 56, left: 48, right: 48 },
-          pdfa: "3b",
-          tagged: "ua1",
-          metadata: {
-            title: `Invoice ${data?.nomor_struk}`,
-            creationDate: new Date().toISOString().split("T")[0],
-          },
-        })
-
-        if (cancelled) return
-
-        const blob = new Blob([pdfBytes as unknown as ArrayBuffer], { type: "application/pdf" })
-        const url = URL.createObjectURL(blob)
-        setBlobUrl(url)
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Gagal generate PDF")
-        }
-      } finally {
-        if (!cancelled) {
-          setGenerating(false)
-        }
-      }
-    }
-
-    void generatePdf()
-
+  // Cleanup blob on unmount or when data changes
+  useEffect(() => {
     return () => {
-      cancelled = true
+      if (blobUrl) URL.revokeObjectURL(blobUrl)
     }
-  }, [data, open])
+  }, [blobUrl])
+
+  // Cleanup when dialog closes
+  useEffect(() => {
+    if (!open && blobUrl) {
+      URL.revokeObjectURL(blobUrl)
+      setBlobUrl(null)
+      setError(null)
+    }
+  }, [open, blobUrl])
+
+  const handleRefresh = useCallback(() => {
+    if (onRefresh) onRefresh()
+    void generate()
+  }, [generate, onRefresh])
 
   const downloadPdf = useCallback(() => {
-    if (!blobUrl) return
+    if (!blobUrl || !data) return
     const a = document.createElement("a")
     a.href = blobUrl
-    a.download = `Invoice-${data?.nomor_struk}.pdf`
+    a.download = `Invoice-${String(data.nomor_struk ?? data.jumlah_paket)}-${String(data.created_at).slice(0, 10)}.pdf`
     a.click()
-  }, [blobUrl, data?.nomor_struk])
+  }, [blobUrl, data])
 
   const printPdf = useCallback(() => {
     if (!blobUrl) return
@@ -117,7 +111,11 @@ export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = fal
     iframe.src = blobUrl
     iframe.style.display = "none"
     document.body.appendChild(iframe)
-    iframe.onload = () => iframe.contentWindow?.print()
+    iframe.onload = () => {
+      iframe.contentWindow?.print()
+      // Remove iframe after print dialog
+      setTimeout(() => iframe.remove(), 1000)
+    }
   }, [blobUrl])
 
   // Loading skeleton while fetching struk data
@@ -129,8 +127,11 @@ export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = fal
             <DialogTitle className="font-heading">Pratinjau Invoice</DialogTitle>
             <DialogDescription>Memuat data struk...</DialogDescription>
           </DialogHeader>
-          <div className="flex-1 flex items-center justify-center">
-            <Skeleton className="h-64 w-full" />
+          <div className="flex flex-1 flex-col gap-4 p-6">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-24 w-full" />
           </div>
         </DialogContent>
       </Dialog>
@@ -141,19 +142,19 @@ export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = fal
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[85vh] max-w-3xl flex-col gap-0 overflow-hidden rounded-xl shadow-xl">
         <DialogHeader className="p-4 border-b">
-          <DialogTitle className="font-heading">Pratinjau Invoice: {data?.nomor_struk}</DialogTitle>
+          <DialogTitle className="font-heading">Pratinjau Invoice: {String(data.nomor_struk ?? "-")}</DialogTitle>
           <DialogDescription>
-            {data?.nama_pemesan} · {new Date(data?.created_at).toLocaleDateString("id-ID")}
+            {String(data.nama_pemesan ?? "-")} · {new Date(String(data.created_at)).toLocaleDateString("id-ID")}
           </DialogDescription>
         </DialogHeader>
         <div className="p-4 flex gap-2 border-b bg-muted/30">
-          <Button variant="outline" size="sm" onClick={generate} disabled={generating || !data}>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={generating}>
             {generating ? "Memproses..." : "Segarkan"}
           </Button>
-          <Button variant="outline" size="sm" onClick={downloadPdf} disabled={!blobUrl || !data}>
+          <Button variant="outline" size="sm" onClick={downloadPdf} disabled={!blobUrl || generating}>
             Unduh PDF
           </Button>
-          <Button variant="outline" size="sm" onClick={printPdf} disabled={!blobUrl || !data}>
+          <Button variant="outline" size="sm" onClick={printPdf} disabled={!blobUrl || generating}>
             Cetak
           </Button>
         </div>
@@ -162,15 +163,21 @@ export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = fal
             {error}
           </div>
         )}
-        {blobUrl ? (
+        {generating && !blobUrl ? (
+          <div className="flex flex-1 flex-col gap-4 p-6">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        ) : blobUrl ? (
           <iframe
             src={blobUrl}
-            className="w-full h-[calc(85vh-200px)] border-0"
-            title={`Invoice ${data?.nomor_struk}`}
+            className="w-full flex-1 border-0"
+            title={`Invoice ${String(data.nomor_struk ?? "-")}`}
           />
         ) : (
-          <div className="flex h-[60vh] items-center justify-center text-muted-foreground">
-            Klik "Segarkan" untuk memuat pratinjau invoice
+          <div className="flex flex-1 items-center justify-center text-muted-foreground p-6 text-center">
+            Klik Segarkan untuk memuat pratinjau invoice
           </div>
         )}
       </DialogContent>

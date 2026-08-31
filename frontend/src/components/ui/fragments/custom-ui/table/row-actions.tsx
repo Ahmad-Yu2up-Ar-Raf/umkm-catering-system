@@ -3,6 +3,7 @@
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   Delete01Icon,
+  Download01Icon,
   Edit01Icon,
   EyeIcon,
   MoreHorizontalIcon,
@@ -20,24 +21,30 @@ interface RowActionsProps {
   onEdit: () => void
   onDelete: () => void
   onPreview?: () => void
+  onDownload?: () => void
   editDisabled?: boolean
   deleteDisabled?: boolean
+  downloadDisabled?: boolean
   editLabel?: string
   deleteLabel?: string
   previewLabel?: string
+  downloadLabel?: string
   deleteHint?: string
 }
 
-/** Row-level actions (edit/delete/preview) for admin tables. */
+/** Row-level actions (edit/delete/preview/download) for admin tables. */
 export function RowActions({
   onEdit,
   onDelete,
   onPreview,
+  onDownload,
   editDisabled = false,
   deleteDisabled = false,
+  downloadDisabled = false,
   editLabel = "Ubah",
   deleteLabel = "Hapus",
   previewLabel = "Lihat Detail",
+  downloadLabel = "Download",
   deleteHint,
 }: RowActionsProps) {
   return (
@@ -57,6 +64,12 @@ export function RowActions({
           <DropdownMenuItem onSelect={onPreview}>
             <HugeiconsIcon icon={EyeIcon} className="size-4" />
             {previewLabel}
+          </DropdownMenuItem>
+        )}
+        {onDownload && (
+          <DropdownMenuItem onSelect={onDownload} disabled={downloadDisabled}>
+            <HugeiconsIcon icon={Download01Icon} className="size-4" />
+            {downloadLabel}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onSelect={onEdit} disabled={editDisabled}>

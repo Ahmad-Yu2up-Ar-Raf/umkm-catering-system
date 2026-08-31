@@ -1,7 +1,7 @@
+import OverviewBlock from "@/components/ui/core/block/admin/overview/overview-block"
+
 function DashboardPage() {
-  return (
-    <div> </div>
-  )
+  return <OverviewBlock />
 }
 
 export default DashboardPage

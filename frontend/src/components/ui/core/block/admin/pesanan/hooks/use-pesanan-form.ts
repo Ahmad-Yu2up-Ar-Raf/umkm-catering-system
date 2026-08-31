@@ -8,17 +8,8 @@ import {
 } from "../schemas/pesanan-schema"
 import type { Pesanan } from "../types/pesanan-types"
 
-const DEFAULT_CREATE_VALUES: PesananCreateFormValues = {
-  nama_pemesan: "",
-  no_telepon: "",
-  paket_id: null,
-  jumlah_paket: 1,
-  detail_tambahan: [],
-  biaya_tambahan: 0,
-  catatan: null,
-}
-
 export type PesananFormReturnType = ReturnType<typeof usePesananForm>
+export type PesananCreateDrawerFormApi = ReturnType<typeof useAppForm>
 
 /** Raw form values → wire payload. No image/file logic in this domain. */
 export function toPesananCreatePayload(
@@ -76,9 +67,19 @@ export function usePesananForm({
       onChange: pesananCreateSchema,
       onSubmit: pesananCreateSchema,
     },
-    defaultValues: pesanan ? toFormDefaults(pesanan) : DEFAULT_CREATE_VALUES,
+    defaultValues: pesanan
+      ? toFormDefaults(pesanan)
+      : {
+          nama_pemesan: "",
+          no_telepon: "",
+          paket_id: null as number | null,
+          jumlah_paket: 1,
+          detail_tambahan: [],
+          biaya_tambahan: 0,
+          catatan: null as string | null,
+        },
     onSubmit: async ({ value }) => {
-      const payload = toPesananCreatePayload(value as PesananCreateFormValues)
+      const payload = toPesananCreatePayload(value)
       if (pesananId) {
         await updatePesanan({ id: pesananId, ...payload })
       } else {

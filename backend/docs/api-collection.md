@@ -57,6 +57,7 @@ All under `/api/v1/admin`.
 
 | Method | Path | Purpose |
 |---|---|---|
+| `GET` | `/admin/overview` | Overview report — totals (`totalPaket`, `totalPesanan`, `totalPesananPending`, `totalGaleri`), distributions (`pesananStatusCount`, `paketKategoriCount`, `paketAcaraCount`), `topPaket` (5 most ordered), `countsByDate` (`{date, pesanan, pendapatan}`); `Cache::remember` 10s |
 | `GET` | `/admin/paket/search?q=` | Lightweight package lookup for the POS combobox (`id`, `nama_paket`, `min_order`, `harga_per_porsi`, `kapasitas_produksi`; limit 20). Registered **before** the resource route so `/search` is never captured by `{paket}`. |
 | `GET` | `/admin/paket` | List packages (admin CRUD) |
 | `POST` | `/admin/paket` | Create package |

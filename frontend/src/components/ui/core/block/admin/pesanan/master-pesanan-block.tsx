@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { Suspense, useState } from "react"
 import { ShoppingCart01Icon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
@@ -10,6 +10,7 @@ import { usePesananList } from "./hooks/use-pesanan-query"
 import { usePesananDeleteMutation } from "./hooks/use-pesanan-mutations"
 import { useStruk } from "./hooks/use-struk-query"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
+import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import type {
   Pesanan,
   PesananSortColumn,
@@ -20,8 +21,16 @@ import { PesananTable } from "./components/pesanan-table"
 import { CreatePesananDrawer } from "./components/create-pesanan-drawer"
 import { UpdatePesananDrawer } from "./components/update-pesanan-drawer"
 import { PesananDeleteDialog } from "./components/pesanan-delete-dialog"
-import { InvoicePreviewDialog } from "@/components/pdf/invoice-preview-dialog"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
+import { pesananService } from "@/services/pesanan-service"
+import { InvoicePesananDocument } from "@/components/pdf/invoice-pesanan-document"
+
+const InvoicePreviewDialog = React.lazy(() =>
+  import("@/components/pdf/invoice-preview-dialog").then((m) => ({
+    default: m.InvoicePreviewDialog,
+  }))
+)
 
 /**
  * Master Pesanan — the admin MDM block.
@@ -82,6 +91,43 @@ function MasterPesananBlock() {
     setStrukTarget(pesanan)
   }
 
+  const handleDownload = async (pesanan: Pesanan) => {
+    const toastId = `download-${pesanan.id}`
+    toast.loading("Menyiapkan download...", { id: toastId })
+    try {
+      const res = await pesananService.struk(pesanan.id)
+      const struk = res.data
+      const [{ render }, { googleFonts }] = await Promise.all([
+        import("takumi-pdf"),
+        import("@takumi-rs/helpers"),
+      ])
+      const fonts = await googleFonts(["Space Grotesk", "Fraunces", "Instrument Serif"])
+      const bytes = await render(<InvoicePesananDocument data={struk} />, {
+        size: "a4",
+        fonts,
+        margin: { top: 48, bottom: 56, left: 48, right: 48 },
+        pdfa: "3b",
+        tagged: "ua1",
+        metadata: {
+          title: `Invoice ${String(struk.nomor_struk)}`,
+          creationDate: new Date().toISOString().split("T")[0],
+        },
+      })
+      const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `Invoice-${String(struk.nomor_struk)}-${String(struk.created_at).slice(0, 10)}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      toast.success("Download berhasil", { id: toastId })
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Gagal download PDF", { id: toastId })
+    }
+  }
+
   const clearAllFilters = () => {
     setSearchInput("")
     setStatuses([])
@@ -92,19 +138,46 @@ function MasterPesananBlock() {
 
   const hasActiveFilters = searchInput !== "" || statuses.length > 0
 
-  const { data: strukData, isLoading: strukLoading } = useStruk(
-    strukTarget?.id ?? null
-  )
+  const {
+    data: strukData,
+    isLoading: strukLoading,
+    isError: isStrukError,
+    error: strukError,
+    refetch: refetchStruk,
+  } = useStruk(strukTarget?.id ?? null)
 
   const strukDialog = strukTarget ? (
-    <InvoicePreviewDialog
-      data={strukData!}
-      open={!!strukTarget}
-      onOpenChange={(next: boolean) => {
-        if (!next) setStrukTarget(null)
-      }}
-      isLoading={strukLoading}
-    />
+    <Suspense
+      fallback={
+        <div className="flex h-[85vh] max-w-3xl flex-col gap-4 p-6">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+      }
+    >
+      {isStrukError ? (
+        <div className="flex h-[85vh] max-w-3xl flex-col items-center justify-center gap-3 p-6">
+          <p className="text-sm text-destructive">Gagal memuat struk: {String((strukError as Error)?.message ?? "unknown error")}</p>
+          <button
+            onClick={() => refetchStruk()}
+            className="rounded-md border px-3 py-1.5 text-sm"
+          >
+            Coba lagi
+          </button>
+        </div>
+      ) : (
+        <InvoicePreviewDialog
+          data={strukData ?? null}
+          open={!!strukTarget}
+          onOpenChange={(next: boolean) => {
+            if (!next) setStrukTarget(null)
+          }}
+          isLoading={strukLoading}
+          onRefresh={() => refetchStruk()}
+        />
+      )}
+    </Suspense>
   ) : null
 
   return (
@@ -167,6 +240,7 @@ function MasterPesananBlock() {
               onEdit={setUpdateTarget}
               onDelete={setDeleteTarget}
               onStruk={handleStruk}
+              onDownload={handleDownload}
               sortBy={sortBy}
               sortDir={sortDir}
               onSortChange={handleSortChange}
