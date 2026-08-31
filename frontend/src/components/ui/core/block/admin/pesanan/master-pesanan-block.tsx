@@ -130,9 +130,30 @@ function MasterPesananBlock() {
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       toast.success("Download berhasil", { id: toastId })
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal download PDF", {
-        id: toastId,
-      })
+      console.error("=== takumi-pdf render failure, full dump ===")
+      console.error("typeof e:", typeof e)
+      console.error("instanceof Error:", e instanceof Error)
+      if (e instanceof Error) {
+        console.error("message:", e.message)
+        console.error("name:", e.name)
+        console.error("stack:", e.stack)
+        console.error("cause:", (e as { cause?: unknown }).cause)
+      }
+      try {
+        console.error(
+          "own properties:",
+          JSON.stringify(e, Object.getOwnPropertyNames(e as object), 2)
+        )
+      } catch {
+        console.error("could not stringify error object; raw dump:", e)
+      }
+      console.error(
+        "constructor name:",
+        (e as { constructor?: { name?: string } })?.constructor?.name
+      )
+
+      // Catatan: Ganti setError dengan fungsi state error di masing-masing file (jika ada)
+      console.error("Gagal generate PDF:", e)
     }
   }
 
@@ -301,4 +322,3 @@ function MasterPesananBlock() {
 }
 
 export default MasterPesananBlock
-
