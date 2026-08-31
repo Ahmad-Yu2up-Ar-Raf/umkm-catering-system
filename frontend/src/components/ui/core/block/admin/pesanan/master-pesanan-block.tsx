@@ -25,6 +25,10 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { pesananService } from "@/services/pesanan-service"
 import { InvoicePesananDocument } from "@/components/pdf/invoice-pesanan-document"
+import {
+  buildInvoiceRenderOptions,
+  loadInvoiceFonts,
+} from "@/components/pdf/invoice-render-config"
 
 const InvoicePreviewDialog = React.lazy(() =>
   import("@/components/pdf/invoice-preview-dialog").then((m) => ({
@@ -97,34 +101,38 @@ function MasterPesananBlock() {
     try {
       const res = await pesananService.struk(pesanan.id)
       const struk = res.data
-      const [{ render }, { googleFonts }] = await Promise.all([
+
+      const [{ render }, fonts] = await Promise.all([
         import("takumi-pdf"),
-        import("@takumi-rs/helpers"),
+        loadInvoiceFonts(),
       ])
-      const fonts = await googleFonts(["Space Grotesk", "Fraunces", "Instrument Serif"])
-      const bytes = await render(<InvoicePesananDocument data={struk} />, {
-        size: "a4",
-        fonts,
-        margin: { top: 48, bottom: 56, left: 48, right: 48 },
-        pdfa: "3b",
-        tagged: "ua1",
-        metadata: {
-          title: `Invoice ${String(struk.nomor_struk)}`,
-          creationDate: new Date().toISOString().split("T")[0],
-        },
+
+      const bytes = await render(
+        <InvoicePesananDocument data={struk} />,
+        buildInvoiceRenderOptions(struk, fonts)
+      )
+
+      const blob = new Blob([bytes as unknown as ArrayBuffer], {
+        type: "application/pdf",
       })
-      const blob = new Blob([bytes as unknown as ArrayBuffer], { type: "application/pdf" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `Invoice-${String(struk.nomor_struk)}-${String(struk.created_at).slice(0, 10)}.pdf`
+      // Fall back to the pesanan id (not jumlah_paket, which is a quantity
+      // and makes for a confusing filename) if nomor_struk is missing.
+      const fileLabel = struk.nomor_struk
+        ? String(struk.nomor_struk)
+        : `pesanan-${pesanan.id}`
+      a.download = `Invoice-${fileLabel}-${String(struk.created_at).slice(0, 10)}.pdf`
       document.body.appendChild(a)
       a.click()
       a.remove()
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       toast.success("Download berhasil", { id: toastId })
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal download PDF", { id: toastId })
+      toast.error(e instanceof Error ? e.message : "Gagal download PDF", {
+        id: toastId,
+      })
     }
   }
 
@@ -158,7 +166,10 @@ function MasterPesananBlock() {
     >
       {isStrukError ? (
         <div className="flex h-[85vh] max-w-3xl flex-col items-center justify-center gap-3 p-6">
-          <p className="text-sm text-destructive">Gagal memuat struk: {String((strukError as Error)?.message ?? "unknown error")}</p>
+          <p className="text-sm text-destructive">
+            Gagal memuat struk:{" "}
+            {String((strukError as Error)?.message ?? "unknown error")}
+          </p>
           <button
             onClick={() => refetchStruk()}
             className="rounded-md border px-3 py-1.5 text-sm"
@@ -290,3 +301,4 @@ function MasterPesananBlock() {
 }
 
 export default MasterPesananBlock
+
