@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import { useStore } from "@tanstack/react-store"
 import { useFieldContext } from "@/hooks/use-form"
 import { FormBase, type FormControlProps } from "./form-base"
@@ -28,12 +28,15 @@ interface FormComboboxProps extends Omit<
   "type" | "maxLength" | "inputMode"
 > {
   options: ComboboxOption[]
+  /** Disable portal to prevent focus trap inside Dialog/Drawer */
+  disablePortal?: boolean
 }
 
 export function FormCombobox(props: FormComboboxProps) {
   const field = useFieldContext<string | number | undefined>()
   const [isFocused, setIsFocused] = useState(false)
   const [search, setSearch] = useState("")
+  const [hasSearched, setHasSearched] = useState(false)
 
   const isSubmitting = useStore(
     field.form.baseStore,
@@ -47,28 +50,34 @@ export function FormCombobox(props: FormComboboxProps) {
   const value = useStore(field.store, (state) => state.value)
 
   const hasErrors = errors.length > 0
-  const hasValue = value !== undefined && value !== ""
+  const hasValue = value !== undefined && value !== "" && value !== -1
   const isInvalid = hasErrors && submissionAttempts > 0
   const isValid = hasValue && !hasErrors
 
   const containerStateClass = isInvalid
-    ? "border-b-destructive bg-destructive/5 text-destructive"
+    ? "border-destructive bg-destructive/8 text-destructive"
     : isValid
-      ? "border-b-primary bg-primary/5"
+      ? "border-primary bg-primary/5"
       : isFocused
-        ? "border-b-primary bg-primary/5"
-        : "border-border bg-card"
+        ? "border-primary bg-primary/5"
+        : "border-border bg-transparent"
 
   // Filter ditangani secara lokal & reaktif tanpa mengganggu state utama
-  const filteredOptions = props.options.filter((opt) =>
-    opt.label.toLowerCase().includes(search.toLowerCase())
-  )
+  const filteredOptions = useMemo(() => {
+    if (!search.trim()) return props.options
+    return props.options.filter((opt) =>
+      opt.label.toLowerCase().includes(search.toLowerCase())
+    )
+  }, [props.options, search])
+
+  // Only show empty state after user has actually searched and found nothing
+  const showEmptyState = hasSearched && filteredOptions.length === 0
 
   return (
     <FormBase {...props}>
       <div
         className={cn(
-          "relative flex h-14 w-full flex-col justify-center overflow-hidden border-b transition-all duration-300 ease-in-out",
+          "relative flex h-12 w-full items-center overflow-hidden rounded-2xl border border-border/4 transition-all duration-300 ease-in-out",
           containerStateClass,
           isSubmitting && "pointer-events-none opacity-50",
           props.className
@@ -86,7 +95,9 @@ export function FormCombobox(props: FormComboboxProps) {
         )}
 
         <Combobox
-          value={value !== undefined ? String(value) : undefined}
+          value={
+            value !== undefined && value !== -1 ? String(value) : undefined
+          }
           onValueChange={(val) => {
             if (!val) {
               field.handleChange(undefined)
@@ -101,36 +112,55 @@ export function FormCombobox(props: FormComboboxProps) {
           }}
           onOpenChange={(open) => {
             setIsFocused(open)
-            if (!open) setSearch("")
+            if (!open) {
+              setSearch("")
+              setHasSearched(false)
+            }
           }}
           disabled={isSubmitting}
         >
           <ComboboxTrigger
             className={cn(
-              "flex h-full w-full items-center justify-between border-none bg-transparent px-4 text-sm outline-none",
-              props.LeftIcon ? "pl-16" : "pl-4",
+              "flex h-full w-full items-center justify-between border-0 bg-transparent px-3 text-sm outline-none",
+              props.LeftIcon ? "pl-12" : "pl-4",
 
-              value ? "text-primary" : "text-muted-foreground",
+              hasValue ? "text-primary" : "text-muted-foreground",
 
               isInvalid && "text-destructive"
             )}
           >
             <ComboboxValue placeholder={props.placeholder}>
-              {props.options.find((opt) => opt.value === value)?.label}
+              {value !== null &&
+                value !== undefined &&
+                props.options.find((opt) => opt.value === value)?.label}
             </ComboboxValue>
           </ComboboxTrigger>
 
-          <ComboboxContent className="z-100 w-full p-2">
+          <ComboboxContent
+            className="z-100 w-full p-2"
+            disablePortal={props.disablePortal}
+          >
             <ComboboxInput
               showTrigger={false}
               placeholder="Cari..."
               className="mx-2 my-2"
               value={search}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setSearch(e.target.value)
-              }
+
+              /* --- Solusi Utama --- */
+              autoFocus
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              /* -------------------- */
+
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                const newSearch = e.target.value
+                setSearch(newSearch)
+                setHasSearched(true)
+              }}
             />
-            <ComboboxEmpty>Pencarian tidak ditemukan.</ComboboxEmpty>
+            {showEmptyState && (
+              <ComboboxEmpty>Pencarian tidak ditemukan.</ComboboxEmpty>
+            )}
             <ComboboxList>
               {filteredOptions.map((item) => (
                 <ComboboxItem key={item.value} value={String(item.value)}>

@@ -70,12 +70,14 @@ export function LayoutWrapper() {
       >
         <div
           className={cn(
-            "relative mx-auto flex h-full w-full flex-col content-center gap-10 overflow-x-hidden sm:gap-8 md:overflow-visible "
+            "relative mx-auto flex h-full w-full flex-col content-center gap-10 overflow-x-hidden sm:gap-8 md:overflow-visible"
           )}
         >
           <Outlet />
           {preloaderDone && showChrome && <CTABlock />}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-linear-to-t from-background/0 via-background/80 to-background md:hidden" />
+          {pathname == "/" && (
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-linear-to-t from-background/0 via-background/80 to-background md:hidden" />
+          )}
 
           <div className="pointer-events-none fixed inset-0 top-0 hidden h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:inline md:h-50" />
         </div>

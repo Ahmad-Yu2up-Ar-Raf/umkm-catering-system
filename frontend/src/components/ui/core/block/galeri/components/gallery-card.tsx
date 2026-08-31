@@ -80,7 +80,7 @@ export function GalleryCard({
             }
             style={ratioStyle}
             className={cn(
-              "group/card relative block w-full overflow-hidden rounded-2xl ring-1 ring-border transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:shadow-xl hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aspect-[4/3]",
+              "group/card relative block w-full overflow-hidden rounded-2xl ring-1 ring-border transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]  hover:shadow-xl hover:ring-primary/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none aspect-[4/3]",
               className
             )}
           >

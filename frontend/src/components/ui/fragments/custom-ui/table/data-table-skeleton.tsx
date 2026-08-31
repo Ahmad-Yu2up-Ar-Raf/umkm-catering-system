@@ -21,7 +21,7 @@ interface DataTableSkeletonProps extends React.ComponentProps<"div"> {
 
 export function DataTableSkeleton({
   columnCount,
-  rowCount = 50,
+  rowCount = 15,
   filterCount = 0,
   cellWidths = ["auto"],
   withViewOptions = true,

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { SpoonAndForkIcon } from "@hugeicons/core-free-icons"
+import { ShoppingCart01Icon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -115,7 +115,7 @@ function MasterPesananBlock() {
       )}
     >
       <HeaderDashboard
-        Icon={SpoonAndForkIcon}
+        Icon={ShoppingCart01Icon}
         Title="Daftar Pesanan"
         Deskrpsi="Kelola data pesanan catering — buat, edit, hapus, cetak struk."
       />

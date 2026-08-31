@@ -1,44 +1,64 @@
 "use client"
 
-import React from "react"
+import type { ReactNode } from "react"
 import { useStore } from "@tanstack/react-store"
-import { DialogFooter } from "@/components/ui/fragments/shadcn-ui/dialog"
+import { useMemo } from "react"
+import { FieldGroup } from "@/components/ui/fragments/shadcn-ui/field"
 import { PesananCalcPanel } from "./pesanan-calc-panel"
 import { usePaketSearch } from "../hooks/use-paket-search"
+import type { PesananFormReturnType } from "../hooks/use-pesanan-form"
+import type { PesananCreateFormValues } from "../schemas/pesanan-schema"
 import type { PaketSearchOption } from "../types/pesanan-types"
-import type { PesananCreateDrawerFormApi } from "../hooks/use-pesanan-form"
 
-interface CreatePesananFormProps {
-  form: PesananCreateDrawerFormApi
-  onPaketSelect: (paket: PaketSearchOption) => void
+interface PesananFormProps {
+  form: PesananFormReturnType & { store: { state: { values: PesananCreateFormValues } } }
+  children?: ReactNode
+  /** Pre-selected package to ensure it's always in options (for update drawer) */
+  initialPaket?: PaketSearchOption | null
 }
 
-export function CreatePesananForm({
+export function PesananForm({
   form,
-  onPaketSelect,
-}: CreatePesananFormProps) {
-  const { data: paketOptions } = usePaketSearch(
-    form.store.state.values.paket_id.toString() || ""
-  )
+  children,
+  initialPaket,
+}: PesananFormProps) {
+  const paketId = useStore(form.store, (s) => s.values.paket_id) as number | null
+  const { data: paketOptions } = usePaketSearch(paketId ? paketId.toString() : "")
 
-  // Watch for paket_id changes and call onPaketSelect
-  const paketId = useStore(form.store, (s) => s.values.paket_id)
-  const prevPaketIdRef = React.useRef(paketId)
-  
-  React.useEffect(() => {
-    if (paketId !== prevPaketIdRef.current && paketId !== Number.NaN) {
-      const selected = paketOptions?.find((p) => p.id === paketId)
-      if (selected) onPaketSelect(selected)
-      prevPaketIdRef.current = paketId
-    }
-  }, [paketId, paketOptions, onPaketSelect])
+  // Ensure initialPaket is always in options (for update drawer)
+  const mergedPaketOptions = useMemo(() => {
+    const baseOptions = paketOptions ?? []
+    if (!initialPaket) return baseOptions
+    const exists = baseOptions.some((p) => p.id === initialPaket.id)
+    if (exists) return baseOptions
+    return [initialPaket, ...baseOptions]
+  }, [paketOptions, initialPaket])
+
+  // Resolve selected package from options or from the paket_id if not in search results
+  // This ensures the calculator panel always has the selected package data
+  const selectedPaket = useMemo(() => {
+    if (!paketId) return null
+    // First try to find in merged options (includes initialPaket)
+    const fromSearch = mergedPaketOptions?.find((p) => p.id === paketId)
+    if (fromSearch) return fromSearch
+    // Fallback to initialPaket if it matches
+    if (initialPaket && initialPaket.id === paketId) return initialPaket
+    return null
+  }, [paketId, mergedPaketOptions, initialPaket])
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
-      <main className="show-scrollbar flex-1 overflow-y-auto overscroll-contain p-6 sm:p-8 lg:p-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-8">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        form.handleSubmit()
+      }}
+      className="flex flex-1 flex-col overflow-hidden"
+    >
+      <main className="show-scrollbar flex-1 overflow-y-auto overscroll-contain">
+        <div className="grid grid-cols-1 items-start gap-10 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
           {/* LEFT PANE: Input Form */}
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-12">
             <section>
               <header className="mb-6">
                 <h2 className="font-heading text-xl font-semibold">
@@ -48,16 +68,17 @@ export function CreatePesananForm({
                   Lengkapi detail pesanan di bawah ini.
                 </p>
               </header>
-              <div className="flex flex-col gap-6">
-<form.AppField name="paket_id">
+              <FieldGroup className="flex flex-col gap-6">
+                <form.AppField name="paket_id">
                   {(field) => (
                     <field.Combobox
                       label="Paket"
                       placeholder="Cari & pilih paket..."
-                      options={paketOptions?.map((p) => ({
+                      options={mergedPaketOptions?.map((p) => ({
                         label: p.nama_paket,
                         value: p.id,
                       })) ?? []}
+                      disablePortal
                     />
                   )}
                 </form.AppField>
@@ -121,32 +142,17 @@ export function CreatePesananForm({
                     />
                   )}
                 </form.AppField>
-              </div>
+              </FieldGroup>
             </section>
           </div>
 
           {/* RIGHT PANE: Live Calculation Panel */}
           <aside className="hidden lg:flex">
-            <PesananCalcPanel form={form} selectedPaket={null} />
+            <PesananCalcPanel form={form} selectedPaket={selectedPaket} />
           </aside>
         </div>
       </main>
-      <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t px-6 py-3">
-        <button
-          type="button"
-          onClick={() => {}}
-          className="flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-        >
-          Batal
-        </button>
-        <button
-          type="submit"
-          disabled={form.store.state.isSubmitting}
-          className="flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
-        >
-          {form.store.state.isSubmitting ? "Menyimpan..." : "Simpan Pesanan"}
-        </button>
-      </DialogFooter>
-    </div>
+      {children}
+    </form>
   )
 }

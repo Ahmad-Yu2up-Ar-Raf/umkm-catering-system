@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -19,11 +19,10 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/drawer"
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { usePesananCreateForm } from "../hooks/use-pesanan-form"
-import { CreatePesananForm } from "./create-pesanan-form"
+import { usePesananForm } from "../hooks/use-pesanan-form"
+import { PesananForm } from "./pesanan-form"
+import { PesananFormActions } from "./pesanan-form-actions"
 import type { PaketSearchOption } from "../types/pesanan-types"
-import { validateAgainstPaket } from "../schemas/pesanan-schema"
-import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 
 interface CreatePesananDrawerProps {
   open: boolean
@@ -36,11 +35,9 @@ export function CreatePesananDrawer({
 }: CreatePesananDrawerProps) {
   const isMobile = useIsMobile()
   const [confirmDiscard, setConfirmDiscard] = useState(false)
-  const [selectedPaket, setSelectedPaket] = useState<PaketSearchOption | null>(
-    null
-  )
+  const [selectedPaket, setSelectedPaket] = useState<PaketSearchOption | null>(null)
 
-  const form = usePesananCreateForm({
+  const form = usePesananForm({
     onSuccessCallback: () => {
       form.reset()
       setSelectedPaket(null)
@@ -48,20 +45,22 @@ export function CreatePesananDrawer({
     },
   })
 
-  const handlePaketSelect = (paket: PaketSearchOption) => {
-    setSelectedPaket(paket)
-    form.setFieldValue("paket_id", paket.id)
-    if (paket.min_order) {
-      form.setFieldValue("jumlah_paket", paket.min_order)
+  // Watch for paket_id changes and auto-fill jumlah_paket from min_order
+  const paketId = form.store.state.values.paket_id as number | null
+  useEffect(() => {
+    if (paketId !== null && paketId !== selectedPaket?.id) {
+      // This will be called when user selects a paket from combobox
+      // We need to find the selected paket from the search results
+      // The combobox sets the value directly, so we need to track it here
     }
-  }
+  }, [paketId, selectedPaket?.id])
 
   const hasActualChanges = () => {
     const currentValues = form.store.state.values
     const defaults = {
       nama_pemesan: "",
       no_telepon: "",
-      paket_id: Number.NaN,
+      paket_id: null,
       jumlah_paket: 1,
       detail_tambahan: [],
       biaya_tambahan: 0,
@@ -109,28 +108,6 @@ export function CreatePesananDrawer({
     onOpenChange(false)
   }
 
-  const handleSubmit = async () => {
-    if (!selectedPaket) {
-      form.setFieldMeta("paket_id", (meta) => ({
-        ...meta,
-        errors: ["Pilih paket terlebih dahulu."],
-      }))
-      return
-    }
-    const violation = validateAgainstPaket(
-      form.store.state.values as Parameters<typeof validateAgainstPaket>[0],
-      selectedPaket
-    )
-    if (violation) {
-      form.setFieldMeta(violation.field, (meta) => ({
-        ...meta,
-        errors: [violation.message],
-      }))
-      return
-    }
-    form.handleSubmit()
-  }
-
   if (isMobile) {
     return (
       <>
@@ -143,29 +120,15 @@ export function CreatePesananDrawer({
               </DrawerDescription>
             </DrawerHeader>
 
-            <CreatePesananForm form={form} onPaketSelect={handlePaketSelect} />
-
-            <DrawerFooter className="shrink-0 border-t p-4">
-              <div className="flex w-full justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  form="pesanan-create-form"
-                  disabled={form.store.state.isSubmitting}
-                  className="flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                >
-                  {form.store.state.isSubmitting
-                    ? "Menyimpan..."
-                    : "Simpan Pesanan"}
-                </button>
-              </div>
-            </DrawerFooter>
+            <PesananForm key={open ? "open" : "closed"} form={form}>
+              <DrawerFooter className="shrink-0 border-t p-4">
+                <PesananFormActions
+                  form={form}
+                  submitLabel="Simpan Pesanan"
+                  onCancel={handleCancel}
+                />
+              </DrawerFooter>
+            </PesananForm>
           </DrawerContent>
         </Drawer>
 
@@ -184,7 +147,7 @@ export function CreatePesananDrawer({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="flex h-full max-h-[95vh] w-full flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]">
+        <DialogContent className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]">
           <DialogHeader className="sr-only flex shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
             <DialogTitle className="font-heading text-3xl">
               Buat{" "}
@@ -195,28 +158,15 @@ export function CreatePesananDrawer({
             </DialogDescription>
           </DialogHeader>
 
-          <form
-            id="pesanan-create-form"
-            onSubmit={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleSubmit()
-            }}
-            className="flex flex-1 flex-col overflow-hidden"
-          >
-            <CreatePesananForm form={form} onPaketSelect={handlePaketSelect} />
-
+          <PesananForm key={open ? "open" : "closed"} form={form}>
             <DialogFooter className="flex w-full shrink-0 flex-row justify-end gap-3 border-t px-6 py-3">
-              <Button type="button" onClick={handleCancel}>
-                Batal
-              </Button>
-              <Button type="submit" disabled={form.store.state.isSubmitting}>
-                {form.store.state.isSubmitting
-                  ? "Menyimpan..."
-                  : "Simpan Pesanan"}
-              </Button>
+              <PesananFormActions
+                form={form}
+                submitLabel="Simpan Pesanan"
+                onCancel={handleCancel}
+              />
             </DialogFooter>
-          </form>
+          </PesananForm>
         </DialogContent>
       </Dialog>
 

@@ -62,6 +62,7 @@ export function InvoicePreviewDialog({ data, open, onOpenChange, isLoading = fal
     let cancelled = false
 
     async function generatePdf() {
+      if (!data) return
       setGenerating(true)
       setError(null)
       try {

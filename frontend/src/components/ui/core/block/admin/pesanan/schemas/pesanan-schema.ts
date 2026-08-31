@@ -49,7 +49,7 @@ export const pesananCreateSchema = z.object({
 export type PesananCreateFormValues = {
   nama_pemesan: string
   no_telepon: string
-  paket_id: number
+  paket_id: number | null
   jumlah_paket: number
   detail_tambahan: string[]
   biaya_tambahan: number

@@ -5,14 +5,6 @@ import type { KategoriFilter } from "../data/categories"
 import { CategoryNav } from "./category-nav"
 import { SearchBar } from "./search-bar"
 
-/**
- * FilterBar — the sticky category + search strip (Dapur Solo's
- * `#lunchbox-page-header` adapted to a filter-driven page). It pins below the
- * global SiteHeader (`useHeaderOffset`) with a hairline border and a warm
- * cream translucent backdrop. Layout: category nav wraps to a second row on
- * narrow screens; search sits right of it from md up (design rule §8: no
- * horizontal page scroll).
- */
 export function FilterBar({
   kategori,
   search,
@@ -29,12 +21,15 @@ export function FilterBar({
   return (
     <div
       style={{ top }}
-      className="sticky  z-40  py-2.5  border-b border-border bg-background/90 backdrop-blur-sm"
+      className="sticky z-40 border-b border-border bg-background/90 py-2.5 backdrop-blur-sm"
     >
-      <div className="mx-auto px-6 flex max-w-5xl flex-col gap-3 md:flex-row md:items-center md:gap-6">
-        <CategoryNav active={kategori} onSelect={onKategoriChange} />
-        <div className="w-full md:ml-auto md:w-64">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 md:px-6 md:flex-row md:items-center gap-6">
+        <div className="w-full  md:order-2 px-5 md:ml-auto md:w-64">
           <SearchBar search={search} onSearchChange={onSearchChange} />
+        </div>
+        {/* Tambahkan flex-1 min-w-0 di sini agar Carousel tidak tumpah (overflow) */}
+        <div className="min-w-0 md:order-1 flex-1">
+          <CategoryNav active={kategori} onSelect={onKategoriChange} />
         </div>
       </div>
     </div>

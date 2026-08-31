@@ -32,34 +32,29 @@ export function GaleriAdminCard({
   isDeleting = false,
 }: GaleriAdminCardProps) {
   return (
-    <div className="relative group overflow-hidden">
-      <GalleryCard
-        item={item}
-        index={index}
-        scope={scope}
-        className="w-full"
-      />
+    <div className="group relative overflow-hidden">
+      <GalleryCard item={item} index={index} scope={scope} className="w-full" />
       {/* Admin actions overlay — appears on hover */}
-      <div className="absolute bottom-0 left-0 right-0 p-2 bg-background/95 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex gap-2 justify-center">
+      <div className="absolute right-0 bottom-0 left-0 flex h-full items-center content-center justify-center gap-2 rounded-2xl border-t border-border bg-foreground/95 p-2 px-6 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
         <Button
           type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5 text-xs"
+          variant="default"
+          size="lg"
+          className="w-full flex-1 gap-1.5 bg-background hover:bg-secondary text-primary"
           onClick={() => onEdit(originalGaleri)}
         >
-          <HugeiconsIcon icon={Edit01Icon} className="size-3.5" />
+          <HugeiconsIcon icon={Edit01Icon} className=" size-4" />
           Ubah
         </Button>
         <Button
           type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5 text-xs text-destructive hover:text-destructive"
+          variant="destructive"
+          size="lg"
+          className="w-full flex-1 gap-1.5 bg-destructive text-background hover:bg-destructive/80"
           onClick={() => onDelete(originalGaleri)}
           disabled={isDeleting}
         >
-          <HugeiconsIcon icon={Delete01Icon} className="size-3.5" />
+          <HugeiconsIcon icon={Delete01Icon} className=" size-4" />
           Hapus
         </Button>
       </div>
