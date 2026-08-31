@@ -84,8 +84,7 @@ function MasterGaleriBlock() {
     setPage(1)
   }
 
-  const hasActiveFilters =
-    searchInput !== "" || kategoriAcara.length > 0
+  const hasActiveFilters = searchInput !== "" || kategoriAcara.length > 0
 
   return (
     <div
@@ -131,7 +130,7 @@ function MasterGaleriBlock() {
             <>
               <DataTableSkeleton
                 columnCount={6}
-                rowCount={5}
+
                 withViewOptions={false}
                 withPagination={false}
               />

@@ -142,7 +142,7 @@ function MasterPesananBlock() {
           <>
             <DataTableSkeleton
               columnCount={8}
-              rowCount={5}
+              rowCount={50}
               withViewOptions={false}
               withPagination={false}
             />

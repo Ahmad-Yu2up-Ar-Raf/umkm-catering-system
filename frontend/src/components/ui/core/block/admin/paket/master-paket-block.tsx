@@ -151,7 +151,7 @@ function MasterPaketBlock() {
             <>
               <DataTableSkeleton
                 columnCount={8}
-                rowCount={5}
+
                 withViewOptions={false}
                 withPagination={false}
               />

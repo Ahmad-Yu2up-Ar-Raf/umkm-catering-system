@@ -42,11 +42,6 @@ export const navGroups: SidebarNavGroup[] = [
         path: "/dashboard/pesanan",
         icon: ShoppingCart01Icon,
       },
-      {
-        title: "Jadwal Pengiriman",
-        path: "/dashboard/jadwal-pengiriman",
-        icon: Calendar01Icon,
-      },
     ],
   },
   {
@@ -61,21 +56,6 @@ export const navGroups: SidebarNavGroup[] = [
         title: "Master Galeri",
         path: "/dashboard/galeri",
         icon: Image01Icon,
-      },
-      {
-        title: "Pelanggan",
-        path: "/dashboard/pelanggan",
-        icon: UserMultipleIcon,
-      },
-    ],
-  },
-  {
-    label: "Pengaturan",
-    items: [
-      {
-        title: "Konfigurasi Web",
-        path: "/dashboard/konfigurasi",
-        icon: Settings01Icon,
       },
     ],
   },

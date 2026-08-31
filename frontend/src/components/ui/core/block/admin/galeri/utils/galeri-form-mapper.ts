@@ -33,8 +33,12 @@ const normalizeFormValue = (value: unknown): unknown => {
   return value
 }
 
-/** Map a freshly-edited Galeri into form default values. */
+/** Map a freshly-edited Galeri into form default values.
+ * API returns gambar_acara as primary image - use it for thumbnail preview. */
 export function toFormDefaults(galeri: Galeri): GaleriFormValues {
+  const primaryImage = galeri.gambar_acara ?? galeri.thumbnail ?? ""
+  const additionalImages = galeri.images?.length ? galeri.images : (primaryImage ? [primaryImage] : [])
+
   return {
     nama_acara: galeri.nama_acara,
     kategori_acara: galeri.kategori_acara as GaleriFormValues["kategori_acara"],
@@ -43,8 +47,8 @@ export function toFormDefaults(galeri: Galeri): GaleriFormValues {
     lokasi: galeri.lokasi,
     jumlah_tamu: galeri.jumlah_tamu,
     is_featured: galeri.is_featured,
-    thumbnail: galeri.thumbnail ?? "",
-    images: galeri.images ?? [],
+    thumbnail: primaryImage,
+    images: additionalImages,
   }
 }
 
@@ -59,7 +63,10 @@ export function toGaleriPayload(value: GaleriFormValues): GaleriPayload {
   const gallery = (value.images ?? [])
     .filter((img): img is string => typeof img === "string")
     .map((img) => img.trim())
-    .filter((img) => img !== "" && img !== thumb)
+    .filter((img) => img !== "")
+
+  // Ensure thumbnail is included in images array if not already present
+  const finalImages = gallery.includes(thumb) ? gallery : [thumb, ...gallery]
 
   return {
     nama_acara: value.nama_acara.trim(),
@@ -70,6 +77,6 @@ export function toGaleriPayload(value: GaleriFormValues): GaleriPayload {
     jumlah_tamu: value.jumlah_tamu ?? null,
     is_featured: value.is_featured ?? false,
     thumbnail: thumb,
-    images: gallery as string[],
+    images: finalImages,
   }
 }

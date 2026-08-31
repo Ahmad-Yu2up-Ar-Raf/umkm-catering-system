@@ -40,6 +40,7 @@ const requiredThumbnail = z
 
 /**
  * Schema for the shared Create/Update Galeri form.
+ * Aligns with backend: thumbnail (required single image) + images (required array)
  * Allows File objects during upload; the dropzone folds resolved Cloudinary
  * URLs back into the field, so the API payload always carries URL strings.
  */
@@ -54,7 +55,10 @@ export const galeriSchema = z.object({
   jumlah_tamu: z.number().int().min(0, "Minimal 0 tamu").nullable().optional(),
   is_featured: z.boolean().optional(),
   thumbnail: requiredThumbnail,
-  images: z.array(fileOrUrl).max(MAX_GALERI_IMAGES, `Maksimal ${MAX_GALERI_IMAGES} gambar`).optional(),
+  images: z
+    .array(fileOrUrl)
+    .min(1, "Minimal 1 gambar tambahan wajib diisi")
+    .max(MAX_GALERI_IMAGES, `Maksimal ${MAX_GALERI_IMAGES} gambar`),
 })
 
 export type GaleriFormValues = z.infer<typeof galeriSchema>

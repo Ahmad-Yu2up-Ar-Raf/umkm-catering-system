@@ -143,7 +143,7 @@ export function GaleriTable({
 
   /** Resolve the best image URL for preview: thumbnail → images[0] */
   const getPreviewImage = (galeri: Galeri): string | undefined => {
-    return galeri.thumbnail ?? galeri.images?.[0]
+    return galeri.gambar_acara
   }
 
   /** Open the global image modal with the galeri's image(s) */
@@ -152,11 +152,7 @@ export function GaleriTable({
     if (!previewImage) return
 
     // Build scope from all available images for modal navigation
-    const scopeImages = [
-      previewImage,
-      ...(galeri.thumbnail && galeri.thumbnail !== previewImage ? [galeri.thumbnail] : []),
-      ...galeri.images.filter((img) => img !== previewImage && img !== galeri.thumbnail),
-    ]
+    const scopeImages = [previewImage]
 
     openImageModal(
       scopeImages.map((src, _idx) => ({
@@ -216,8 +212,10 @@ export function GaleriTable({
       <TableBody>
         {items.map((galeri) => {
           const isThisDeleting = isDeleting && deleteVariables?.id === galeri.id
-          const CategoryIcon = CATEGORY_ICONS[galeri.kategori_acara] || Image01Icon
-          const categoryColor = CATEGORY_COLORS[galeri.kategori_acara] || CATEGORY_COLORS.Lainnya
+          const CategoryIcon =
+            CATEGORY_ICONS[galeri.kategori_acara] || Image01Icon
+          const categoryColor =
+            CATEGORY_COLORS[galeri.kategori_acara] || CATEGORY_COLORS.Lainnya
           const previewImage = getPreviewImage(galeri)
 
           return (
@@ -240,7 +238,10 @@ export function GaleriTable({
                         />
                       ) : (
                         <AvatarFallback className="rounded-xl text-muted-foreground">
-                          <HugeiconsIcon icon={Image01Icon} className="size-5" />
+                          <HugeiconsIcon
+                            icon={Image01Icon}
+                            className="size-5"
+                          />
                         </AvatarFallback>
                       )}
                     </Avatar>
@@ -282,14 +283,16 @@ export function GaleriTable({
               )}
 
               {!hiddenCols.lokasi && (
-                <TableCell className="truncate text-xs text-muted-foreground max-w-[150px]">
+                <TableCell className="max-w-[150px] truncate text-xs text-muted-foreground">
                   {galeri.lokasi ?? "—"}
                 </TableCell>
               )}
 
               {!hiddenCols.jumlah_tamu && (
                 <TableCell className="text-center text-sm text-muted-foreground">
-                  {galeri.jumlah_tamu != null ? `${galeri.jumlah_tamu} tamu` : "—"}
+                  {galeri.jumlah_tamu != null
+                    ? `${galeri.jumlah_tamu} tamu`
+                    : "—"}
                 </TableCell>
               )}
 

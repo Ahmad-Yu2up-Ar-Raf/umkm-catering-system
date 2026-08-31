@@ -7,9 +7,7 @@ import {
   Image01Icon,
   Restaurant01Icon,
 } from "@hugeicons/core-free-icons"
-import {
-  GALERI_KATEGORI_OPTIONS,
-} from "../config/galeri-enum-options"
+import { GALERI_KATEGORI_OPTIONS } from "../config/galeri-enum-options"
 import type { GaleriFormReturnType } from "../hooks/use-galeri-mutations"
 
 interface GaleriFormProps {
@@ -123,14 +121,10 @@ export default function GaleriForm({ form, children }: GaleriFormProps) {
                 </p>
               </header>
               <FieldGroup className="flex flex-col gap-6">
-                <form.AppField name="images">
-                  {(field) => (
-                    <field.ImagesUpload label="Galeri Gambar" maxFiles={10} />
-                  )}
-                </form.AppField>
-
                 <form.AppField name="is_featured">
-                  {(field) => <field.Checkbox label="Tandai sebagai Galeri Unggulan" />}
+                  {(field) => (
+                    <field.Checkbox label="Tandai sebagai Galeri Unggulan" />
+                  )}
                 </form.AppField>
               </FieldGroup>
             </section>

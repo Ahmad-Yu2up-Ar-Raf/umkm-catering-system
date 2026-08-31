@@ -135,7 +135,7 @@ export function OrderForm({
                     placeholder="Contoh: Budi Santoso"
                   />
                 )}
-              </form.AppField>
+              </form.AppField>        
 
               <form.AppField name="lokasi_acara">
                 {(field) => (

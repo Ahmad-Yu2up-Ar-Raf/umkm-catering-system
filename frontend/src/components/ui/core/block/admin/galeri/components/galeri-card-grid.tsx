@@ -10,15 +10,15 @@ import type { GalleryItem } from "@/components/ui/core/block/galeri/types/galler
 
 /**
  * Map admin Galeri to public GalleryItem for reuse of GalleryCard.
+ * Use gambar_acara directly as the primary image (API returns this as main image).
  */
 function toGalleryItem(galeri: Galeri): GalleryItem {
-  const previewImage = galeri.thumbnail ?? galeri.images?.[0] ?? ""
   return {
     id: String(galeri.id),
     category: galeri.kategori_acara as GalleryItem["category"],
     nama_acara: galeri.nama_acara,
     deskripsi_acara: galeri.deskripsi_acara ?? undefined,
-    gambar_acara: previewImage,
+    gambar_acara: galeri.gambar_acara,
     meta: {
       tanggal: galeri.tanggal_acara ?? undefined,
       venue: galeri.lokasi ?? undefined,

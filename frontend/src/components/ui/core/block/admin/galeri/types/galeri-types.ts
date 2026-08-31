@@ -15,8 +15,10 @@ export interface Galeri {
   nama_acara: string
   kategori_acara: string
   deskripsi_acara: string | null
-  thumbnail: string | null
+  gambar_acara: string
+  thumbnail: string
   images: string[]
+
   tanggal_acara: string | null
   lokasi: string | null
   jumlah_tamu: number | null
