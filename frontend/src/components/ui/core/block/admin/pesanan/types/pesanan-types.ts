@@ -21,6 +21,24 @@ export const STATUS_LABELS: Record<StatusPesanan, string> = {
 }
 
 /* ------------------------------------------------------------------ *
+ * Payment Method Enum
+ * ------------------------------------------------------------------ */
+
+export const METODE_PEMBAYARAN = [
+  "transfer",
+  "cash",
+  "qris",
+] as const
+
+export type MetodePembayaran = (typeof METODE_PEMBAYARAN)[number]
+
+export const METODE_PEMBAYARAN_LABELS: Record<MetodePembayaran, string> = {
+  transfer: "Transfer Bank",
+  cash: "Tunai",
+  qris: "QRIS",
+}
+
+/* ------------------------------------------------------------------ *
  * Lightweight paket shape returned by GET admin/paket/search
  * ------------------------------------------------------------------ */
 
@@ -50,18 +68,23 @@ export interface Pesanan {
   nomor_struk: string
   nama_pemesan: string
   no_telepon: string
+  alamat: string | null
   paket_id: number
   /** Present because every list/show response eager-loads `paket`. */
   paket: Paket | null
   jumlah_paket: number
+  /** Event date — YYYY-MM-DD string from API (nullable for legacy rows). */
+  tanggal_acara: string | null
   /** Price snapshot at order time — NOT the current paket price. */
   harga_paket_satuan: string
   detail_tambahan: string[] | null
-  biaya_tambahan: string
+  menu_tambahan: string[] | null
+  biaya_tambahan: string | null
   catatan: string | null
   /** Server-computed. Read-only everywhere in the UI. */
   total_harga: string
   status_pesanan: StatusPesanan
+  metode_pembayaran: MetodePembayaran | null
   created_at: string
   updated_at: string
 }
@@ -85,6 +108,7 @@ export interface PesananListQueryParams {
   perPage: number
   /** Multi-select status filter — serialized as repeated `status_pesanan[]` keys. */
   statuses?: StatusPesanan[]
+  metodePembayaran?: MetodePembayaran[]
   search?: string
   sortBy?: PesananSortColumn
   sortDir?: SortDir
@@ -109,6 +133,7 @@ export interface PesananListResponse {
   meta: {
     filters: {
       status_pesanan?: StatusPesanan[]
+      metode_pembayaran?: MetodePembayaran[]
       search?: string
     }
     pagination: PesananPagination
@@ -129,16 +154,27 @@ export interface PesananSingleResponse {
 export interface PesananCreatePayload {
   nama_pemesan: string
   no_telepon: string
+  alamat?: string | null
   paket_id: number
   jumlah_paket: number
+  tanggal_acara: string
+  status_pesanan?: StatusPesanan | null
+  metode_pembayaran?: MetodePembayaran | null
+  menu_tambahan?: string[] | null
   detail_tambahan: string[]
-  biaya_tambahan: number
+  biaya_tambahan?: number | null
   catatan?: string | null
 }
 
-/** PUT admin/pesanan/{id} body — status/catatan ONLY. */
+/** PUT admin/pesanan/{id} body — status/catatan/tanggal ONLY; financials are immutable. */
 export interface PesananUpdatePayload {
-  status_pesanan?: StatusPesanan
+  status_pesanan?: StatusPesanan | null
+  metode_pembayaran?: MetodePembayaran | null
+  tanggal_acara?: string
+  alamat?: string | null
+  biaya_tambahan?: number | null
+  detail_tambahan?: string[] | null
+  menu_tambahan?: string[] | null
   catatan?: string | null
 }
 
@@ -155,13 +191,17 @@ export interface StrukPayload {
   nomor_struk: string
   nama_pemesan: string
   no_telepon: string
+  alamat: string | null
   paket: string | null
   jumlah_paket: number
+  tanggal_acara: string | null
   harga_paket_satuan: string
   detail_tambahan: string[] | null
-  biaya_tambahan: string
+  menu_tambahan: string[] | null
+  biaya_tambahan: string | null
   total_harga: string
   status_pesanan: StatusPesanan
+  metode_pembayaran: MetodePembayaran | null
   catatan: string | null
   created_at: string
 }

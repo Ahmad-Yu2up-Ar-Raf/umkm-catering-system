@@ -22,6 +22,18 @@ export const pesananStatusChartConfig: ChartConfig = {
   confirmed: { label: "Dikonfirmasi", color: "var(--chart-1)" },
   completed: { label: "Selesai", color: "var(--chart-2)" },
   cancelled: { label: "Dibatalkan", color: "var(--chart-5)" },
+  // Indonesian legacy aliases for strict enum coverage (directive: diproses/dikirim/selesai/dibatalkan)
+  diproses: { label: "Diproses", color: "var(--chart-1)" },
+  dikirim: { label: "Dikirim", color: "var(--chart-4)" },
+  selesai: { label: "Selesai", color: "var(--chart-2)" },
+  dibatalkan: { label: "Dibatalkan", color: "var(--chart-5)" },
+}
+
+export const pesananMetodeChartConfig: ChartConfig = {
+  count: { label: "Jumlah" },
+  cash: { label: "Tunai", color: "var(--chart-2)" },
+  transfer: { label: "Transfer Bank", color: "var(--chart-1)" },
+  qris: { label: "QRIS", color: "var(--chart-5)" },
 }
 
 export const kategoriPaketChartConfig: ChartConfig = {

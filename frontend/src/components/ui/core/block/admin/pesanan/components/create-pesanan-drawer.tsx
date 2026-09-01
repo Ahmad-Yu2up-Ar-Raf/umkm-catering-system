@@ -22,7 +22,8 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { usePesananForm } from "../hooks/use-pesanan-form"
 import { PesananForm } from "./pesanan-form"
 import { PesananFormActions } from "./pesanan-form-actions"
-import type { PaketSearchOption } from "../types/pesanan-types"
+import type { Paket } from "../../../paket/types/paket-types"
+// import type { PaketSearchOption } from "../types/pesanan-types"
 
 interface CreatePesananDrawerProps {
   open: boolean
@@ -35,7 +36,7 @@ export function CreatePesananDrawer({
 }: CreatePesananDrawerProps) {
   const isMobile = useIsMobile()
   const [confirmDiscard, setConfirmDiscard] = useState(false)
-  const [selectedPaket, setSelectedPaket] = useState<PaketSearchOption | null>(null)
+  const [selectedPaket, setSelectedPaket] = useState<Paket | null>(null)
 
   const form = usePesananForm({
     onSuccessCallback: () => {
@@ -60,20 +61,31 @@ export function CreatePesananDrawer({
     const defaults = {
       nama_pemesan: "",
       no_telepon: "",
-      paket_id: null,
-      jumlah_paket: 1,
-      detail_tambahan: [],
-      biaya_tambahan: 0,
-      catatan: null,
+      alamat: null as string | null,
+      paket_id: null as number | null,
+      jumlah_paket: null as number | null,
+      tanggal_acara: "",
+      status_pesanan: null as string | null,
+      metode_pembayaran: null as string | null,
+      menu_tambahan: [] as string[],
+      detail_tambahan: [] as string[],
+      biaya_tambahan: null as number | null,
+      catatan: null as string | null,
     }
+    const cur = currentValues as typeof defaults & Record<string, unknown>
     return (
-      currentValues.nama_pemesan !== defaults.nama_pemesan ||
-      currentValues.no_telepon !== defaults.no_telepon ||
-      currentValues.paket_id !== defaults.paket_id ||
-      currentValues.jumlah_paket !== defaults.jumlah_paket ||
-      currentValues.detail_tambahan.length > 0 ||
-      currentValues.biaya_tambahan !== defaults.biaya_tambahan ||
-      currentValues.catatan !== defaults.catatan
+      cur.nama_pemesan !== defaults.nama_pemesan ||
+      cur.no_telepon !== defaults.no_telepon ||
+      (cur.alamat ?? null) !== defaults.alamat ||
+      cur.paket_id !== defaults.paket_id ||
+      cur.jumlah_paket !== defaults.jumlah_paket ||
+      cur.tanggal_acara !== defaults.tanggal_acara ||
+      (cur.status_pesanan ?? null) !== defaults.status_pesanan ||
+      (cur.metode_pembayaran ?? null) !== defaults.metode_pembayaran ||
+      (cur.menu_tambahan?.length ?? 0) > 0 ||
+      cur.detail_tambahan.length > 0 ||
+      (cur.biaya_tambahan ?? null) !== defaults.biaya_tambahan ||
+      (cur.catatan ?? null) !== defaults.catatan
     )
   }
 

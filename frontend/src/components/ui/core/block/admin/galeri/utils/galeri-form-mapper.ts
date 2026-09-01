@@ -10,8 +10,7 @@ export interface GaleriPayload {
   lokasi: string | null
   jumlah_tamu: number | null
   is_featured: boolean
-  thumbnail: string
-  images: string[]
+  gambar_acara: string
 }
 
 const FILE_SENTINEL = "__file_upload__"
@@ -33,12 +32,8 @@ const normalizeFormValue = (value: unknown): unknown => {
   return value
 }
 
-/** Map a freshly-edited Galeri into form default values.
- * API returns gambar_acara as primary image - use it for thumbnail preview. */
+/** Map Galeri into form defaults — single canonical image field. */
 export function toFormDefaults(galeri: Galeri): GaleriFormValues {
-  const primaryImage = galeri.gambar_acara ?? galeri.thumbnail ?? ""
-  const additionalImages = galeri.images?.length ? galeri.images : (primaryImage ? [primaryImage] : [])
-
   return {
     nama_acara: galeri.nama_acara,
     kategori_acara: galeri.kategori_acara as GaleriFormValues["kategori_acara"],
@@ -47,8 +42,7 @@ export function toFormDefaults(galeri: Galeri): GaleriFormValues {
     lokasi: galeri.lokasi,
     jumlah_tamu: galeri.jumlah_tamu,
     is_featured: galeri.is_featured,
-    thumbnail: primaryImage,
-    images: additionalImages,
+    gambar_acara: galeri.gambar_acara ?? "",
   }
 }
 
@@ -57,16 +51,11 @@ export function areFormValuesEqual(a: unknown, b: unknown): boolean {
   return deepEqual(normalizeFormValue(a), normalizeFormValue(b))
 }
 
-/** Coerce validated form values into the API payload. Any residual `File` entries (upload never resolved) are dropped so the API only ever sees URLs. */
+/** Coerce validated form values into API payload — single gambar_acara string. */
 export function toGaleriPayload(value: GaleriFormValues): GaleriPayload {
-  const thumb = typeof value.thumbnail === "string" ? value.thumbnail.trim() : ""
-  const gallery = (value.images ?? [])
-    .filter((img): img is string => typeof img === "string")
-    .map((img) => img.trim())
-    .filter((img) => img !== "")
-
-  // Ensure thumbnail is included in images array if not already present
-  const finalImages = gallery.includes(thumb) ? gallery : [thumb, ...gallery]
+  const img = typeof value.gambar_acara === "string" ? value.gambar_acara.trim() : ""
+  // If still a File (should have been resolved in useGaleriForm), drop it
+  const final = typeof value.gambar_acara === "string" ? img : ""
 
   return {
     nama_acara: value.nama_acara.trim(),
@@ -76,7 +65,6 @@ export function toGaleriPayload(value: GaleriFormValues): GaleriPayload {
     lokasi: value.lokasi?.trim() || null,
     jumlah_tamu: value.jumlah_tamu ?? null,
     is_featured: value.is_featured ?? false,
-    thumbnail: thumb,
-    images: finalImages,
+    gambar_acara: final,
   }
 }

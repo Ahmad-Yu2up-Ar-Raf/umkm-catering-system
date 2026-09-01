@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\MetodePembayaranEnum;
 use App\Enums\StatusPesananEnum;
 use App\Models\Paket;
 use App\Models\Pesanan;
@@ -37,11 +38,15 @@ class PesananFactory extends Factory
             'paket_id' => Paket::factory(),
             'jumlah_paket' => $jumlahPaket,
             'harga_paket_satuan' => $hargaSatuan,
+            'alamat' => fake()->streetAddress(),
             'detail_tambahan' => ['Extra sambal', 'Sendok plastik'],
-            'biaya_tambahan' => 0,
+            'menu_tambahan' => null,
+            'biaya_tambahan' => fake()->optional()->randomFloat(2, 0, 50000),
             'catatan' => fake()->sentence(),
+            'tanggal_acara' => fake()->dateTimeBetween('+1 week', '+2 months')->format('Y-m-d'),
             'total_harga' => $jumlahPaket * $hargaSatuan,
             'status_pesanan' => StatusPesananEnum::Pending->value,
+            'metode_pembayaran' => fake()->optional()->randomElement(['transfer', 'cash', 'qris']),
         ];
     }
 }

@@ -103,16 +103,32 @@ function ComboboxContent({
   > & {
     disablePortal?: boolean
   }) {
-  // When disablePortal (inside Dialog/Drawer), render inline without
-  // Floating UI positioning so focus stays inside the modal's trap.
+  // Base UI invariant: Root -> Portal -> Positioner -> Popup must hold.
+  // Portal cannot be removed; keepMounted context is required by Positioner.
+  // When disablePortal (inside Dialog/Drawer), keep Portal but render
+  // Positioner inline-styled (relative, w-full) so focus stays inside the
+  // modal trap while preserving the required context chain. The `container`
+  // prop on FloatingPortal defaults to document.body; keeping Portal here
+  // maintains PortalContext while inline styling prevents clipping.
   if (disablePortal) {
     return (
-      <ComboboxPrimitive.Popup
-        data-slot="combobox-content"
-        data-chips={!!anchor}
-        className={cn("group/combobox-content relative mt-1 max-h-[min(calc(--spacing(72)),300px)] w-full min-w-[calc(var(--anchor-width))] overflow-hidden rounded-2xl bg-popover text-popover-foreground shadow-2xl ring-1 ring-foreground/5 duration-100 *:data-[slot=input-group]:m-1 *:data-[slot=input-group]:mb-0 *:data-[slot=input-group]:h-9 *:data-[slot=input-group]:border-none *:data-[slot=input-group]:bg-input/30 *:data-[slot=input-group]:shadow-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className)}
-        {...props}
-      />
+      <ComboboxPrimitive.Portal>
+        <ComboboxPrimitive.Positioner
+          side={side}
+          sideOffset={sideOffset}
+          align={align}
+          alignOffset={alignOffset}
+          anchor={anchor}
+          className="relative z-[150] w-full"
+        >
+          <ComboboxPrimitive.Popup
+            data-slot="combobox-content"
+            data-chips={!!anchor}
+            className={cn("group/combobox-content relative mt-1 max-h-[min(calc(--spacing(72)),300px)] w-full min-w-[calc(var(--anchor-width))] overflow-hidden rounded-2xl bg-popover text-popover-foreground shadow-2xl ring-1 ring-foreground/5 duration-100 *:data-[slot=input-group]:m-1 *:data-[slot=input-group]:mb-0 *:data-[slot=input-group]:h-9 *:data-[slot=input-group]:border-none *:data-[slot=input-group]:bg-input/30 *:data-[slot=input-group]:shadow-none data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95", className)}
+            {...props}
+          />
+        </ComboboxPrimitive.Positioner>
+      </ComboboxPrimitive.Portal>
     )
   }
 
@@ -142,7 +158,7 @@ function ComboboxList({ className, ...props }: ComboboxPrimitive.List.Props) {
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        "no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))] scroll-py-1 overflow-y-auto overscroll-contain p-1 data-empty:p-0",
+        "no-scrollbar max-h-60 max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)),15rem)] scroll-py-1 overflow-y-auto overscroll-contain p-1 data-empty:p-0",
         className
       )}
       {...props}

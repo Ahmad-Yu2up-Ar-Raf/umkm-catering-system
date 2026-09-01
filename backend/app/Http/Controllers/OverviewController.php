@@ -33,6 +33,10 @@ class OverviewController extends Controller
                 ->groupBy('status_pesanan')
                 ->pluck('count', 'status_pesanan');
 
+            $pesananMetodeCount = Pesanan::select('metode_pembayaran', DB::raw('count(*) as count'))
+                ->groupBy('metode_pembayaran')
+                ->pluck('count', 'metode_pembayaran');
+
             $paketKategoriCount = Paket::select('kategori_paket', DB::raw('count(*) as count'))
                 ->groupBy('kategori_paket')
                 ->pluck('count', 'kategori_paket');
@@ -83,6 +87,7 @@ class OverviewController extends Controller
 
             return array_merge($totals, [
                 'pesananStatusCount' => $pesananStatusCount,
+                'pesananMetodeCount' => $pesananMetodeCount,
                 'paketKategoriCount' => $paketKategoriCount,
                 'paketAcaraCount' => $paketAcaraCount,
                 'topPaket' => $topPaket,

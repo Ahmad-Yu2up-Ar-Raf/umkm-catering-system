@@ -58,23 +58,17 @@ export function CreateGaleriDrawer({
       lokasi: null,
       jumlah_tamu: null,
       is_featured: false,
-      thumbnail: "",
-      images: [],
+      gambar_acara: "",
     }
 
     return !areFormValuesEqual(currentValues, defaults)
   }
 
-  /** In a create draft every string URL in form state is an uncommitted
-   * Cloudinary upload — sweep it on discard/cancel so storage stays clean. */
   const discardUncommittedUploads = () => {
-    const values = form.store.state.values
-    purgeUncommittedGaleriImages([
-      ...(typeof values.thumbnail === "string" ? [values.thumbnail] : []),
-      ...((values.images ?? []).filter(
-        (img): img is string => typeof img === "string"
-      )),
-    ])
+    const values = form.store.state.values as { gambar_acara: string | File }
+    if (typeof values.gambar_acara === "string" && values.gambar_acara) {
+      purgeUncommittedGaleriImages([values.gambar_acara])
+    }
   }
 
   const requestClose = () => {

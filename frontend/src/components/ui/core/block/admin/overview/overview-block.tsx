@@ -1,8 +1,9 @@
 "use client"
 
+import { useMemo } from "react"
 import { SectionCards, type DataCard } from "./components/section-card"
 import { FetchOverview } from "./hooks/use-overview-query"
-import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
+import { OverviewSkeleton } from "./components/overview-skeleton"
 import {
   PackageIcon,
   ShoppingBag02Icon,
@@ -11,32 +12,59 @@ import {
 } from "@hugeicons/core-free-icons"
 
 import { ChartDistribution } from "./components/chart-distribution"
-import { pesananStatusChartConfig } from "./config/analytics-chart-config"
+import {
+  pesananStatusChartConfig,
+  pesananMetodeChartConfig,
+  kategoriPaketChartConfig,
+} from "./config/analytics-chart-config"
 import { ChartActivityTrends } from "./components/chart-activity-trends"
-import { useMonitorClock } from "@/hooks/use-monitor-clock"
+import { ChartBarActive } from "./components/chart-bar-active"
 
 function OverviewBlock() {
   const { data, isLoading, isError } = FetchOverview()
-  const activityTrends = data?.reports.countsByDate
-//   const { jam, tanggal } = useMonitorClock()
+
+  // All hooks MUST be above conditional returns (Rules of Hooks)
+  const reports = data?.reports
+  const activityTrends = reports?.countsByDate
+
+  const pesananStatusData = useMemo(
+    () =>
+      Object.entries(reports?.pesananStatusCount || {}).map(([key, value]) => ({
+        name: key,
+        count: value as number,
+      })),
+    [reports?.pesananStatusCount]
+  )
+
+  const pesananMetodeData = useMemo(
+    () =>
+      Object.entries(reports?.pesananMetodeCount || {}).map(([key, value]) => ({
+        name: key,
+        count: value as number,
+      })),
+    [reports?.pesananMetodeCount]
+  )
+
+  const kategoriPaketData = useMemo(
+    () =>
+      Object.entries(reports?.paketKategoriCount || {}).map(([key, value]) => ({
+        name: key,
+        count: value as number,
+      })),
+    [reports?.paketKategoriCount]
+  )
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-dvh w-full content-center items-center justify-center py-20">
-        <Spinner className="size-10 text-primary" />
-      </div>
-    )
+    return <OverviewSkeleton />
   }
 
-  if (isError || !data?.reports) {
+  if (isError || !reports) {
     return (
       <div className="flex w-full justify-center py-20 text-muted-foreground">
         Gagal memuat data overview.
       </div>
     )
   }
-
-  const reports = data.reports
 
   const dataCards: DataCard[] = [
     {
@@ -69,46 +97,30 @@ function OverviewBlock() {
     },
   ]
 
-  const pesananStatusData = Object.entries(
-    reports.pesananStatusCount || {}
-  ).map(([key, value]) => ({
-    name: key,
-    count: value as number,
-  }))
-
   return (
-    <section className="space-y-4 px-10 py-6">
+    <section className="space-y-4 px-4 py-6 sm:px-8 lg:px-10">
       <div className="@container/main flex flex-1 flex-col gap-6">
-        <header className="m-auto flex w-full flex-col border-b px-0 pb-7 md:flex-row md:items-center md:justify-between">
+        <header className="flex w-full flex-col border-b px-0 pb-7 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
             <h1 className="w-fit font-heading text-2xl text-neutral-900 lg:text-3xl dark:text-neutral-100">
               <span>Selamat</span>{" "}
-              <span className="f font-accent text-primary italic">Datang</span>
+              <span className="font-accent text-primary italic"> Datang</span>
             </h1>
             <p className="w-fit text-sm text-neutral-500 lg:text-base">
-              Berikut ini rangkuman keseluruhan data
+              Berikut rangkuman keseluruhan data
             </p>
           </div>
-
-          {/* <div className="hidden text-right md:block">
-            <div className="text-3xl font-black tracking-tight text-primary">
-              {jam}
-            </div>
-            <div className="mt-1 text-lg font-bold tracking-wider text-muted-foreground uppercase">
-              {tanggal}
-            </div>
-          </div> */}
         </header>
 
-        {/* --- STATS CARDS --- */}
+        {/* Row 1: KPI Cards */}
         <div className="flex flex-col gap-4 md:gap-6">
           <SectionCards dataCards={dataCards} />
         </div>
 
-        {/* --- CHARTS GRID --- */}
-        <div className="grid grid-cols-1 gap-4 *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4">
+        {/* Row 2: Activity trends + Top 5 */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
           <ChartActivityTrends
-            className="col-span-3"
+            className="lg:col-span-8"
             data={activityTrends || []}
             title="Tren Pesanan & Pendapatan"
             description="Pesanan dan pendapatan harian"
@@ -117,10 +129,42 @@ function OverviewBlock() {
             data={pesananStatusData}
             chartConfig={pesananStatusChartConfig}
             title="Status Pesanan"
-            description="Distribusi status hari ini"
+            description="Distribusi status pesanan"
             nameKey="Pesanan"
             emptyMessage="status pesanan"
+            className="lg:col-span-4"
           />
+        </div>
+
+        {/* Row 3: 3 Distribution Charts */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <ChartBarActive
+            data={reports.topPaket?.slice(0, 5) ?? []}
+            title="Top 5 Paket Terlaris"
+            description="Paket dengan pesanan terbanyak"
+            footerText="Berdasarkan total pesanan"
+            subFooter="Diurutkan dari yang terlaris"
+
+            // className="lg:col-span-8"
+          />
+          <ChartDistribution
+            data={pesananStatusData}
+            chartConfig={pesananStatusChartConfig}
+            title="Status Pesanan"
+            description="Distribusi status pesanan"
+            nameKey="Pesanan"
+            emptyMessage="status pesanan"
+            // className="lg:col-span-4"
+          />
+
+          {/* <ChartDistribution
+            data={kategoriPaketData}
+            chartConfig={kategoriPaketChartConfig}
+            title="Kategori Paket"
+            description="Distribusi kategori paket"
+            nameKey="Paket"
+            emptyMessage="kategori paket"
+          /> */}
         </div>
       </div>
     </section>

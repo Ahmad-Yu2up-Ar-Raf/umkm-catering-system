@@ -25,12 +25,20 @@ import {
   TableRow,
 } from "@/components/ui/fragments/shadcn-ui/table"
 import { RowActions } from "@/components/ui/fragments/custom-ui/table/row-actions"
-import { PesananStatusBadge } from "./pesanan-status-badge"
+import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
 import { formatRupiah } from "../utils/pesanan-calculator"
 import { usePesananDeleteMutation } from "../hooks/use-pesanan-mutations"
 import type { Pesanan } from "../types/pesanan-types"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
+import {
+  getStatusPesananIcon,
+  getStatusPesananLabel,
+  getStatusPesananColor,
+  getMetodePembayaranIcon,
+  getMetodePembayaranLabel,
+  getMetodePembayaranColor,
+} from "../utils/pesanan-badge-utils"
 
 interface PesananTableProps {
   items: Pesanan[]
@@ -144,8 +152,16 @@ export function PesananTable({
               {renderSortHeader("Total", "total_harga")}
             </TableHead>
           )}
+          {!hiddenCols.tanggal_acara && (
+            <TableHead className="min-w-32">
+              {renderSortHeader("Tgl Acara", "tanggal_acara")}
+            </TableHead>
+          )}
           {!hiddenCols.status_pesanan && (
             <TableHead className="min-w-28">Status</TableHead>
+          )}
+          {!hiddenCols.metode_pembayaran && (
+            <TableHead className="min-w-28">Pembayaran</TableHead>
           )}
           {!hiddenCols.created_at && (
             <TableHead className="min-w-32">
@@ -200,9 +216,35 @@ export function PesananTable({
                   {formatRupiah(pesanan.total_harga)}
                 </TableCell>
               )}
+              {!hiddenCols.tanggal_acara && (
+                <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                  {pesanan.tanggal_acara
+                    ? format(new Date(pesanan.tanggal_acara), "dd MMM yyyy")
+                    : "—"}
+                </TableCell>
+              )}
               {!hiddenCols.status_pesanan && (
                 <TableCell>
-                  <PesananStatusBadge status={pesanan.status_pesanan} />
+                  <Badge
+                    variant="outline"
+                    size="sm"
+                    icon={getStatusPesananIcon(pesanan.status_pesanan)}
+                    className={cn("w-fit gap-1.5 shadow-none", getStatusPesananColor(pesanan.status_pesanan))}
+                  >
+                    <span className="font-medium">{getStatusPesananLabel(pesanan.status_pesanan)}</span>
+                  </Badge>
+                </TableCell>
+              )}
+              {!hiddenCols.metode_pembayaran && (
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    size="sm"
+                    icon={getMetodePembayaranIcon(pesanan.metode_pembayaran)}
+                    className={cn("w-fit gap-1.5 shadow-none", getMetodePembayaranColor(pesanan.metode_pembayaran))}
+                  >
+                    <span className="font-medium">{getMetodePembayaranLabel(pesanan.metode_pembayaran)}</span>
+                  </Badge>
                 </TableCell>
               )}
               {!hiddenCols.created_at && (

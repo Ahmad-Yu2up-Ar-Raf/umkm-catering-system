@@ -14,8 +14,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('galeri', function (Blueprint $table) {
-            $table->string('thumbnail')->nullable()->after('gambar_acara');
-            $table->json('images')->nullable()->after('thumbnail');
+            $table->string('thumbnail')->nullable();
+            $table->json('images')->nullable();
         });
     }
 

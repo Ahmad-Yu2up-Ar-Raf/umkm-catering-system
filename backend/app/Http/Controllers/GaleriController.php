@@ -85,7 +85,11 @@ class GaleriController extends Controller
      */
     public function store(GaleriStoreRequest $request)
     {
-        $galeri = Galeri::query()->create($request->validated());
+        $data = $request->validated();
+        // Backfill legacy NOT NULL column from new `thumbnail`
+        $data['gambar_acara'] = $data['gambar_acara'] ?? $data['thumbnail'] ?? null;
+
+        $galeri = Galeri::query()->create($data);
 
         return response()->json([
             'status' => true,
@@ -99,7 +103,11 @@ class GaleriController extends Controller
      */
     public function update(GaleriUpdateRequest $request, Galeri $galeri)
     {
-        $galeri->update($request->validated());
+        $data = $request->validated();
+        if (! isset($data['gambar_acara']) && isset($data['thumbnail'])) {
+            $data['gambar_acara'] = $data['thumbnail'];
+        }
+        $galeri->update($data);
 
         return response()->json([
             'status' => true,

@@ -1,5 +1,5 @@
 import * as z from "zod"
-import { PESANAN_STATUSES } from "../types/pesanan-types"
+import { PESANAN_STATUSES, METODE_PEMBAYARAN } from "../types/pesanan-types"
 
 /**
  * Mirrors PesananStoreRequest exactly:
@@ -23,6 +23,11 @@ export const pesananCreateSchema = z.object({
     .trim()
     .min(1, "Nomor telepon wajib diisi.")
     .max(20, "Nomor telepon maksimal 20 karakter."),
+  alamat: z
+    .string()
+    .trim()
+    .max(1000, "Alamat maksimal 1000 karakter.")
+    .nullish(),
   paket_id: z
     .number({ error: "Pilih paket terlebih dahulu." })
     .int("Paket tidak valid.")
@@ -31,6 +36,22 @@ export const pesananCreateSchema = z.object({
     .number({ error: "Jumlah paket wajib diisi." })
     .int("Jumlah paket harus bilangan bulat.")
     .min(1, "Jumlah paket minimal 1."),
+  tanggal_acara: z
+    .string({ error: "Tanggal acara wajib diisi." })
+    .trim()
+    .min(1, "Tanggal acara wajib diisi.")
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid (YYYY-MM-DD)."),
+  status_pesanan: z
+    .enum(PESANAN_STATUSES, {
+      error: "Status pesanan wajib dipilih.",
+    })
+    .nullish(),
+  metode_pembayaran: z
+    .enum(METODE_PEMBAYARAN, {
+      error: "Metode pembayaran wajib dipilih.",
+    })
+    .nullish(),
+  menu_tambahan: z.array(z.string()).nullish(),
   detail_tambahan: z
     .array(
       z
@@ -42,32 +63,50 @@ export const pesananCreateSchema = z.object({
     .max(50, "Maksimal 50 item tambahan."),
   biaya_tambahan: z
     .number({ error: "Biaya tambahan harus angka." })
-    .min(0, "Biaya tambahan tidak boleh negatif."),
+    .min(0, "Biaya tambahan tidak boleh negatif.")
+    .nullish(),
   catatan: z.string().nullish(),
 })
 
 export type PesananCreateFormValues = {
   nama_pemesan: string
   no_telepon: string
+  alamat?: string | null | undefined
   paket_id: number | null
-  jumlah_paket: number
+  jumlah_paket: number | null
+  tanggal_acara: string
+  status_pesanan?: (typeof PESANAN_STATUSES)[number] | null | undefined
+  metode_pembayaran?: (typeof METODE_PEMBAYARAN)[number] | null | undefined
+  menu_tambahan?: string[] | null | undefined
   detail_tambahan: string[]
-  biaya_tambahan: number
+  biaya_tambahan?: number | null | undefined
   catatan?: string | null | undefined
 }
 
 /**
- * Mirrors PesananUpdateRequest: sometimes|required enum + sometimes|nullable string.
+ * Mirrors PesananUpdateRequest: sometimes|required enum + sometimes|required date + sometimes|nullable string.
  */
 export const pesananUpdateSchema = z.object({
   status_pesanan: z.enum(PESANAN_STATUSES, {
     error: "Status pesanan wajib dipilih.",
   }),
+  metode_pembayaran: z
+    .enum(METODE_PEMBAYARAN, {
+      error: "Metode pembayaran wajib dipilih.",
+    })
+    .nullish(),
+  tanggal_acara: z
+    .string({ error: "Tanggal acara wajib diisi." })
+    .trim()
+    .min(1, "Tanggal acara wajib diisi.")
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid (YYYY-MM-DD)."),
   catatan: z.string().nullish(),
 })
 
 export type PesananUpdateFormValues = {
   status_pesanan: (typeof PESANAN_STATUSES)[number]
+  metode_pembayaran?: (typeof METODE_PEMBAYARAN)[number] | null | undefined
+  tanggal_acara: string
   catatan?: string | null | undefined
 }
 
@@ -86,8 +125,10 @@ export function validateAgainstPaket(
   paket: Pick<PaketLike, "min_order" | "kapasitas_produksi"> | null
 ): JumlahViolation | null {
   if (!paket) return null
+  const qty = values.jumlah_paket
+  if (qty == null) return null
 
-  if (paket.min_order !== null && values.jumlah_paket < paket.min_order) {
+  if (paket.min_order !== null && qty < paket.min_order) {
     return {
       field: "jumlah_paket",
       message: `Minimum pemesanan untuk paket ini adalah ${paket.min_order}.`,
@@ -95,7 +136,7 @@ export function validateAgainstPaket(
   }
   if (
     paket.kapasitas_produksi !== null &&
-    values.jumlah_paket > paket.kapasitas_produksi
+    qty > paket.kapasitas_produksi
   ) {
     return {
       field: "jumlah_paket",

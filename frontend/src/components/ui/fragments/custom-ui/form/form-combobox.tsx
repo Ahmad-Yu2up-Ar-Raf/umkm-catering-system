@@ -17,6 +17,7 @@ import {
   ComboboxTrigger,
   ComboboxValue,
 } from "@/components/ui/fragments/shadcn-ui/combobox"
+import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 
 export interface ComboboxOption {
   label: string
@@ -30,10 +31,12 @@ interface FormComboboxProps extends Omit<
   options: ComboboxOption[]
   /** Disable portal to prevent focus trap inside Dialog/Drawer */
   disablePortal?: boolean
+  /** Show loading spinner and disable trigger while options are fetching */
+  isLoading?: boolean
 }
 
 export function FormCombobox(props: FormComboboxProps) {
-  const field = useFieldContext<string | number | undefined>()
+  const field = useFieldContext<string | number | null | undefined>()
   const [isFocused, setIsFocused] = useState(false)
   const [search, setSearch] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
@@ -50,9 +53,11 @@ export function FormCombobox(props: FormComboboxProps) {
   const value = useStore(field.store, (state) => state.value)
 
   const hasErrors = errors.length > 0
-  const hasValue = value !== undefined && value !== "" && value !== -1
+  const hasValue =
+    value !== undefined && value !== null && value !== "" && value !== -1
   const isInvalid = hasErrors && submissionAttempts > 0
   const isValid = hasValue && !hasErrors
+  const isDisabled = isSubmitting || !!props.isLoading
 
   const containerStateClass = isInvalid
     ? "border-destructive bg-destructive/8 text-destructive"
@@ -72,6 +77,13 @@ export function FormCombobox(props: FormComboboxProps) {
 
   // Only show empty state after user has actually searched and found nothing
   const showEmptyState = hasSearched && filteredOptions.length === 0
+  const selectedLabel =
+    value !== null &&
+    value !== undefined &&
+    value !== "" &&
+    value !== -1
+      ? props.options.find((opt) => String(opt.value) === String(value))?.label
+      : undefined
 
   return (
     <FormBase {...props}>
@@ -79,7 +91,7 @@ export function FormCombobox(props: FormComboboxProps) {
         className={cn(
           "relative flex h-12 w-full items-center overflow-hidden rounded-2xl border border-border/4 transition-all duration-300 ease-in-out",
           containerStateClass,
-          isSubmitting && "pointer-events-none opacity-50",
+          isDisabled && "pointer-events-none opacity-50",
           props.className
         )}
       >
@@ -96,11 +108,16 @@ export function FormCombobox(props: FormComboboxProps) {
 
         <Combobox
           value={
-            value !== undefined && value !== -1 ? String(value) : undefined
+            value !== undefined &&
+            value !== null &&
+            value !== "" &&
+            value !== -1
+              ? String(value)
+              : undefined
           }
           onValueChange={(val) => {
             if (!val) {
-              field.handleChange(undefined)
+              field.handleChange(null as unknown as string | number | null)
               return
             }
 
@@ -108,7 +125,12 @@ export function FormCombobox(props: FormComboboxProps) {
               (opt) => String(opt.value) === val
             )
 
-            field.handleChange(selectedOption?.value)
+            field.handleChange(
+              (selectedOption?.value ?? null) as unknown as
+                | string
+                | number
+                | null
+            )
           }}
           onOpenChange={(open) => {
             setIsFocused(open)
@@ -117,23 +139,28 @@ export function FormCombobox(props: FormComboboxProps) {
               setHasSearched(false)
             }
           }}
-          disabled={isSubmitting}
+          disabled={isDisabled}
         >
           <ComboboxTrigger
             className={cn(
-              "flex h-full w-full items-center justify-between border-0 bg-transparent px-3 text-sm outline-none",
+              "flex h-full w-full items-center justify-between border-0 bg-transparent px-3 text-sm outline-none disabled:cursor-not-allowed disabled:opacity-50",
               props.LeftIcon ? "pl-12" : "pl-4",
-
               hasValue ? "text-primary" : "text-muted-foreground",
-
-              isInvalid && "text-destructive"
+              isInvalid && "text-destructive",
+              props.isLoading && "[&>svg:not([data-slot=spinner])]:hidden"
             )}
+            disabled={isDisabled}
           >
             <ComboboxValue placeholder={props.placeholder}>
-              {value !== null &&
-                value !== undefined &&
-                props.options.find((opt) => opt.value === value)?.label}
+              {selectedLabel ?? (
+                <span className="text-muted-foreground">
+                  {props.placeholder ?? "Pilih paket..."}
+                </span>
+              )}
             </ComboboxValue>
+            {props.isLoading ? (
+              <Spinner className="size-4 shrink-0 text-muted-foreground" />
+            ) : null}
           </ComboboxTrigger>
 
           <ComboboxContent
@@ -145,13 +172,9 @@ export function FormCombobox(props: FormComboboxProps) {
               placeholder="Cari..."
               className="mx-2 my-2"
               value={search}
-
-              /* --- Solusi Utama --- */
               autoFocus
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              /* -------------------- */
-
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const newSearch = e.target.value
                 setSearch(newSearch)
@@ -161,7 +184,7 @@ export function FormCombobox(props: FormComboboxProps) {
             {showEmptyState && (
               <ComboboxEmpty>Pencarian tidak ditemukan.</ComboboxEmpty>
             )}
-            <ComboboxList>
+            <ComboboxList className="max-h-60 overflow-y-auto">
               {filteredOptions.map((item) => (
                 <ComboboxItem key={item.value} value={String(item.value)}>
                   {item.label}

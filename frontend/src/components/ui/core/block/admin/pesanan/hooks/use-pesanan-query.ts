@@ -18,6 +18,7 @@ export interface PesananListResult {
  */
 export function usePesananList({
   statuses = [],
+  metodePembayaran = [],
   search = "",
   sortBy = "created_at",
   sortDir = "desc",
@@ -25,10 +26,10 @@ export function usePesananList({
   perPage,
 }: Omit<PesananListQueryParams, "search"> & { search?: string }) {
   return useQuery({
-    queryKey: ["admin", "pesanan", statuses, search, sortBy, sortDir, page, perPage],
+    queryKey: ["admin", "pesanan", statuses, metodePembayaran, search, sortBy, sortDir, page, perPage],
 
     queryFn: async (): Promise<PesananListResult> => {
-      const res = await pesananService.list({ statuses, search, sortBy, sortDir, page, perPage })
+      const res = await pesananService.list({ statuses, metodePembayaran, search, sortBy, sortDir, page, perPage })
       return {
         items: res.data,
         pagination: res.meta.pagination,

@@ -67,7 +67,7 @@ export default function AuthLayout({
                 </div>
               </CardHeader>
 
-              <div className="relative my-6 flex flex-col gap-4 md:px-7">
+              <div className="relative my-8 flex flex-col gap-4 md:px-7">
                 {children}
               </div>
               <CardFooter className="sr-only border-none bg-transparent p-0 text-center">
@@ -96,9 +96,9 @@ export default function AuthLayout({
       </div>
       <div className="relative hidden content-center justify-end bg-background lg:block dark:border-l">
         <MediaItem
-          webViewLink={"/assets/images/textures/kraft-paper-box-macro-texture.png"}
+          webViewLink={"assets/images/lifestyle/paket-combo-1.png"}
 
-          className="inset- 0 ml-auto h-[89dvh] w-[40dvw] rounded-l-2xl"
+          className="inset- 0 ml-auto h-[89dvh] w-[45dvw] rounded-l-2xl"
         />
       </div>
     </div>

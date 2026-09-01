@@ -69,8 +69,8 @@ const Tile = function Tile({
       )}
     >
       {isFile ? (
-        <img
-          src={previewFor(item)}
+        <MediaItem
+          webViewLink={previewFor(item)}
           alt={item.name || "Preview Image"}
           className="size-full object-cover"
         />

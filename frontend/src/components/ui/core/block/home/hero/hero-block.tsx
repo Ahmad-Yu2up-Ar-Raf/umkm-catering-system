@@ -237,7 +237,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                 className="mt-5 mb-5 max-w-[590px] text-[clamp(14px,1.6vw,18.3px)] leading-[1.7] text-foreground/80 md:mt-[38px] md:mb-10"
               >
                 {!isMobile
-                  ? " Tiga generasi menghadirkan rasa istimewa untuk perayaan Anda —  semua diantar hangat ke acara Anda di Bogor dan sekitarnya."
+                  ? "Sajian autentik Nusantara untuk setiap momen istimewa — diantar hangat dan siap dinikmati di acara Anda se-Bogor dan sekitarnya."
                   : "  Tiga generasi menghadirkan rasa istimewa untuk perayaan Anda"}
               </BlurReveal>
 

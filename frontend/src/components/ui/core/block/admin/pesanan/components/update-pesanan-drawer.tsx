@@ -47,24 +47,46 @@ export function UpdatePesananDrawer({
   })
 
   const hasActualChanges = () => {
-    const currentValues = form.store.state.values
+    const currentValues = form.store.state.values as unknown as {
+      nama_pemesan: string
+      no_telepon: string
+      alamat: string | null
+      paket_id: number | null
+      jumlah_paket: number | null
+      tanggal_acara: string
+      status_pesanan: string | null
+      menu_tambahan: string[]
+      detail_tambahan: string[]
+      biaya_tambahan: number | null
+      catatan: string | null
+    }
     const originalValues = {
       nama_pemesan: pesanan.nama_pemesan,
       no_telepon: pesanan.no_telepon,
+      alamat: pesanan.alamat ?? null,
       paket_id: pesanan.paket_id,
       jumlah_paket: pesanan.jumlah_paket,
+      tanggal_acara: pesanan.tanggal_acara ?? "",
+      status_pesanan: pesanan.status_pesanan ?? null,
+      menu_tambahan: pesanan.menu_tambahan ?? [],
       detail_tambahan: pesanan.detail_tambahan ?? [],
-      biaya_tambahan: Number(pesanan.biaya_tambahan),
-      catatan: pesanan.catatan,
+      biaya_tambahan: pesanan.biaya_tambahan != null ? Number(pesanan.biaya_tambahan) : null,
+      catatan: pesanan.catatan ?? null,
     }
+    const arraysEqual = (a: string[], b: string[]) =>
+      a.length === b.length && a.every((v, i) => v === b[i])
     return (
       currentValues.nama_pemesan !== originalValues.nama_pemesan ||
       currentValues.no_telepon !== originalValues.no_telepon ||
+      (currentValues.alamat ?? null) !== originalValues.alamat ||
       currentValues.paket_id !== originalValues.paket_id ||
       currentValues.jumlah_paket !== originalValues.jumlah_paket ||
-      currentValues.detail_tambahan.length !== originalValues.detail_tambahan.length ||
-      currentValues.biaya_tambahan !== originalValues.biaya_tambahan ||
-      currentValues.catatan !== originalValues.catatan
+      currentValues.tanggal_acara !== originalValues.tanggal_acara ||
+      (currentValues.status_pesanan ?? null) !== originalValues.status_pesanan ||
+      !arraysEqual(currentValues.menu_tambahan ?? [], originalValues.menu_tambahan) ||
+      !arraysEqual(currentValues.detail_tambahan ?? [], originalValues.detail_tambahan) ||
+      (currentValues.biaya_tambahan ?? null) !== originalValues.biaya_tambahan ||
+      (currentValues.catatan ?? null) !== originalValues.catatan
     )
   }
 

@@ -55,8 +55,7 @@ const defaultFormValues = {
   lokasi: null,
   jumlah_tamu: null,
   is_featured: false,
-  thumbnail: "",
-  images: [] as string[],
+  gambar_acara: "" as string | File,
 }
 
 /** Create mutation — invalidates admin + public galeri queries on success. */
@@ -239,32 +238,17 @@ async function uploadDeferredImage(file: File, folder: string): Promise<string> 
   }
 }
 
-/**
- * Resolve every pending `File` (thumbnail + gallery together) to Cloudinary
- * URLs — fully parallel so N images upload concurrently.
- * Uses dynamic folder based on kategori_acara.
- */
 async function resolveUploads(value: GaleriFormValues): Promise<GaleriFormValues> {
   const kategori = value.kategori_acara
   const normalized = kategori.toLowerCase().replace(/\s+/g, "-").replace("&", "")
   const valid = ["korporat", "pernikahan", "tumpeng-syukuran", "perayaan", "hampers", "di-balik-dapur"]
   const folder = `catering-nusantara/galeri/${valid.includes(normalized) ? normalized : "lainnya"}`
 
-  const jobs: Array<Promise<string | File>> = []
-
-  if (value.thumbnail && typeof value.thumbnail !== "string") {
-    jobs.push(uploadDeferredImage(value.thumbnail, folder))
-  } else if (value.thumbnail) {
-    jobs.push(Promise.resolve(value.thumbnail))
+  if (value.gambar_acara && typeof value.gambar_acara !== "string") {
+    const url = await uploadDeferredImage(value.gambar_acara as File, folder)
+    return { ...value, gambar_acara: url }
   }
-
-  const imageJobs = (value.images ?? []).map((img) =>
-    typeof img === "string" ? Promise.resolve(img) : uploadDeferredImage(img, folder)
-  )
-
-  const [thumbnail, ...rest] = await Promise.all([...jobs, ...imageJobs])
-
-  return { ...value, thumbnail, images: rest as string[] }
+  return value
 }
 
 /**

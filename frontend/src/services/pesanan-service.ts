@@ -25,6 +25,7 @@ function buildSearchParams(params: PesananListQueryParams): URLSearchParams {
     perPage: String(params.perPage),
   })
   for (const status of params.statuses ?? []) sp.append("status_pesanan[]", status)
+  for (const m of params.metodePembayaran ?? []) sp.append("metode_pembayaran[]", m)
   if (params.search) sp.set("search", params.search)
   if (params.sortBy) sp.set("sort_by", params.sortBy)
   if (params.sortDir) sp.set("sort_dir", params.sortDir)

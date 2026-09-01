@@ -59,27 +59,16 @@ export function UpdateGaleriDrawer({
     return !areFormValuesEqual(currentValues, originalValues)
   }
 
-  /** On discard, sweep only uploads that were ADDED this session (not in the
-   * original galeri) — originals stay referenced by the DB and must survive. */
   const discardUncommittedUploads = () => {
-    const current = form.store.state.values
+    const current = form.store.state.values as { gambar_acara: string | File }
     const original = toFormDefaults(galeri)
-    const known = new Set<string>([
-      ...(typeof original.thumbnail === "string" && original.thumbnail
-        ? [original.thumbnail]
-        : []),
-      ...(original.images ?? []).filter((img): img is string =>
-        typeof img === "string"
-      ),
-    ])
-    purgeUncommittedGaleriImages(
-      [
-        typeof current.thumbnail === "string" ? current.thumbnail : "",
-        ...((current.images ?? []).filter(
-          (img): img is string => typeof img === "string"
-        )),
-      ].filter((url) => url !== "" && !known.has(url))
+    const known = new Set<string>(
+      typeof original.gambar_acara === "string" && original.gambar_acara ? [original.gambar_acara] : []
     )
+    const curUrl = typeof current.gambar_acara === "string" ? current.gambar_acara : ""
+    if (curUrl && !known.has(curUrl)) {
+      purgeUncommittedGaleriImages([curUrl])
+    }
   }
 
   const requestClose = () => {

@@ -86,31 +86,22 @@ class GaleriController extends Controller
         ], 201);
     }
 
-    /**
-     * Update the specified resource in storage (admin).
-     */
     public function update(GaleriUpdateRequest $request, Galeri $galeri)
     {
-        $newImages = $request->has('images')
-            ? $request->input('images') ?? []
-            : $galeri->images ?? [];
-
-        $oldThumbnail = $galeri->thumbnail;
+        $oldImage = $galeri->gambar_acara;
 
         $galeri->update($request->validated());
 
-        if ($oldThumbnail && $galeri->thumbnail !== $oldThumbnail) {
+        if ($oldImage && $galeri->gambar_acara !== $oldImage) {
             try {
-                (new PurgeCloudinaryAssets([$oldThumbnail]))->handle();
+                (new PurgeCloudinaryAssets([$oldImage]))->handle();
             } catch (\Throwable $e) {
-                Log::error('CLOUDINARY PURGE FAILED (non-fatal, update thumbnail)', [
-                    'url' => $oldThumbnail,
+                Log::error('CLOUDINARY PURGE FAILED (non-fatal, update gambar_acara)', [
+                    'url' => $oldImage,
                     'error' => $e->getMessage(),
                 ]);
             }
         }
-
-        $this->syncImages($galeri, $newImages);
 
         return response()->json([
             'status' => true,
@@ -119,21 +110,12 @@ class GaleriController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage (admin).
-     */
     public function destroy(Galeri $galeri)
     {
         Log::info('DELETE ROUTE HIT', ['id' => $galeri->id]);
 
-        $urls = [];
-        if ($galeri->thumbnail) {
-            $urls[] = $galeri->thumbnail;
-        }
-        if ($galeri->images && is_array($galeri->images)) {
-            $urls = array_merge($urls, $galeri->images);
-        }
-        Log::info('MEDIA URLS EXTRACTED', ['urls' => $urls]);
+        $url = $galeri->gambar_acara;
+        Log::info('MEDIA URL EXTRACTED', ['url' => $url]);
 
         try {
             $deleted = $galeri->delete();
@@ -151,14 +133,16 @@ class GaleriController extends Controller
             ], 500);
         }
 
-        try {
-            (new PurgeCloudinaryAssets($urls))->handle();
-            Log::info('CLOUDINARY PURGE COMPLETED SYNC', ['url_count' => count($urls)]);
-        } catch (\Throwable $e) {
-            Log::error('CLOUDINARY PURGE FAILED (non-fatal)', [
-                'urls' => $urls,
-                'error' => $e->getMessage(),
-            ]);
+        if ($url) {
+            try {
+                (new PurgeCloudinaryAssets([$url]))->handle();
+                Log::info('CLOUDINARY PURGE COMPLETED SYNC', ['url' => $url]);
+            } catch (\Throwable $e) {
+                Log::error('CLOUDINARY PURGE FAILED (non-fatal)', [
+                    'url' => $url,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
 
         return response()->json([
@@ -166,30 +150,6 @@ class GaleriController extends Controller
             'message' => 'Galeri deleted successfully',
             'data' => null,
         ]);
-    }
-
-    /**
-     * Keep `images` JSON array in sync with the authoritative URL list.
-     */
-    private function syncImages(Galeri $galeri, array $newUrls): void
-    {
-        $newUrls = array_values(array_unique(array_filter($newUrls)));
-
-        $existing = $galeri->images ?? [];
-        $removed = array_values(array_diff($existing, $newUrls));
-
-        if ($removed !== []) {
-            try {
-                (new PurgeCloudinaryAssets($removed))->handle();
-            } catch (\Throwable $e) {
-                Log::error('CLOUDINARY PURGE FAILED (non-fatal, syncImages)', [
-                    'urls' => $removed,
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        $galeri->update(['images' => $newUrls]);
     }
 
     /**

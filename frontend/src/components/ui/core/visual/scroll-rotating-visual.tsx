@@ -5,6 +5,7 @@ import { useRef } from "react"
 import { motion, useScroll, useSpring, useTransform } from "framer-motion"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { cn } from "@/lib/utils"
+import MediaItem from "../../fragments/custom-ui/media-item"
 
 interface ScrollRotatingVisualProps {
   imageSrc: string
@@ -55,8 +56,8 @@ export function ScrollRotatingVisual({
       style={{ rotate: reduced ? 0 : rotation, transformOrigin: "center" }}
       className={cn("relative", className)}
     >
-      <img
-        src={imageSrc}
+      <MediaItem
+        webViewLink={imageSrc}
         alt={alt}
         loading="lazy"
         className="h-full w-full object-contain drop-shadow-xl md:scale-110"

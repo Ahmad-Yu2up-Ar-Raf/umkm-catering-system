@@ -9,6 +9,7 @@ export interface Reports {
   totalGaleri: number
 
   pesananStatusCount: PesananStatusCount
+  pesananMetodeCount: PesananMetodeCount
   paketKategoriCount: PaketKategoriCount
   paketAcaraCount: PaketAcaraCount
 
@@ -21,6 +22,12 @@ export interface PesananStatusCount {
   confirmed: number
   completed: number
   cancelled: number
+}
+
+export interface PesananMetodeCount {
+  cash: number
+  transfer: number
+  qris: number
 }
 
 export type PaketKategoriCount = Record<string, number>

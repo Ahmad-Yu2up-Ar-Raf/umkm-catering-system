@@ -13,6 +13,7 @@ import {
   KATEGORI_ACARA_OPTIONS,
 } from "../config/paket-enum-options"
 import type { PaketFormReturnType } from "../hooks/use-paket-mutations"
+import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
 
 interface PaketFormProps {
   form: PaketFormReturnType
@@ -31,11 +32,11 @@ export default function PaketForm({ form, children }: PaketFormProps) {
     >
       <main className="show-scrollbar flex-1 overflow-y-auto overscroll-contain">
         {/* FIX WIDTH GRID: 1.2fr Kiri, 0.8fr Kanan biar proporsional */}
-        <div className="grid grid-cols-1 items-start gap-10 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <div className="grid grid-cols-1 items-start gap-12 p-6 sm:p-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
           {/* KOLOM KIRI: Input Form Utama */}
           <div className="flex flex-col gap-12">
             <section>
-              <header className="mb-6">
+              <header className="mb-8 border-b pb-6">
                 <h2 className="font-heading text-xl font-semibold">
                   Informasi Dasar
                 </h2>
@@ -43,7 +44,8 @@ export default function PaketForm({ form, children }: PaketFormProps) {
                   Data wajib untuk paket catering ini.
                 </p>
               </header>
-              <FieldGroup className="flex flex-col gap-6">
+
+              <FieldGroup className="flex flex-col gap-8">
                 <form.AppField name="nama_paket">
                   {(field) => (
                     <field.Input
@@ -54,7 +56,7 @@ export default function PaketForm({ form, children }: PaketFormProps) {
                   )}
                 </form.AppField>
 
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                   <form.AppField name="kategori_paket">
                     {(field) => (
                       <field.Select
@@ -74,7 +76,7 @@ export default function PaketForm({ form, children }: PaketFormProps) {
                   </form.AppField>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                   <form.AppField name="min_order">
                     {(field) => (
                       <field.Input
@@ -120,7 +122,7 @@ export default function PaketForm({ form, children }: PaketFormProps) {
 
             {/* Optional Section */}
             <section className="border-t border-border pt-8">
-              <header className="mb-6">
+              <header className="mb-12">
                 <h2 className="font-heading text-xl font-semibold">
                   Detail Tambahan
                 </h2>
@@ -129,7 +131,7 @@ export default function PaketForm({ form, children }: PaketFormProps) {
                 </p>
               </header>
 
-              <FieldGroup className="flex flex-col gap-6">
+              <FieldGroup className="flex flex-col gap-8">
                 {/* DIPINDAHKAN: Galeri Gambar ke Detail Tambahan */}
                 <form.AppField name="images">
                   {(field) => (
@@ -195,7 +197,7 @@ export default function PaketForm({ form, children }: PaketFormProps) {
           </div>
 
           {/* KOLOM KANAN: Sticky Sidebar cuma buat Thumbnail Utama */}
-          <aside className="sticky top-4 flex flex-col gap-6 rounded-2xl border bg-secondary/20 p-6 sm:top-10 lg:p-7">
+          <aside className="sticky top-4 flex flex-col gap-8 rounded-2xl border bg-secondary/20 p-6 sm:top-10 lg:p-7">
             <header className="flex items-center gap-2 border-b pb-4">
               <div>
                 <h2 className="font-heading text-lg font-semibold tracking-tight">

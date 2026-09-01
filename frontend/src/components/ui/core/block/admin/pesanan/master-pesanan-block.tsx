@@ -12,6 +12,7 @@ import { useStruk } from "./hooks/use-struk-query"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import type {
+  MetodePembayaran,
   Pesanan,
   PesananSortColumn,
   StatusPesanan,
@@ -46,6 +47,7 @@ function MasterPesananBlock() {
   const search = useDebouncedValue(searchInput.trim(), 350)
 
   const [statuses, setStatuses] = useState<StatusPesanan[]>([])
+  const [metodePembayaran, setMetodePembayaran] = useState<MetodePembayaran[]>([])
   const [sortBy, setSortBy] = useState<PesananSortColumn>("created_at")
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc")
   const [page, setPage] = useState(1)
@@ -53,6 +55,7 @@ function MasterPesananBlock() {
 
   const { data, isLoading, isError, isFetching } = usePesananList({
     statuses,
+    metodePembayaran,
     search,
     sortBy,
     sortDir,
@@ -160,12 +163,13 @@ function MasterPesananBlock() {
   const clearAllFilters = () => {
     setSearchInput("")
     setStatuses([])
+    setMetodePembayaran([])
     setSortBy("created_at")
     setSortDir("desc")
     setPage(1)
   }
 
-  const hasActiveFilters = searchInput !== "" || statuses.length > 0
+  const hasActiveFilters = searchInput !== "" || statuses.length > 0 || metodePembayaran.length > 0
 
   const {
     data: strukData,
@@ -232,6 +236,10 @@ function MasterPesananBlock() {
         onStatusesChange={handleFilterChange(
           setStatuses as (value: string[]) => void
         )}
+        metodePembayaran={metodePembayaran}
+        onMetodePembayaranChange={handleFilterChange(
+          setMetodePembayaran as (value: string[]) => void
+        )}
         onClearFilters={clearAllFilters}
         hasActiveFilters={hasActiveFilters}
         onAdd={() => setCreateOpen(true)}
@@ -247,7 +255,7 @@ function MasterPesananBlock() {
           <>
             <DataTableSkeleton
               columnCount={8}
-              rowCount={50}
+
               withViewOptions={false}
               withPagination={false}
             />

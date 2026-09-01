@@ -34,13 +34,17 @@ export function InvoicePesananDocument({ data }: InvoicePesananDocumentProps) {
     nomor_struk: String(data?.nomor_struk ?? "-"),
     nama_pemesan: String(data?.nama_pemesan ?? "-"),
     no_telepon: String(data?.no_telepon ?? "-"),
+    alamat: data?.alamat ? String(data.alamat) : null,
     paket: String(data?.paket ?? "-"),
     jumlah_paket: Number(data?.jumlah_paket ?? 0),
+    tanggal_acara: data?.tanggal_acara ? String(data.tanggal_acara) : null,
     harga_paket_satuan: String(data?.harga_paket_satuan ?? "0"),
     detail_tambahan: Array.isArray(data?.detail_tambahan) ? data.detail_tambahan : [],
+    menu_tambahan: Array.isArray((data as unknown as { menu_tambahan?: unknown })?.menu_tambahan)
+      ? ((data as unknown as { menu_tambahan: string[] }).menu_tambahan as string[])
+      : [],
     biaya_tambahan: String(data?.biaya_tambahan ?? "0"),
     total_harga: String(data?.total_harga ?? "0"),
-    status_pesanan: String(data?.status_pesanan ?? "-").toUpperCase(),
     catatan: data?.catatan ? String(data.catatan) : null,
     created_at: String(data?.created_at ?? new Date().toISOString()),
   }
@@ -62,10 +66,21 @@ export function InvoicePesananDocument({ data }: InvoicePesananDocumentProps) {
       </div>
 
       {/* Bill To */}
-      <div tw="mb-7 flex flex-col">
-        <span tw="text-[9.5px] text-[#7A7365]">Ditagihkan kepada</span>
-        <span tw="text-[11px] font-medium">{safe.nama_pemesan}</span>
-        <span tw="text-[9.5px] text-[#7A7365]">{safe.no_telepon}</span>
+      <div tw="mb-7 flex flex-row justify-between">
+        <div tw="flex flex-col">
+          <span tw="text-[9.5px] text-[#7A7365]">Ditagihkan kepada</span>
+          <span tw="text-[11px] font-medium">{safe.nama_pemesan}</span>
+          <span tw="text-[9.5px] text-[#7A7365]">{safe.no_telepon}</span>
+          {safe.alamat && (
+            <span tw="mt-1 max-w-[260px] text-[9.5px] text-[#7A7365]">{safe.alamat}</span>
+          )}
+        </div>
+        {safe.tanggal_acara && (
+          <div tw="flex flex-col items-end text-right">
+            <span tw="text-[9.5px] text-[#7A7365]">Tanggal Acara</span>
+            <span tw="text-[11px] font-medium">{formatTanggal(safe.tanggal_acara)}</span>
+          </div>
+        )}
       </div>
 
       {/* Items Table */}
@@ -103,7 +118,17 @@ export function InvoicePesananDocument({ data }: InvoicePesananDocumentProps) {
         </div>
       </div>
 
-      {/* Extras */}
+      {/* Extras — menu pilihan + detail manual */}
+      {safe.menu_tambahan.length > 0 && (
+        <div tw="mb-2 flex flex-col gap-1">
+          {safe.menu_tambahan.map((item, i) => (
+            <div key={`m-${i}`} tw="flex flex-row justify-between">
+              <span tw="text-[10px] text-[#7A7365]">Menu Tambahan {i + 1}</span>
+              <span tw="text-right text-[10px] font-bold">{String(item ?? "-")}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {safe.detail_tambahan.length > 0 && (
         <div tw="mb-7 flex flex-col gap-1">
           {safe.detail_tambahan.map((item, i) => (
@@ -128,10 +153,6 @@ export function InvoicePesananDocument({ data }: InvoicePesananDocumentProps) {
             <span tw="text-[10px] text-[#7A7365]">Total Harga</span>
             <span tw="text-right text-[12px] font-bold text-[#8C5A2B]">{rupiah(safe.total_harga)}</span>
           </div>
-          <div tw="flex flex-row justify-between">
-            <span tw="text-[10px] text-[#7A7365]">Status</span>
-            <span tw="text-right text-[10px] font-bold">{safe.status_pesanan}</span>
-          </div>
         </div>
       </div>
 
@@ -141,6 +162,27 @@ export function InvoicePesananDocument({ data }: InvoicePesananDocumentProps) {
           <span tw="text-[10px]">{safe.catatan}</span>
         </div>
       )}
+
+      {/* Informasi Pembayaran — distinct block, matches invoice palette */}
+      <div tw="mt-7 flex flex-col break-inside-avoid rounded-lg border border-[#DDD6C6] bg-[#FAF7EF] p-4">
+        <span tw="text-[11px] font-bold text-[#8C5A2B]">Informasi Pembayaran</span>
+        <span tw="mt-1 text-[9px] text-[#7A7365]">
+          Silakan lakukan pembayaran melalui transfer bank berikut:
+        </span>
+        <div tw="mt-3 flex flex-col gap-1">
+          <div tw="flex flex-row justify-between">
+            <span tw="text-[10px] text-[#7A7365]">Bank BCA</span>
+            <span tw="text-right text-[10px] font-bold">123456789 a.n Catering Nusantara</span>
+          </div>
+          <div tw="flex flex-row justify-between">
+            <span tw="text-[10px] text-[#7A7365]">Bank Mandiri</span>
+            <span tw="text-right text-[10px] font-bold">987654321 a.n Catering Nusantara</span>
+          </div>
+        </div>
+        <span tw="mt-2 text-[8.5px] italic text-[#7A7365]">
+          Mohon konfirmasi pembayaran via WhatsApp setelah transfer.
+        </span>
+      </div>
 
       {/* Footer */}
       <div tw="mt-6 flex flex-row justify-between border-t border-[#DDD6C6] pt-4">

@@ -17,6 +17,8 @@ class PesananController extends Controller
 
     private const STATUSES = ['pending', 'confirmed', 'completed', 'cancelled'];
 
+    private const METODE_PEMBAYARAN = ['transfer', 'cash', 'qris'];
+
     public function __construct(private PesananService $service) {}
 
     /**
@@ -28,9 +30,18 @@ class PesananController extends Controller
      */
     public function index(Request $request)
     {
+        // Defensive: clear stale prepared plan after DDL (Neon PgBouncer cached plan must not change result type)
+        try { \Illuminate\Support\Facades\DB::statement('DEALLOCATE ALL'); } catch (\Throwable $e) {}
+        try { \Illuminate\Support\Facades\DB::statement('DISCARD ALL'); } catch (\Throwable $e) {}
+
         $statuses = collect((array) $request->input('status_pesanan'))
             ->flatten()
             ->filter(fn ($value) => in_array($value, self::STATUSES, true))
+            ->values();
+
+        $metodePembayaran = collect((array) $request->input('metode_pembayaran'))
+            ->flatten()
+            ->filter(fn ($value) => in_array($value, self::METODE_PEMBAYARAN, true))
             ->values();
 
         $sortBy = in_array($request->input('sort_by'), self::SORTABLE, true)
@@ -43,6 +54,10 @@ class PesananController extends Controller
 
         if ($statuses->isNotEmpty()) {
             $query->whereIn('status_pesanan', $statuses->all());
+        }
+
+        if ($metodePembayaran->isNotEmpty()) {
+            $query->whereIn('metode_pembayaran', $metodePembayaran->all());
         }
 
         if ($search !== '') {
@@ -59,6 +74,7 @@ class PesananController extends Controller
 
         $filters = array_filter([
             'status_pesanan' => $statuses->isNotEmpty() ? $statuses->all() : null,
+            'metode_pembayaran' => $metodePembayaran->isNotEmpty() ? $metodePembayaran->all() : null,
             'search' => $search !== '' ? $search : null,
         ], fn ($value) => ! is_null($value) && $value !== '');
 
@@ -125,13 +141,17 @@ class PesananController extends Controller
                 'nomor_struk' => $pesanan->nomor_struk,
                 'nama_pemesan' => $pesanan->nama_pemesan,
                 'no_telepon' => $pesanan->no_telepon,
+                'alamat' => $pesanan->alamat,
                 'paket' => $pesanan->paket?->nama_paket,
                 'jumlah_paket' => $pesanan->jumlah_paket,
+                'tanggal_acara' => $pesanan->tanggal_acara ? \Carbon\Carbon::parse($pesanan->tanggal_acara)->toDateString() : null,
                 'harga_paket_satuan' => $pesanan->harga_paket_satuan,
                 'detail_tambahan' => $pesanan->detail_tambahan,
+                'menu_tambahan' => $pesanan->menu_tambahan,
                 'biaya_tambahan' => $pesanan->biaya_tambahan,
                 'total_harga' => $pesanan->total_harga,
                 'status_pesanan' => $pesanan->status_pesanan,
+                'metode_pembayaran' => $pesanan->metode_pembayaran?->value ?? $pesanan->metode_pembayaran,
                 'created_at' => $pesanan->created_at,
             ],
         ]);

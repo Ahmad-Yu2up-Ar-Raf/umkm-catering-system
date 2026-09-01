@@ -44,7 +44,7 @@ export default function LoginForm({ form, isLoading }: componentProps) {
         type="submit"
         size={"lg"}
         variant={"default"}
-        className="w-full cursor-pointer   "
+        className="w-full rounded-2xl cursor-pointer   "
         disabled={isLoading}
       >
         <span className="font-bold   ">Login</span>
