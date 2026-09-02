@@ -39,7 +39,9 @@ const generateColors = (length: number): string[] => {
     "var(--chart-4)",
     "var(--chart-5)",
   ]
-  return baseColors.slice(0, length).map((_, i) => baseColors[i % baseColors.length])
+  return baseColors
+    .slice(0, length)
+    .map((_, i) => baseColors[i % baseColors.length])
 }
 
 export function ChartBarActive({
@@ -69,55 +71,60 @@ export function ChartBarActive({
     return { chartData: transformedData, chartConfig: config }
   }, [data])
 
-  if (chartData.length === 0) {
-    return (
-      <Card className={cn("flex w-full flex-col shadow-none", className)}>
-        <CardHeader className="space-y-0 border-b py-4">
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
+  return (
+    <Card className={cn("flex w-full flex-col shadow-none", className)}>
+      <CardHeader className="gap-0.5 space-y-0 border-b py-1.5">
+        <CardTitle className="text-sm">{title}</CardTitle>
+        <CardDescription className="text-xs">{description}</CardDescription>
+      </CardHeader>
+      {chartData[0].count === 0 ? (
         <CardContent className="flex min-h-[250px] flex-1 items-center justify-center pb-0">
           <div className="text-center text-muted-foreground">
-            <HugeiconsIcon icon={ChartColumnFreeIcons} className="m-auto mb-3 size-6" />
+            <HugeiconsIcon
+              icon={ChartColumnFreeIcons}
+              className="m-auto mb-3 size-6"
+            />
             <p className="text-lg font-medium">Belum ada data pesanan</p>
             <p className="text-sm">Pesanan akan muncul setelah ada transaksi</p>
           </div>
         </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <Card className={cn("flex w-full flex-col shadow-none", className)}>
-      <CardHeader className="space-y-0 border-b py-4">
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent className="h-full w-full pt-6 pb-0">
-        <ChartContainer className="h-[250px] w-full" config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData} layout="vertical" margin={{ left: 12, right: 12 }}>
-            <CartesianGrid horizontal={false} />
-            <XAxis type="number" tickLine={false} axisLine={false} hide />
-            <YAxis
-              dataKey="name"
-              type="category"
-              tickLine={false}
-              axisLine={false}
-              width={110}
-              tickFormatter={(value: string) => (value.length > 14 ? `${value.slice(0, 14)}…` : value)}
-              tick={{ fontSize: 12 }}
-            />
-            <ChartTooltip cursor={{ fill: "var(--muted)" }} content={<ChartTooltipContent />} />
-            <Bar
-              dataKey="count"
-              radius={[0, 8, 8, 0]}
-              barSize={28}
-              animationDuration={800}
-            />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-      <CardFooter className="flex-col sr-only items-start gap-1 pt-4 text-sm">
+      ) : (
+        <CardContent className="h-full w-full pt-6 pb-0">
+          <ChartContainer className="h-[250px] w-full" config={chartConfig}>
+            <BarChart
+              accessibilityLayer
+              data={chartData}
+              layout="vertical"
+              margin={{ left: 2, right: 2 }}
+            >
+              <CartesianGrid horizontal={true} />
+              <XAxis type="number" tickLine={false} axisLine={false} hide />
+              <YAxis
+                dataKey="name"
+                type="category"
+                tickLine={false}
+                axisLine={false}
+                width={90}
+                //   tickFormatter={(value: string) =>
+                //     value.length > 14 ? `${value.slice(0, 14)}…` : value
+                //   }
+                tick={{ fontSize: 12 }}
+              />
+              <ChartTooltip
+                cursor={{ fill: "var(--muted)" }}
+                content={<ChartTooltipContent />}
+              />
+              <Bar
+                dataKey="count"
+                radius={[0, 8, 8, 0]}
+                barSize={28}
+                animationDuration={800}
+              />
+            </BarChart>
+          </ChartContainer>
+        </CardContent>
+      )}
+      <CardFooter className="sr-only flex-col items-start gap-1 pt-4 text-sm">
         <div className="flex gap-2 leading-none font-medium">{footerText}</div>
         <div className="leading-none text-muted-foreground">{subFooter}</div>
       </CardFooter>

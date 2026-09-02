@@ -54,7 +54,7 @@ export function RowActions({
           variant="ghost"
           size="icon-sm"
           aria-label="Tindakan baris"
-          className="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+          className="opacity-0 hover:bg-secondary transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
         >
           <HugeiconsIcon icon={MoreHorizontalIcon} />
         </Button>

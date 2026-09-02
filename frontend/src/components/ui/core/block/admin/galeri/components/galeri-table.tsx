@@ -320,7 +320,7 @@ export function GaleriTable({
                 </TableCell>
               )}
 
-              <TableCell className="text-right">
+              <TableCell className="sticky right-2 text-right">
                 <RowActions
                   onEdit={() => onEdit(galeri)}
                   onDelete={() => onDelete(galeri)}

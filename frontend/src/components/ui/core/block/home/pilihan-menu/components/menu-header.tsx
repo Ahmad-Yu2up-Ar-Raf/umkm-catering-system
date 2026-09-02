@@ -14,7 +14,8 @@ export function MenuHeader() {
   return (
     <div className="mb-9 flex flex-wrap items-end justify-between gap-4 md:mb-11">
       <div>
-        <p className="mb-3 text-[11px] tracking-[0.34em] text-primary uppercase">
+        <p className="mb-3 flex items-center gap-3.5 text-[11px] tracking-[0.28em] text-primary uppercase">
+          <span aria-hidden="true" className="h-px w-10 bg-primary" />
           Pilihan Menu
         </p>
         <h2 className="font-heading text-[clamp(30px,3.8vw,54px)] leading-[0.95] font-light tracking-[-0.02em] text-foreground">

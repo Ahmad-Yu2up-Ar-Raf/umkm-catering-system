@@ -119,20 +119,23 @@ export function MultiSelectFilter({
           {options.map((option) => {
             const checked = value.includes(option.value)
             return (
-              <button
+              <Button
+              variant={"ghost"}
+
+              size={"sm"}
                 key={option.value}
                 type="button"
                 role="option"
                 aria-selected={checked}
                 onClick={() => toggle(option.value)}
                 className={cn(
-                  "flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs transition-colors hover:bg-muted/60",
+                  "flex w-full cursor-pointer items-center gap-2   px-2 py-1.5 text-left text-xs transition-colors hover:bg-primary/5 rounded-xl",
                   checked && "bg-primary/5"
                 )}
               >
                 <Checkbox checked={checked} className="pointer-events-none size-3.5" />
                 <span className="flex-1">{option.label}</span>
-              </button>
+              </Button>
             )
           })}
         </div>

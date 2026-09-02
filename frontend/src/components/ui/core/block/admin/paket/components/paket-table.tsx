@@ -293,7 +293,7 @@ export function PaketTable({
                 </TableCell>
               )}
 
-              <TableCell className="text-right">
+              <TableCell className="text-right sticky  right-2">
                 <RowActions
                   onEdit={() => onEdit(paket)}
                   onDelete={() => onDelete(paket)}

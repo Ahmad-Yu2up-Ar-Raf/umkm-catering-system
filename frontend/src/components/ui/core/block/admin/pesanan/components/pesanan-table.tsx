@@ -184,7 +184,7 @@ export function PesananTable({
             >
               {!hiddenCols.nomor_struk && (
                 <TableCell>
-                  <code className="text-xs font-mono text-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                  <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
                     {pesanan.nomor_struk}
                   </code>
                 </TableCell>
@@ -207,12 +207,12 @@ export function PesananTable({
                 </TableCell>
               )}
               {!hiddenCols.jumlah_paket && (
-                <TableCell className="whitespace-nowrap tabular-nums text-right">
+                <TableCell className="text-right whitespace-nowrap tabular-nums">
                   {pesanan.jumlah_paket} porsi
                 </TableCell>
               )}
               {!hiddenCols.total_harga && (
-                <TableCell className="font-medium whitespace-nowrap tabular-nums text-right">
+                <TableCell className="text-right font-medium whitespace-nowrap tabular-nums">
                   {formatRupiah(pesanan.total_harga)}
                 </TableCell>
               )}
@@ -229,9 +229,14 @@ export function PesananTable({
                     variant="outline"
                     size="sm"
                     icon={getStatusPesananIcon(pesanan.status_pesanan)}
-                    className={cn("w-fit gap-1.5 shadow-none", getStatusPesananColor(pesanan.status_pesanan))}
+                    className={cn(
+                      "w-fit gap-1.5 shadow-none",
+                      getStatusPesananColor(pesanan.status_pesanan)
+                    )}
                   >
-                    <span className="font-medium">{getStatusPesananLabel(pesanan.status_pesanan)}</span>
+                    <span className="font-medium">
+                      {getStatusPesananLabel(pesanan.status_pesanan)}
+                    </span>
                   </Badge>
                 </TableCell>
               )}
@@ -241,9 +246,14 @@ export function PesananTable({
                     variant="outline"
                     size="sm"
                     icon={getMetodePembayaranIcon(pesanan.metode_pembayaran)}
-                    className={cn("w-fit gap-1.5 shadow-none", getMetodePembayaranColor(pesanan.metode_pembayaran))}
+                    className={cn(
+                      "w-fit gap-1.5 shadow-none",
+                      getMetodePembayaranColor(pesanan.metode_pembayaran)
+                    )}
                   >
-                    <span className="font-medium">{getMetodePembayaranLabel(pesanan.metode_pembayaran)}</span>
+                    <span className="font-medium">
+                      {getMetodePembayaranLabel(pesanan.metode_pembayaran)}
+                    </span>
                   </Badge>
                 </TableCell>
               )}
@@ -254,7 +264,7 @@ export function PesananTable({
                     : "—"}
                 </TableCell>
               )}
-              <TableCell className="text-right">
+              <TableCell className="sticky right-2 text-right">
                 <RowActions
                   onEdit={() => onEdit(pesanan)}
                   onDelete={() => onDelete(pesanan)}

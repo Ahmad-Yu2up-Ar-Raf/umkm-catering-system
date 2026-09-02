@@ -1,101 +1,110 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-
-import { MotionConfig, motion } from "framer-motion"
-
+import { useCallback, useMemo, useRef } from "react"
+import { Link } from "react-router"
+import { MotionConfig } from "framer-motion"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowRight } from "@hugeicons/core-free-icons"
 import { useGaleriPreviews } from "@/services/galeri/use-galeri-query"
 import { useImageModalStore } from "@/store/image-modal-store"
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { gsap, useGSAP } from "@/components/motion/gsap"
+import { BlurReveal } from "@/components/motion/blur-reveal"
+import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
-import {
-  AUTO_ADVANCE_MS,
-  toMomentItem,
-  type MomentItem,
-} from "./moment-data"
-import { MomentFeatured } from "./components/moment-featured"
-import { MomentMarquee } from "./components/moment-marquee"
-import { MomentHeader } from "./components/moment-header"
+import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
+import { toMomentItem, type MomentItem } from "./moment-data"
 
-/** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
-const LUXURY_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
+const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
 
-/**
- * MomentSkeleton — 1:1 placeholder for the loaded two-part layout.
- *
- * Mirrors the exact dimensions of the loaded state so the swap to live data
- * causes ZERO layout shift: the featured frame keeps its aspect-ratio/height
- * box and the marquee strip keeps its tile sizes + vertical rhythm (`mt-3`
- * / `py-2`).
- */
 function MomentSkeleton() {
   return (
-    <>
-      <div className="aspect-[3/2] w-full overflow-hidden rounded-2xl sm:aspect-[2/1] lg:aspect-auto lg:h-[min(50vh,520px)]">
-        <Skeleton className="h-full w-full rounded-2xl" />
-      </div>
-      <div className="mt-3 flex gap-3 overflow-hidden py-2" aria-hidden="true">
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton
-            key={i}
-            className="aspect-[4/3] w-[170px] shrink-0 rounded-2xl sm:w-[190px]"
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }, (_, i) => (
+        <Skeleton key={i} className="aspect-[4/3] w-full rounded-2xl" />
+      ))}
+    </div>
+  )
+}
+
+function MomentGrid({
+  items,
+  onOpen,
+}: {
+  items: MomentItem[]
+  onOpen: (index: number) => void
+}) {
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6 lg:gap-7">
+      {items.map((item, idx) => (
+        <button
+          key={item.id}
+          type="button"
+          data-moment-card
+          onClick={() => onOpen(idx)}
+          aria-label={`${item.category} — ${item.title}`}
+          className="group relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-muted text-left ring-1 ring-border transition-[transform,box-shadow] duration-500 hover:-translate-y-1 hover:shadow-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        >
+          <MediaItem
+            webViewLink={item.imagePath}
+            className="absolute inset-0 h-full w-full object-cover"
+            imageClassName="transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
           />
-        ))}
-      </div>
-    </>
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent"
+          />
+          <div className="absolute inset-x-0 bottom-0 p-5">
+            <p className="text-[10px] tracking-[0.22em] text-accent uppercase">
+              {item.category}
+            </p>
+            <p className="mt-1.5 line-clamp-2 font-heading text-[17px] leading-tight font-medium text-background">
+              {item.title}
+            </p>
+          </div>
+          <span
+            aria-hidden="true"
+            className="absolute top-3 right-3 grid size-7 place-items-center rounded-full border border-background/30 bg-foreground/40 text-[11px] text-background/90 opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
+          >
+            ⤢
+          </span>
+        </button>
+      ))}
+    </div>
   )
 }
 
 /**
- * #momentum — "Momen Yang Kami Rayakan" (Tiska gallery replica).
+ * #momentum — rebuilt minimalist portfolio grid.
  *
- * Two-part layout (verified DOM, NOT masonry):
- *   1. Featured — large rounded crossfade display (own GSAP timeline per
- *      frame: overlapping crossfade + ken-burns settle + caption stagger).
- *   2. Marquee — infinite thumbnail strip (CSS `animate-marquee`, continuous
- *      loop, gradient fade masks on both edges).
- *
- * Reveal choreography — SEQUENTIAL, never one grouped blur (owner request):
- *   1. Header  — eyebrow + H2 word-blur reveal (shared `BlurReveal`).
- *   2. CTA     — "Lihat galeri lengkap" link, delayed just after the header.
- *   3. Card    — the Featured display, a light fade+rise, own in-view trigger.
- *   4. Marquee — the tiles stagger in LAST (`staggerChildren`).
- *
- * Performance — "moment device freeze" fix:
- *  - NO GSAP/ScrollTrigger on this block at all. All reveals are declarative
- *    Framer transitions over transform/opacity only (compositor-friendly),
- *    so the main thread only does work the instant an element enters.
- *  - The featured crossfade/ken-burns keeps its own tiny GSAP timeline (the
- *    interactive carousel); everything around it is declaration-driven.
- *  - `MotionConfig reducedMotion="user"` → all reveals render instantly.
+ * Replaces the former two-part featured+marquee layout (crossfade carousel
+ * + infinite marquee) with a clean symmetrical grid (3-col desktop, 2-col
+ * tablet, 1-col mobile), generous whitespace (container py-20 md:py-26) and
+ * the project's LUXURY_EASE staggered reveal — now cohesive with
+ * About/Mengapa/FAQ/Ordering.
  */
 export function MomentBlock() {
   const sectionRef = useRef<HTMLElement>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
+  const reduced = useReducedMotion()
 
-  // Live gallery data — the SHARED storefront fetcher (`useGaleriPreviews`):
-  // one request, `featured` = the signature set, preview pools for the rest.
   const { featured, results, isLoading } = useGaleriPreviews()
   const previewItems = useMemo(
-    () => results.flatMap((result) => result.data?.items ?? []),
+    () => results.flatMap((r) => r.data?.items ?? []),
     [results]
   )
   const moments: MomentItem[] = useMemo(() => {
-    // Featured flags first (curated moments); fall back to the preview pool.
     const base = featured.length > 0 ? featured : previewItems
-    return base.slice(0, 8).map(toMomentItem)
+    return base.slice(0, 6).map(toMomentItem)
   }, [featured, previewItems])
 
-  const select = useCallback((index: number) => setActiveIndex(index), [])
-
-  // Interactive trigger — every moment card/image opens the GLOBAL lightbox.
   const openMoment = useCallback(
     (index: number) => {
       useImageModalStore.getState().open(
-        moments.map((moment) => ({
-          src: moment.imagePath,
-          title: moment.title,
-          caption: moment.description,
-          category: moment.category,
+        moments.map((m) => ({
+          src: m.imagePath,
+          title: m.title,
+          caption: m.description,
+          category: m.category,
         })),
         index
       )
@@ -103,68 +112,123 @@ export function MomentBlock() {
     [moments]
   )
 
-  // Auto-advance — continuous; resets on manual tile/pill clicks. Guarded on
-  // data — nothing cycles while the query is in flight.
-  useEffect(() => {
-    if (moments.length < 2) return
-    const id = window.setInterval(
-      () => setActiveIndex((i) => (i + 1) % moments.length),
-      AUTO_ADVANCE_MS
-    )
-    return () => window.clearInterval(id)
-  }, [activeIndex, moments.length])
+  useGSAP(
+    () => {
+      const el = sectionRef.current
+      if (!el) return
+      const q = gsap.utils.selector(el)
+      const header = q("[data-moment-header]")
+      const cards = q("[data-moment-card]")
 
-  // Clamp against data that shrinks between renders (featured → fallback).
-  const active = moments.length > 0 ? activeIndex % moments.length : 0
+      if (reduced) {
+        gsap.set([...header, ...cards], { autoAlpha: 1, y: 0 })
+        return
+      }
+
+      gsap.set([...header, ...cards], { autoAlpha: 0, y: 28 })
+
+      gsap
+        .timeline({
+          scrollTrigger: { trigger: el, start: "top 75%", once: true },
+        })
+        .fromTo(
+          header,
+          { y: 28, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.7, ease: LUXURY_EASE },
+          0
+        )
+        .fromTo(
+          cards,
+          { y: 28, autoAlpha: 0 },
+          {
+            y: 0,
+            autoAlpha: 1,
+            duration: 0.6,
+            ease: LUXURY_EASE,
+            stagger: 0.08,
+          },
+          0.15
+        )
+    },
+    { scope: sectionRef, dependencies: [moments.length, reduced] }
+  )
 
   return (
     <MotionConfig reducedMotion="user">
       <section
         ref={sectionRef}
         id="momentum"
-        className="relative overflow-hidden bg-secondary/40 px-0 pb-15 sm:py-15 md:px-10 md:py-20  "
+        className="relative overflow-hidden bg-secondary/40 py-20 md:py-26"
       >
-        {/* <div
+        {/* Warm glow — token-driven, same as Mengapa/Testimonial */}
+        <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_90%)]"
-        /> */}
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,color-mix(in_oklab,var(--color-background)_100%,transparent),transparent_85%)]"
+        />
 
-        <div className="relative z-50 container mx-auto w-full">
-          {/* 1 + 2 — header (word-blur) and CTA (delayed) animate internally. */}
-          <MomentHeader />
+        <div className="relative container">
+          {/* Header — same grammar as Menu/About/Mengapa */}
+          <div
+            data-moment-header
+            className="mb-12 flex flex-col gap-8 md:flex-row md:items-end md:justify-between"
+          >
+            <div>
+              <p className="mb-6 flex items-center gap-3.5 text-[11px] tracking-[0.28em] text-primary uppercase">
+                <span aria-hidden="true" className="h-px w-10 bg-primary" />
+                <BlurReveal as="span" amount={0.3}>
+                  Portofolio
+                </BlurReveal>
+              </p>
+              <h2 className="max-w-[560px] font-serif text-4xl leading-[1.06] tracking-tight text-foreground lg:text-5xl">
+                <BlurReveal as="span" stagger={0.08} amount={0.3} className="block">
+                  Momen yang kami
+                </BlurReveal>
+                <BlurReveal
+                  as="span"
+                  stagger={0.08}
+                  amount={0.3}
+                  className="block font-accent italic text-primary"
+                >
+                  rayakan
+                </BlurReveal>
+              </h2>
+            </div>
 
-          {/* 3 + 4 — skeleton while the query is in flight; once loaded, the
-              featured card rises in and the marquee tiles stagger last. All
-              cards open the global lightbox. */}
+            <BlurReveal
+              as="p"
+              amount={0.3}
+              className="max-w-[360px] shrink-0 text-[15px] leading-[1.8] text-muted-foreground"
+            >
+              Jejak perayaan — dari pernikahan hingga syukuran, diabadikan
+              dengan hangat.
+            </BlurReveal>
+          </div>
+
           {isLoading ? (
             <MomentSkeleton />
           ) : moments.length > 0 ? (
-            <>
-              <motion.div
-                initial={{ opacity: 0, y: 28 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.8, ease: LUXURY_EASE, delay: 0.1 }}
-              >
-                <MomentFeatured
-                  items={moments}
-                  activeIndex={active}
-                  onSelect={select}
-                  onOpen={openMoment}
-                />
-              </motion.div>
-
-              <MomentMarquee
-                items={moments}
-                activeIndex={active}
-                onSelect={select}
-                onOpen={openMoment}
-              />
-            </>
+            <MomentGrid items={moments} onOpen={openMoment} />
           ) : null}
+
+          <div className="mt-12 flex justify-center">
+            <Link to="/galeri">
+              <OriginButton
+                intensity={0.8}
+                range={120}
+                className="group border border-primary/40 bg-background text-xs tracking-[0.2em] uppercase sm:border-2 sm:border-primary sm:bg-transparent"
+              >
+                Lihat Galeri Lengkap
+                <HugeiconsIcon
+                  icon={ArrowRight}
+                  className="z-[9] size-4 transition-transform duration-500 group-hover:translate-x-1"
+                />
+              </OriginButton>
+            </Link>
+          </div>
         </div>
       </section>
     </MotionConfig>
   )
 }
+
 export default MomentBlock

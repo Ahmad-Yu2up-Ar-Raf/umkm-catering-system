@@ -23,7 +23,7 @@ export function MomentHeader() {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">
       <div className="min-w-0">
-        <p className="mb-6 flex items-center gap-3.5 text-[11px] tracking-[0.34em] uppercase">
+        <p className="mb-6 flex items-center gap-3.5 text-[11px] tracking-[0.28em] text-primary uppercase">
           <span aria-hidden="true" className="h-px w-10 bg-primary" />
           <BlurReveal as="span" className="text-primary" amount={0.3}>
             Portofolio

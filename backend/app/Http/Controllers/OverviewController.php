@@ -17,36 +17,38 @@ class OverviewController extends Controller
      * Entire result is cached for 10 seconds to serve concurrent
      * dashboard hits from memory (same intent as the KlikAntri benchmark).
      */
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $reports = Cache::remember('overview_reports', 10, function () {
-            // --- Totals (count(*) per table) ---
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+        $hasRange = $startDate && $endDate;
+
+        // Validate date shape — fallback to no filter on invalid
+        $start = $hasRange ? \Carbon\Carbon::parse($startDate)->startOfDay() : null;
+        $end = $hasRange ? \Carbon\Carbon::parse($endDate)->endOfDay() : null;
+        if ($hasRange && (!$start || !$end || $start->gt($end))) {
+            $hasRange = false;
+            $start = $end = null;
+        }
+
+        $cacheKey = 'overview_reports:' . ($hasRange ? $start->toDateString() . '_' . $end->toDateString() : 'all');
+
+        $reports = Cache::remember($cacheKey, 10, function () use ($hasRange, $start, $end) {
+            $dateScope = function ($q) use ($hasRange, $start, $end) {
+                if ($hasRange) $q->whereBetween('created_at', [$start, $end]);
+            };
+
+            // --- Totals (filtered by date when range provided) ---
             $totals = [
-                'totalPaket' => Paket::count(),
-                'totalPesanan' => Pesanan::count(),
-                'totalPesananPending' => Pesanan::where('status_pesanan', 'pending')->count(),
-                'totalGaleri' => Galeri::count(),
+                'totalPaket' => Paket::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->count(),
+                'totalPesanan' => Pesanan::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->count(),
+                'totalPesananPending' => Pesanan::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->where('status_pesanan', 'pending')->count(),
+                'totalGaleri' => Galeri::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->count(),
             ];
 
-            // --- Distribution maps (groupBy → pluck) ---
-            $pesananStatusCount = Pesanan::select('status_pesanan', DB::raw('count(*) as count'))
-                ->groupBy('status_pesanan')
-                ->pluck('count', 'status_pesanan');
-
-            $pesananMetodeCount = Pesanan::select('metode_pembayaran', DB::raw('count(*) as count'))
-                ->groupBy('metode_pembayaran')
-                ->pluck('count', 'metode_pembayaran');
-
-            $paketKategoriCount = Paket::select('kategori_paket', DB::raw('count(*) as count'))
-                ->groupBy('kategori_paket')
-                ->pluck('count', 'kategori_paket');
-
-            $paketAcaraCount = Paket::select('kategori_acara', DB::raw('count(*) as count'))
-                ->groupBy('kategori_acara')
-                ->pluck('count', 'kategori_acara');
-
-            // --- Top Paket (most ordered) ---
-            $topPaket = Paket::withCount('pesanan')
+            // --- Top Paket (most ordered) — filtered when range provided ---
+            $topPaketQuery = Paket::withCount(['pesanan' => fn ($q) => $hasRange ? $q->whereBetween('created_at', [$start, $end]) : $q]);
+            $topPaket = $topPaketQuery
                 ->orderBy('pesanan_count', 'desc')
                 ->take(5)
                 ->get()
@@ -58,16 +60,19 @@ class OverviewController extends Controller
                     'is_best_seller' => $paket->is_best_seller,
                 ]);
 
-            // --- Per-date aggregates (DATE(created_at) → pluck) ---
+            // --- Per-date aggregates (filtered when range provided) ---
             $paketCounts = Paket::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+                ->when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
                 ->groupBy(DB::raw('DATE(created_at)'))
                 ->pluck('count', 'date');
 
             $pesananCounts = Pesanan::select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
+                ->when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
                 ->groupBy(DB::raw('DATE(created_at)'))
                 ->pluck('count', 'date');
 
             $pendapatanByDate = Pesanan::select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(total_harga) as total'))
+                ->when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
                 ->groupBy(DB::raw('DATE(created_at)'))
                 ->pluck('total', 'date');
 
@@ -86,10 +91,6 @@ class OverviewController extends Controller
             })->values();
 
             return array_merge($totals, [
-                'pesananStatusCount' => $pesananStatusCount,
-                'pesananMetodeCount' => $pesananMetodeCount,
-                'paketKategoriCount' => $paketKategoriCount,
-                'paketAcaraCount' => $paketAcaraCount,
                 'topPaket' => $topPaket,
                 'countsByDate' => $countsByDate,
             ]);

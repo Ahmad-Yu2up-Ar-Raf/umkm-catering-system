@@ -8,30 +8,9 @@ export interface Reports {
   totalPesananPending: number
   totalGaleri: number
 
-  pesananStatusCount: PesananStatusCount
-  pesananMetodeCount: PesananMetodeCount
-  paketKategoriCount: PaketKategoriCount
-  paketAcaraCount: PaketAcaraCount
-
   topPaket: TopPaket[]
   countsByDate: CountsByDate[]
 }
-
-export interface PesananStatusCount {
-  pending: number
-  confirmed: number
-  completed: number
-  cancelled: number
-}
-
-export interface PesananMetodeCount {
-  cash: number
-  transfer: number
-  qris: number
-}
-
-export type PaketKategoriCount = Record<string, number>
-export type PaketAcaraCount = Record<string, number>
 
 export interface CountsByDate {
   date: string
