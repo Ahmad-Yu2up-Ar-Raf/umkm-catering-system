@@ -1,12 +1,17 @@
 "use client"
 
-import { HugeiconsIcon } from "@hugeicons/react"
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 import {
   Delete01Icon,
   Download01Icon,
+  Download02FreeIcons,
   Edit01Icon,
   EyeIcon,
+  Invoice,
+  InvoiceIcon,
   MoreHorizontalIcon,
+  PencilEdit01FreeIcons,
+  PencilEdit02FreeIcons,
 } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import {
@@ -29,6 +34,7 @@ interface RowActionsProps {
   deleteLabel?: string
   previewLabel?: string
   downloadLabel?: string
+  previewIcon?: IconSvgElement
   deleteHint?: string
 }
 
@@ -41,10 +47,11 @@ export function RowActions({
   editDisabled = false,
   deleteDisabled = false,
   downloadDisabled = false,
-  editLabel = "Ubah",
+  editLabel = "Perbarui",
   deleteLabel = "Hapus",
   previewLabel = "Lihat Detail",
   downloadLabel = "Download",
+  previewIcon = EyeIcon,
   deleteHint,
 }: RowActionsProps) {
   return (
@@ -54,26 +61,32 @@ export function RowActions({
           variant="ghost"
           size="icon-sm"
           aria-label="Tindakan baris"
-          className="opacity-0 hover:bg-secondary transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+          className="opacity-0 transition-opacity group-hover:opacity-100 hover:bg-secondary focus-visible:opacity-100"
         >
           <HugeiconsIcon icon={MoreHorizontalIcon} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44 z-[9999]">
+      <DropdownMenuContent align="end" className="z-[9999] w-44">
         {onPreview && (
           <DropdownMenuItem onSelect={onPreview}>
-            <HugeiconsIcon icon={EyeIcon} className="size-4" />
+            <HugeiconsIcon icon={previewIcon} className="size-4 text-primary" />
             {previewLabel}
           </DropdownMenuItem>
         )}
         {onDownload && (
           <DropdownMenuItem onSelect={onDownload} disabled={downloadDisabled}>
-            <HugeiconsIcon icon={Download01Icon} className="size-4" />
+            <HugeiconsIcon
+              icon={Download02FreeIcons}
+              className="size-4 text-primary"
+            />
             {downloadLabel}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onSelect={onEdit} disabled={editDisabled}>
-          <HugeiconsIcon icon={Edit01Icon} className="size-4" />
+          <HugeiconsIcon
+            icon={PencilEdit01FreeIcons}
+            className="size-4 text-primary"
+          />
           {editLabel}
         </DropdownMenuItem>
         <DropdownMenuSeparator />

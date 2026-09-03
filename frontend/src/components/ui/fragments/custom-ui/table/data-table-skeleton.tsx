@@ -82,7 +82,7 @@ export function DataTableSkeleton({
                       minWidth: shrinkZero ? cozyCellWidths[j] : "auto",
                     }}
                   >
-                    <Skeleton className="h-6 w-full" />
+                    <Skeleton className="h-7 w-full" />
                   </TableCell>
                 ))}
               </TableRow>
@@ -90,26 +90,29 @@ export function DataTableSkeleton({
           </TableBody>
         </Table>
       </div>
-      {withPagination ? (
-        <div className="flex w-full items-center justify-between gap-4 overflow-auto p-1 sm:gap-8">
-          <Skeleton className="h-7 w-40 shrink-0" />
-          <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-7 w-24" />
-              <Skeleton className="h-7 w-[4.5rem]" />
-            </div>
-            <div className="flex items-center justify-center text-sm font-medium">
-              <Skeleton className="h-7 w-20" />
-            </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="hidden size-7 lg:block" />
-              <Skeleton className="size-7" />
-              <Skeleton className="size-7" />
-              <Skeleton className="hidden size-7 lg:block" />
-            </div>
+
+      <div className="flex w-full items-center justify-between gap-4 overflow-auto p-3 sm:gap-8">
+        <Skeleton className="h-5 w-40 shrink-0" />
+        <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-7 w-[4.3rem] rounded-full" />
+          </div>
+          {/* <div className="flex items-center justify-center text-sm font-medium">
+            <Skeleton className="h-6 w-16" />
+          </div> */}
+          <div className="flex items-center gap-4">
+            <Skeleton className="hidden size-5 lg:block" />
+            <Skeleton className="size-5" />
+            <Skeleton className="size-5" />
+            <Skeleton className="size-5" />
+            <Skeleton className="size-5" />
+            <Skeleton className="size-5" />
+            <Skeleton className="size-5" />
+            <Skeleton className="hidden size-5 lg:block" />
           </div>
         </div>
-      ) : null}
+      </div>
     </div>
   )
 }

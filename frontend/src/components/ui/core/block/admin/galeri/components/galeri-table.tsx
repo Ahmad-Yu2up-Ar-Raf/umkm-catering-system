@@ -289,7 +289,7 @@ export function GaleriTable({
               )}
 
               {!hiddenCols.jumlah_tamu && (
-                <TableCell className="text-center text-sm text-muted-foreground">
+                <TableCell className=" text-sm text-muted-foreground">
                   {galeri.jumlah_tamu != null
                     ? `${galeri.jumlah_tamu} tamu`
                     : "—"}

@@ -27,8 +27,9 @@ export function PaketBlock() {
   const headerRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
 
-  const { kategori, search, setKategori, setSearch } = useCatalogParams()
-  const query = usePaketQuery({ kategori, search })
+  const { kategoriPaket, kategoriAcara, search, setKategoriPaket, setKategoriAcara, setSearch } =
+    useCatalogParams()
+  const query = usePaketQuery({ kategoriPaket, kategoriAcara, search })
 
   const pakets = query.data?.pages.flatMap((page) => page.data) ?? []
   const total = query.data?.pages[0]?.meta.pagination.total ?? 0
@@ -73,9 +74,11 @@ export function PaketBlock() {
       </div>
 
       <FilterBar
-        kategori={kategori}
+        kategoriPaket={kategoriPaket}
+        kategoriAcara={kategoriAcara}
         search={search}
-        onKategoriChange={setKategori}
+        onKategoriPaketChange={setKategoriPaket}
+        onKategoriAcaraChange={setKategoriAcara}
         onSearchChange={setSearch}
       />
 
@@ -90,12 +93,14 @@ export function PaketBlock() {
           isError={query.isError}
           hasNextPage={query.hasNextPage}
           isFetchingNextPage={query.isFetchingNextPage}
-          kategori={kategori}
+          kategoriPaket={kategoriPaket}
+          kategoriAcara={kategoriAcara}
           search={search}
           onLoadMore={query.fetchNextPage}
           onRetry={() => query.refetch()}
           onReset={() => {
-            setKategori("")
+            setKategoriPaket([])
+            setKategoriAcara([])
             setSearch("")
           }}
         />

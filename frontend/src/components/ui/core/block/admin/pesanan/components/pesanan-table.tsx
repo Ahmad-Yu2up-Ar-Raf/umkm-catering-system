@@ -6,6 +6,7 @@ import {
   ArrowDown01Icon,
   ArrowUp01Icon,
   EyeIcon,
+  Invoice01FreeIcons,
   Sorting01Icon,
 } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
@@ -207,12 +208,12 @@ export function PesananTable({
                 </TableCell>
               )}
               {!hiddenCols.jumlah_paket && (
-                <TableCell className="text-right whitespace-nowrap tabular-nums">
+                <TableCell className=" whitespace-nowrap tabular-nums">
                   {pesanan.jumlah_paket} porsi
                 </TableCell>
               )}
               {!hiddenCols.total_harga && (
-                <TableCell className="text-right font-medium whitespace-nowrap tabular-nums">
+                <TableCell className="  font-medium whitespace-nowrap tabular-nums">
                   {formatRupiah(pesanan.total_harga)}
                 </TableCell>
               )}
@@ -270,9 +271,10 @@ export function PesananTable({
                   onDelete={() => onDelete(pesanan)}
                   onPreview={() => onStruk(pesanan)}
                   onDownload={() => onDownload(pesanan)}
-                  editLabel="Ubah"
+                  editLabel="Perbarui"
                   deleteLabel="Hapus"
-                  previewLabel="Struk"
+                  previewLabel="Invoice"
+                  previewIcon={Invoice01FreeIcons}
                   downloadLabel="Download"
                   deleteDisabled={isThisDeleting}
                 />

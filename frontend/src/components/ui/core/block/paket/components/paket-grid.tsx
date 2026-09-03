@@ -43,7 +43,8 @@ export function PaketGrid({
   isError,
   hasNextPage,
   isFetchingNextPage,
-  kategori,
+  kategoriPaket,
+  kategoriAcara,
   search,
   onLoadMore,
   onRetry,
@@ -56,13 +57,14 @@ export function PaketGrid({
   isError: boolean
   hasNextPage: boolean
   isFetchingNextPage: boolean
-  kategori: string
+  kategoriPaket: string[]
+  kategoriAcara: string[]
   search: string
   onLoadMore: () => void
   onRetry: () => void
   onReset: () => void
 }) {
-  const isFiltered = Boolean(kategori || search)
+  const isFiltered = Boolean(kategoriPaket.length > 0 || kategoriAcara.length > 0 || search)
 
   // View mode is global, persisted UI state (localStorage) — read it straight
   // from the store so the toggle anywhere updates the grid everywhere. A
@@ -189,7 +191,7 @@ export function PaketGrid({
               <p className="max-w-md text-sm text-muted-foreground">
                 Tidak ada hasil untuk{" "}
                 <span className="font-medium text-foreground">
-                  {[kategori, search].filter(Boolean).join(" · ")}
+                  {[...kategoriPaket, ...kategoriAcara, search].filter(Boolean).join(" · ")}
                 </span>
                 .
               </p>

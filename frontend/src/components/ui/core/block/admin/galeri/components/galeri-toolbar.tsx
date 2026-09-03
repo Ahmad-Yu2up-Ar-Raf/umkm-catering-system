@@ -3,11 +3,9 @@
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Add01Icon, CancelCircleIcon } from "@hugeicons/core-free-icons"
-import {
-  GALERI_KATEGORI_OPTIONS,
-} from "../config/galeri-enum-options"
+import { GALERI_KATEGORI_OPTIONS } from "../config/galeri-enum-options"
 import { GaleriViewToggle } from "./galeri-view-toggle"
-import { MultiSelectFilter } from "../../shared/multi-select-filter"
+import { MultiSelectFilter } from "../../../../../fragments/custom-ui/multi-select-filter"
 import { SearchBar } from "../../../paket/components/search-bar"
 
 interface GaleriToolbarProps {

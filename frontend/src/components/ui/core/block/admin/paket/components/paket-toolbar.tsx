@@ -8,7 +8,7 @@ import {
   KATEGORI_ACARA_OPTIONS,
 } from "../config/paket-enum-options"
 import { PaketViewToggle } from "./paket-view-toggle"
-import { MultiSelectFilter } from "../../shared/multi-select-filter"
+import { MultiSelectFilter } from "../../../../../fragments/custom-ui/multi-select-filter"
 import { SearchBar } from "../../../paket/components/search-bar"
 
 interface PaketToolbarProps {
