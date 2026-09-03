@@ -28,7 +28,7 @@ interface PaketLayoutState {
 export const usePaketLayoutStore = create<PaketLayoutState>()(
   persist(
     (set, get) => ({
-      layoutMode: "horizontal",
+      layoutMode: "grid-3",
       setLayoutMode: (layoutMode) => set({ layoutMode }),
       toggleLayoutMode: () =>
         set({

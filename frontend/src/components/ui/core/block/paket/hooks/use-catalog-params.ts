@@ -1,6 +1,8 @@
 import { useCallback } from "react"
 import { useSearchParams } from "react-router"
 
+import type { KategoriFilter } from "../data/categories"
+
 /**
  * The catalog's filter state IS the URL — `?kategori_paket[]=…&kategori_acara[]=…&search=…`.
  * Deep-linkable, back/forward aware, and every write goes through
@@ -87,19 +89,25 @@ export function useCatalogParams() {
   )
 
   // Backward compat alias: single-value `kategori` → first element
-  const kategori = kategoriPaket[0] ?? ""
+  const kategori = (kategoriPaket[0] ?? "") as KategoriFilter
   const setKategori = useCallback(
-    (value: string) => {
+    (value: KategoriFilter) => {
       setKategoriPaket(value ? [value] : [])
     },
     [setKategoriPaket]
   )
+
+  // Explicit hybrid helpers per spec (Step 1)
+  const setSingleKategoriPaket = setKategori
+  const setMultiKategoriPaket = setKategoriPaket
 
   return {
     kategoriPaket,
     kategoriAcara,
     search,
     setKategoriPaket,
+    setMultiKategoriPaket,
+    setSingleKategoriPaket,
     setKategoriAcara,
     setSearch,
     // deprecated single-value aliases
