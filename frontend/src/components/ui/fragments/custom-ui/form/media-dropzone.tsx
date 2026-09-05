@@ -96,8 +96,9 @@ const Tile = function Tile({
       <Button
         type="button"
         aria-label="Hapus gambar"
-        variant="ghost"
-        className="hover:text-destructive-foreground absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/90 p-0 text-destructive shadow-sm transition-all hover:border-destructive hover:bg-destructive focus:ring-2"
+        variant="destructive"
+
+        className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-background/90 p-0  focus:ring-2"
         onClick={() => onRemove(item)}
       >
         <HugeiconsIcon icon={Cancel01Icon} className="size-4" />

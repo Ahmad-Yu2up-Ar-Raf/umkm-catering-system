@@ -4,6 +4,20 @@ import { Image } from "@unpic/react"
 
 import { cn } from "@/lib/utils"
 import { Spinner } from "../shadcn-ui/spinner"
+import { Image01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+
+/**
+ * Inject Cloudinary optimization flags for raw uploads.
+ * Raw Neon DB URLs are like `https://res.cloudinary.com/.../image/upload/v123/foo.jpg`
+ * → inject `f_auto,q_auto` (and limit width via @unpic, not here).
+ * If already transformed (contains f_auto), leave untouched.
+ */
+function optimizeCloudinaryUrl(src: string): string {
+  if (!src.includes("res.cloudinary.com") || !src.includes("/image/upload/")) return src
+  if (src.includes("f_auto") || src.includes("q_auto")) return src
+  return src.replace("/image/upload/", "/image/upload/f_auto,q_auto/")
+}
 
 const MediaItem = ({
   webViewLink,
@@ -15,13 +29,14 @@ const MediaItem = ({
   onImageLoaded,
   onError,
   alt,
-  width = 1280,
-  height = 960,
+  width = 640,
+  height = 480,
   layout = "constrained",
   objectFit = "cover",
   unstyled = false,
   loading,
   sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
+  priority = false,
 }: {
   webViewLink: string
   mediaType?: "image" | "video"
@@ -47,9 +62,9 @@ const MediaItem = ({
    * are ignored and the `sizes` hint decides which candidate loads.
    */
   layout?: "constrained" | "fullWidth"
-  /** Media box width for the `constrained` layout (srcset "1x" size). Default 1280. */
+  /** Media box width for the `constrained` layout (srcset "1x" size). Default 640. */
   width?: number
-  /** Media box height for the `constrained` layout (aspect of the pre-crop). Default 960. */
+  /** Media box height for the `constrained` layout (aspect of the pre-crop). Default 480. */
   height?: number
   /**
    * `object-fit` — forwarded into @unpic's computed style (inline wins over
@@ -76,6 +91,8 @@ const MediaItem = ({
    * their own loading UI (the lightbox).
    */
   loading?: React.ReactNode | false
+  /** LCP priority — eager load + high fetchPriority, disables lazy. */
+  priority?: boolean
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isInView, setIsInView] = useState(false)
@@ -216,6 +233,25 @@ const MediaItem = ({
     )
   }
 
+  const optimizedSrc = optimizeCloudinaryUrl(webViewLink)
+
+  if (errored) {
+    return (
+      <div
+        className={cn(
+          "relative flex h-full w-full flex-col items-center justify-center gap-2 bg-muted p-4 text-center",
+          className
+        )}
+        style={style}
+        role="img"
+        aria-label={alt ?? "Gambar tidak tersedia"}
+      >
+        <HugeiconsIcon icon={Image01Icon} className="size-8 text-muted-foreground/60" />
+        <span className="text-xs text-muted-foreground">Gambar tidak tersedia</span>
+      </div>
+    )
+  }
+
   return (
     <div
       className={cn(
@@ -225,7 +261,7 @@ const MediaItem = ({
       style={style}
     >
       <Image
-        src={webViewLink}
+        src={optimizedSrc}
         alt={alt ?? webViewLink}
         onError={handleImageError}
         className={cn(
@@ -239,7 +275,9 @@ const MediaItem = ({
         objectFit={objectFit}
         unstyled={unstyled}
         role="img"
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
+        decoding="async"
         onLoad={handleImageLoad}
         sizes={sizes}
       />

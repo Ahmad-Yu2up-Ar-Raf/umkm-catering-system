@@ -277,7 +277,7 @@
 }
 
 @utility container {
-  @apply m-auto max-w-5xl px-4 md:px-8;
+  @apply m-auto max-w-5xl px-6 md:px-8;
 }
 
 /* Hide scrollbars on single-row scrollers (filter bar, rail strips) while

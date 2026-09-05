@@ -29,7 +29,7 @@ const LUXURY_EASE = [0.16, 1, 0.3, 1] as unknown as gsap.EaseString
  *  - Mobile: category tabs become a horizontal carousel; the WhatsApp CTA is
  *    reordered below the accordion (`order-last`).
  */
-export function FaqsSection() {
+export default function FaqBlock() {
   const sectionRef = useRef<HTMLElement>(null)
   const firstRevealDone = useRef(false)
   const [activeCategory, setActiveCategory] = React.useState(
@@ -194,9 +194,9 @@ export function FaqsSection() {
       <section
         ref={sectionRef}
         id="faq"
-        className="container min-h-lvh content-center space-y-10 py-20 md:space-y-10 md:pt-25"
+        className="container min-h-lvh content-center space-y-10 p-0 py-20 md:space-y-10 md:pt-25"
       >
-        <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-5 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
+        <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-6 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
           <div className="flex w-full flex-col gap-y-1">
             <div>
               <p className="text-gold-deep mb-6 flex items-center gap-3.5 text-[11px] font-normal tracking-[0.28em] uppercase">

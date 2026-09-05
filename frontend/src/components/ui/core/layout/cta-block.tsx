@@ -82,7 +82,7 @@ function CTABlock() {
 
   return (
     <section ref={sectionRef} id="kontak" className="relative size-full">
-      <main className="relative m-auto flex min-h-[40lvh] md:min-h-[80lvh] w-full flex-col items-center justify-center overflow-hidden">
+      <main className="relative m-auto flex min-h-[40lvh] w-full flex-col items-center justify-center overflow-hidden md:min-h-[80lvh]">
         {/* Reusable motion backdrop — parallax + scale zoom-out + scrims.
             NOTE: the image path MUST stay `.png` — a stray `.pmg` 404s the
             photo and the background silently "disappears" (only scrims + text
@@ -152,7 +152,7 @@ function CTABlock() {
               )}
               intensity={0.8}
               range={120}
-              className="group text-xs tracking-widest uppercase"
+              className="group border border-primary/40 bg-primary text-xs tracking-widest text-primary-foreground uppercase sm:border-2 sm:border-primary md:bg-transparent md:text-primary"
             >
               Hubungi Kami
               <HugeiconsIcon

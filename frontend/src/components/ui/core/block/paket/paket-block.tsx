@@ -7,10 +7,12 @@ import { gsap, useGSAP } from "@/components/motion/gsap"
 import { useCatalogStore } from "@/store/catalog-store"
 
 import { CatalogHeader } from "./components/catalog-header"
-import { FilterBar } from "./components/filter-bar"
+import { CategoryNav } from "./components/category-nav"
+import { SearchBar } from "./components/search-bar"
 import { PaketGrid } from "./components/paket-grid"
 import { useCatalogParams } from "./hooks/use-catalog-params"
 import { usePaketQuery } from "./hooks/use-paket-query"
+import { useHeaderOffset } from "./hooks/use-header-offset"
 
 /**
  * Katalog Paket — the public package catalog (sitemap #3).
@@ -26,22 +28,10 @@ import { usePaketQuery } from "./hooks/use-paket-query"
 export function PaketBlock() {
   const headerRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
+  const top = useHeaderOffset()
 
-  const {
-    kategoriPaket,
-    kategoriAcara,
-    search,
-    setKategoriPaket,
-    setSingleKategoriPaket,
-    kategori,
-    setKategoriAcara,
-    setSearch,
-  } = useCatalogParams()
-  const query = usePaketQuery({
-    kategoriPaket,
-    kategoriAcara,
-    search,
-  })
+  const { kategori, search, setKategori, setSearch } = useCatalogParams()
+  const query = usePaketQuery({ kategori, search })
 
   const pakets = query.data?.pages.flatMap((page) => page.data) ?? []
   const total = query.data?.pages[0]?.meta.pagination.total ?? 0
@@ -85,20 +75,31 @@ export function PaketBlock() {
         <CatalogHeader />
       </div>
 
-      <FilterBar
-        kategori={kategori}
-        kategoriPaket={kategoriPaket}
-        kategoriAcara={kategoriAcara}
-        search={search}
-        onKategoriChange={setSingleKategoriPaket}
-        onKategoriPaketChange={setKategoriPaket}
-        onKategoriAcaraChange={setKategoriAcara}
-        onSearchChange={setSearch}
-      />
+      {/* Mobile Search — scrolls away with document flow (non-sticky) */}
+      <div className="container m-auto w-full  md:hidden">
+        <div className="py-3">
+          <SearchBar search={search} onSearchChange={setSearch} />
+        </div>
+      </div>
 
-      {/* pb-24 / md:pb-32 — breathing room below the grid so the infinite
-          scroll spinner (and the trailing CTA/footer) never feel cramped. */}
-      <div className="container m-auto w-full pt-10 pb-24 md:pt-10 md:pb-32">
+      {/* Shared sticky track: CategoryNav (+ desktop Search) shares bounding box
+          with PaketGrid so sticky persists for full scroll length. */}
+      <div className="flex flex-col">
+        <div
+          style={{ top: typeof top !== "undefined" ? top : 0 }}
+          className="sticky top-0 z-40 w-full border-b border-border bg-background/95 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        >
+          <div className="mx-auto flex max-w-5xl items-center gap-4  md:gap-6 md:px-6">
+            <div className="min-w-0 flex-1">
+              <CategoryNav active={kategori} onSelect={setKategori} />
+            </div>
+            <div className="hidden w-64 shrink-0 md:block">
+              <SearchBar search={search} onSearchChange={setSearch} />
+            </div>
+          </div>
+        </div>
+
+        <div className="container m-auto w-full pt-10 pb-24 md:pt-10 md:pb-32">
         <PaketGrid
           pakets={pakets}
           total={total}
@@ -107,17 +108,16 @@ export function PaketBlock() {
           isError={query.isError}
           hasNextPage={query.hasNextPage}
           isFetchingNextPage={query.isFetchingNextPage}
-          kategoriPaket={kategoriPaket}
-          kategoriAcara={kategoriAcara}
+          kategori={kategori}
           search={search}
           onLoadMore={query.fetchNextPage}
           onRetry={() => query.refetch()}
           onReset={() => {
-            setKategoriPaket([])
-            setKategoriAcara([])
+            setKategori("")
             setSearch("")
           }}
         />
+        </div>
       </div>
     </section>
   )

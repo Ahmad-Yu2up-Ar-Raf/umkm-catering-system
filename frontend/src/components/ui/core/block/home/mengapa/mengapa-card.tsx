@@ -75,8 +75,8 @@ export function MengapaCard({
       ref={cardRef}
       data-mengapa-card
       className={cn(
-        "group relative h-full overflow-hidden px-5 py-7 transition-colors duration-500 hover:bg-primary/5",
-        index % 2 != 0 && "bg-primary/5 ",
+        "group relative h-full overflow-hidden border-y border-border px-5 py-7 transition-colors duration-500   md:border-0 hover:bg-primary/5",
+        index % 2 != 0 && "bg-primary/5"
 
         // index > 0 && index < 4 && " border-t border-t-primary md:border-0"
       )}

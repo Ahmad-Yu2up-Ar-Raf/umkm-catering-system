@@ -296,7 +296,7 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
           "transition-[color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none",
           "disabled:pointer-events-none disabled:opacity-50",
-          "group border-primary bg-muted md:bg-transparent relative flex cursor-pointer items-center gap-1 overflow-hidden rounded-[100px] border-[1.5px] px-9 py-6 text-sm font-semibold text-primary transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-transparent hover:text-white active:scale-[0.95]",
+          "group border-primary  bg-transparent relative flex cursor-pointer items-center gap-1 overflow-hidden rounded-[100px] border-[1.5px] px-9 py-6 text-sm font-semibold text-primary transition-all duration-[600ms] ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-transparent hover:text-white active:scale-[0.95]",
           showFill && "text-background dark:text-neutral-950",
           className
         )}

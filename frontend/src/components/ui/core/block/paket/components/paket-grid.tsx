@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { usePaketLayoutStore } from "@/store/paket-layout-store"
 import { cn } from "@/lib/utils"
 
@@ -43,8 +44,7 @@ export function PaketGrid({
   isError,
   hasNextPage,
   isFetchingNextPage,
-  kategoriPaket,
-  kategoriAcara,
+  kategori,
   search,
   onLoadMore,
   onRetry,
@@ -57,20 +57,22 @@ export function PaketGrid({
   isError: boolean
   hasNextPage: boolean
   isFetchingNextPage: boolean
-  kategoriPaket: string[]
-  kategoriAcara: string[]
+  kategori: string
   search: string
   onLoadMore: () => void
   onRetry: () => void
   onReset: () => void
 }) {
-  const isFiltered = Boolean(kategoriPaket.length > 0 || kategoriAcara.length > 0 || search)
+  const isFiltered = Boolean(kategori || search)
 
   // View mode is global, persisted UI state (localStorage) — read it straight
   // from the store so the toggle anywhere updates the grid everywhere. A
   // change re-renders this grid AND swaps the motion container `key` below,
   // which re-runs the entry stagger.
-  const layoutMode = usePaketLayoutStore((s) => s.layoutMode)
+  // Mobile enforcement: <md forces "grid-3" without mutating persisted state.
+  const storedLayout = usePaketLayoutStore((s) => s.layoutMode)
+  const isMobile = useIsMobile()
+  const layoutMode = isMobile ? "grid-3" : storedLayout
   const sentinelRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
 
@@ -191,7 +193,7 @@ export function PaketGrid({
               <p className="max-w-md text-sm text-muted-foreground">
                 Tidak ada hasil untuk{" "}
                 <span className="font-medium text-foreground">
-                  {[...kategoriPaket, ...kategoriAcara, search].filter(Boolean).join(" · ")}
+                  {[kategori, search].filter(Boolean).join(" · ")}
                 </span>
                 .
               </p>
@@ -215,11 +217,12 @@ export function PaketGrid({
             }}
             className={gridContainerClass}
           >
-            {pakets.map((paket) => (
+            {pakets.map((paket, index) => (
               <motion.div key={paket.id} variants={cardVariants}>
                 <PaketCard
                   paket={paket}
                   layoutMode={layoutMode}
+                  priority={index < 4}
                   className={cn(isPlaceholderData && "opacity-60")}
                 />
               </motion.div>

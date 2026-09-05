@@ -53,11 +53,13 @@ function LightboxSlide({
   alt,
   index,
   scope,
+  priority = false,
 }: {
   src: string
   alt: string
   index: number
   scope: { src: string; title: string; category?: string }[]
+  priority?: boolean
 }) {
   return (
     <button
@@ -73,6 +75,7 @@ function LightboxSlide({
         imageClassName="size-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
         layout="fullWidth"
         sizes="(min-width: 1024px) 50rem, 90vw"
+        priority={priority}
         loading={
           <Skeleton className="absolute inset-0 h-full w-full rounded-none bg-secondary" />
         }
@@ -129,6 +132,7 @@ export function PaketImagesCarousel({
                   alt={alt}
                   index={index}
                   scope={scope}
+                  priority={index === 0}
                 />
               </Slider>
             ))}

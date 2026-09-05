@@ -253,7 +253,7 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
                   <OriginButton
                     intensity={0.8}
                     range={120}
-                    className="group border border-primary/40 text-xs tracking-widest uppercase sm:border-2 sm:border-primary"
+                    className="group border border-primary/40 bg-primary text-primary-foreground md:text-primary text-xs tracking-widest uppercase sm:border-2 sm:border-primary md:bg-transparent"
                   >
                     Jelajahi Menu
                     <HugeiconsIcon

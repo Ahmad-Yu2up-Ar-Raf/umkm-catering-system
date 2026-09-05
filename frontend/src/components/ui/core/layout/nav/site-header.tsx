@@ -17,6 +17,7 @@ import { Link, useLocation, useNavigate } from "react-router"
 import { WhatsappIcon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 
@@ -93,12 +94,15 @@ function MobileBar({
   onClose,
   onNavigate,
   visible,
+  isHome,
 }: {
   open: boolean
+
   onToggle: () => void
   onClose: () => void
   onNavigate: (e: ReactMouseEvent<HTMLAnchorElement>, hash: string) => void
   visible?: boolean
+  isHome?: boolean
 }) {
   const glassed = visible || open
   // The whole bar (trigger + drawer) is the "inside" region: any pointer press
@@ -125,9 +129,10 @@ function MobileBar({
     <div
       ref={barRef}
       className={cn(
-        "relative container mx-auto flex items-center justify-between gap-3 px-2 py-2 transition-all duration-300 lg:hidden",
-        glassed &&
-          "rounded-full border border-border/80 bg-background/80 backdrop-blur-md"
+        "relative container mx-auto flex items-center justify-between gap-3 py-2 transition-all duration-300 lg:hidden",
+        isHome ? "px-2" : "p-0 pt-2",
+        glassed && isHome &&
+          "w-[95%] rounded-full border border-border/80 bg-background/80 backdrop-blur-md"
       )}
     >
       <NavbarLogo />
@@ -237,6 +242,7 @@ export function SiteHeader({ className }: { className?: string }) {
     jumpToSection(hash)
   }
   const { pathname } = useLocation()
+
   const isHomePage = pathname === "/"
 
   return (
@@ -261,6 +267,7 @@ export function SiteHeader({ className }: { className?: string }) {
 
       {/* Mobile — brand left, animated hamburger right (< lg). */}
       <MobileBar
+      isHome={isHomePage}
         open={menuOpen}
         onToggle={() => setMenuOpen((o) => !o)}
         onClose={() => setMenuOpen(false)}

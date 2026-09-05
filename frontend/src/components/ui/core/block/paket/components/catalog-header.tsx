@@ -19,7 +19,7 @@ const HERO_IMAGE = "/assets/images/about/tumpeng-from-top.png"
  */
 export function CatalogHeader() {
   return (
-    <div className="grid w-full gap-5 py-14 md:gap-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+    <div className="grid w-full gap-5 py-12 md:gap-6 md:py-20 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
       <div className="flex flex-col items-start gap-5 md:gap-6">
         <p
           data-catalog-reveal

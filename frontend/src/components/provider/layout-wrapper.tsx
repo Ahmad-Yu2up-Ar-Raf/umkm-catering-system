@@ -51,38 +51,41 @@ export function LayoutWrapper() {
 
   return (
     <ReactLenis root>
-      {/* Global scroll restoration — resets to the top on every route change
+      <div className="bg-background">
+        {/* Global scroll restoration — resets to the top on every route change
           (Lenis-aware, so the next page never renders at the old scroll depth). */}
-      <ScrollToTop />
-      {/* Route-level SEO defaults — runs before the page mounts so stale
+        <ScrollToTop />
+        {/* Route-level SEO defaults — runs before the page mounts so stale
           title/description/canonical from the previous route never linger. */}
-      <RouteSeoResolver />
-      {!isMobile && <SiteBorder />}
-      {preloaderDone && <SiteHeader />}
-      {/* Add padding-bottom on mobile to account for fixed navbar */}
-      {/* Main content sits ABOVE the sticky footer's fixed inner (z-stacking),
+        <RouteSeoResolver />
+        {!isMobile && <SiteBorder />}
+        {preloaderDone && <SiteHeader />}
+        {/* Add padding-bottom on mobile to account for fixed navbar */}
+        {/* Main content sits ABOVE the sticky footer's fixed inner (z-stacking),
           so the Hero — not the footer — is what the user sees after the
           preloader lifts. */}
-      <div
-        className={cn(
-          "relative z-10 w-full overflow-hidden bg-background md:overflow-visible"
-        )}
-      >
         <div
           className={cn(
-            "relative mx-auto flex h-full w-full flex-col content-center gap-10 overflow-x-hidden sm:gap-8 md:overflow-visible"
+            "relative z-10 w-full overflow-x-hidden bg-background md:overflow-visible",
+            pathname !== "/" && 'overflow-visible'
           )}
         >
-          <Outlet />
-          {preloaderDone && showChrome && <CTABlock />}
-          {pathname == "/" && (
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-30 bg-linear-to-t from-background/0 via-background/80 to-background md:hidden" />
-          )}
+          <div
+            className={cn(
+              "relative mx-auto flex h-full w-full flex-col content-center gap-10 sm:gap-8 md:overflow-visible"
+            )}
+          >
+            <Outlet />
+            {preloaderDone && showChrome && <CTABlock />}
+            {pathname == "/" && (
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-linear-to-t from-background/0 via-background/80 to-background md:hidden" />
+            )}
 
-          <div className="pointer-events-none fixed inset-0 top-0 hidden h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:inline md:h-50" />
+            <div className="pointer-events-none fixed inset-0 top-0 hidden h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:inline md:h-50" />
+          </div>
         </div>
+        {preloaderDone && showChrome && <SiteFooter />}
       </div>
-      {preloaderDone && showChrome && <SiteFooter />}
     </ReactLenis>
   )
 }

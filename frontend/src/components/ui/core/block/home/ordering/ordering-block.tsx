@@ -368,7 +368,7 @@ function OrderingBlock() {
                 <span aria-hidden="true" className="h-px w-10 bg-primary" />
                 Cara Pemesanan
               </p>
-              <h2 className="max-w-[340px] font-heading text-[clamp(26px,7.5vw,32px)] leading-[1.12] font-light tracking-[-0.02em]">
+              <h2 className="lg:text-5xl text-4xl leading-[1.12] max-w-[340px] font-heading font-light tracking-[-0.02em]">
                 <span className="block text-foreground">Tujuh langkah,</span>
                 <span className="block font-accent text-primary italic">
                   satu hidangan

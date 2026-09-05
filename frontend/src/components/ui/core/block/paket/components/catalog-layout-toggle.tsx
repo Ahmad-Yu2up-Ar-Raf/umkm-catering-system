@@ -37,7 +37,7 @@ export function CatalogLayoutToggle() {
     <div
       role="group"
       aria-label="Tampilan katalog"
-      className="flex items-center gap-0.5 rounded-full border border-border bg-background/70 p-1"
+      className="hidden items-center gap-0.5 rounded-full border border-border bg-background/70 p-1 md:flex"
     >
       {MODES.map(({ mode, icon: Icon, label }) => {
         const active = mode === layoutMode

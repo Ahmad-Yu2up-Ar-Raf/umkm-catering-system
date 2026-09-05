@@ -61,7 +61,7 @@ export function SearchBar({
       onBlur={() => setFocused(false)}
       placeholder="Cari paket…"
       aria-label="Cari paket"
-      className={cn("h-9 w-full rounded-full border-border bg-muted/40", className)}
+      className={cn("h-9 w-full text-sm rounded-full border-border bg-muted/40", className)}
     />
   )
 }

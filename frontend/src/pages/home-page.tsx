@@ -4,6 +4,7 @@ import { useLenis } from "lenis/react"
 import { useLocation } from "react-router"
 
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { useIsLaptop } from "@/hooks/use-is-laptop"
 import { ScrollTrigger } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
@@ -14,7 +15,6 @@ import AboutBlock from "@/components/ui/core/block/home/about/about-block"
 import { MengapaBlock } from "@/components/ui/core/block/home/mengapa/mengapa-block"
 import { FaqsSection } from "@/components/ui/core/block/home/faq/faq-block"
 import OrderingBlock from "@/components/ui/core/block/home/ordering/ordering-block"
- 
 import TestimonialBlock from "@/components/ui/core/block/home/testimonial/testimonial-block"
 
 
@@ -32,12 +32,28 @@ function hasSeenPreloader(): boolean {
 
 function HomePage() {
   const reduced = useReducedMotion()
+  const isLaptop = useIsLaptop()
   const location = useLocation()
   const lenis = useLenis()
   // Preloader gate — run-once-per-session; reduced motion skips the curtain.
-  const [preloaderDone, setPreloaderDone] = useState(
-    () => hasSeenPreloader() || reduced
-  )
+  // Mobile (<1024px) bypasses preloader immediately to prevent delay/flicker.
+  const [preloaderDone, setPreloaderDone] = useState(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) return true
+    return hasSeenPreloader() || reduced
+  })
+
+  // Responsive bypass: <1024px never shows preloader; desktop retains full sequence.
+  useEffect(() => {
+    if (!isLaptop && !preloaderDone) {
+      try {
+        sessionStorage.setItem(PRELOADER_FLAG, "1")
+      } catch {
+        /* no-op */
+      }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPreloaderDone(true)
+    }
+  }, [isLaptop, preloaderDone])
   // Landing mask — a full-screen brand-cream overlay that obscures the page
   // ONLY during the initial cross-route hash landing (so the Hero never flashes
   // before the teleport). Visibility is a STATE, cleared once the teleport
@@ -54,8 +70,9 @@ function HomePage() {
   // `h-screen overflow-hidden` (nothing below the fold is reachable). Both are
   // released only when the curtain's exit reaches 100% (`onComplete`), after
   // which every ScrollTrigger is re-measured (the lock clipped the document).
+  // On mobile (<1024px) preloader is bypassed, so never lock.
   useEffect(() => {
-    if (!preloaderDone) {
+    if (!preloaderDone && isLaptop) {
       const html = document.documentElement
       const body = document.body
       const prevHtml = html.style.overflow
@@ -78,7 +95,7 @@ function HomePage() {
       // Re-measure every ScrollTrigger after the lock is released.
       requestAnimationFrame(() => ScrollTrigger.refresh())
     }
-  }, [preloaderDone, location.hash])
+  }, [preloaderDone, isLaptop, location.hash])
 
   // Broadcast preloader state to the layout chrome (header + footer): while a
   // preloader is playing → `done: false` (chrome hidden), when the curtain
@@ -151,7 +168,7 @@ function HomePage() {
 
   return (
     <>
-      {!preloaderDone && (
+      {!preloaderDone && isLaptop && (
         <Preloader
           onComplete={() => {
             try {
@@ -176,11 +193,12 @@ function HomePage() {
       )}
       <div
         onTouchMove={(e) => {
-          if (!preloaderDone) e.preventDefault()
+          if (!preloaderDone && isLaptop) e.preventDefault()
         }}
         className={cn(
           "flex w-full flex-col",
           !preloaderDone &&
+            isLaptop &&
             "fixed inset-0 touch-none overflow-hidden overscroll-none"
         )}
       >

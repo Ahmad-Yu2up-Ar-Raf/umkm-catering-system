@@ -16,7 +16,7 @@ import { MengapaCard } from "./mengapa-card"
  */
 export function MengapaGrid() {
   return (
-    <div className="relative border-y border-border max-lg:border-primary">
+    <div className="relative border-y border-border  ">
       {/* Animated top border — sweeps left → right across the full width. */}
       <motion.span
         aria-hidden="true"
@@ -24,7 +24,7 @@ export function MengapaGrid() {
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute top-0 left-0 h-px w-full origin-left bg-primary md:bg-border/20"
+        className="absolute top-0 left-0 h-px w-full origin-left  bg-border/20"
       />
 
       {/* Animated bottom border — sweeps left → right across the full width. */}
@@ -34,7 +34,7 @@ export function MengapaGrid() {
         whileInView={{ scaleX: 1 }}
         viewport={{ once: true, amount: 0.3 }}
         transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute bottom-0 left-0 h-px w-full origin-left bg-primary md:bg-border/20"
+        className="absolute bottom-0 left-0 h-px w-full origin-left  bg-border/20"
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

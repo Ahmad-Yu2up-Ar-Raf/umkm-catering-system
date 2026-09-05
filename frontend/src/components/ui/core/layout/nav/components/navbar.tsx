@@ -93,7 +93,7 @@ export const Navbar = ({ children, className, isHomePage }: NavbarProps) => {
     return (
       <nav
         className={cn(
-          "relative top-3 z-40 w-full bg-background px-4 transition-all duration-300 ease-out md:top-4 md:px-6",
+          "relative top-3 z-40 w-full bg-background px-4 sm:px-4 transition-all duration-300 ease-out md:top-4 md:px-6",
 
           // paths != '/' && visible == false ? '   ' : ' sticky',
           className
@@ -109,6 +109,9 @@ export const Navbar = ({ children, className, isHomePage }: NavbarProps) => {
         )}
       </nav>
     )
+
+
+
   return (
     <motion.nav
       initial={{
@@ -126,7 +129,7 @@ export const Navbar = ({ children, className, isHomePage }: NavbarProps) => {
         delay: delay ? 2 : 0,
       }}
       className={cn(
-        "fixed top-3 z-40 w-full transition-all duration-300 ease-out md:top-4",
+        "fixed top-3 z-40  w-full transition-all duration-300 ease-out md:top-4",
         !visible ? "pt-2" : "mt-0",
         // paths != '/' && visible == false ? '   ' : ' sticky',
         className
@@ -171,10 +174,10 @@ export const NavBody = ({
         //   ? "0 0 24px rgba(34, 42, 53, 0.06), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.04), 0 0 4px rgba(34, 42, 53, 0.08), 0 16px 68px rgba(47, 48, 55, 0.05), 0 1px 0 rgba(255, 255, 255, 0.1) inset"
         //   : "none",
         width: "100%",
-        paddingLeft: visible ? "20px" : "3px",
-        paddingRight: visible ? "20px" : "3px",
-        paddingTop: visible ? "12px" : "3px",
-        paddingBottom: visible ? "12px" : "3px",
+        paddingLeft: visible ? "20px" : "5px",
+        paddingRight: visible ? "20px" : "5px",
+        paddingTop: visible ? "12px" : "5px",
+        paddingBottom: visible ? "12px" : "5px",
         // y: visible ? 10 : 0,
       }}
       transition={{

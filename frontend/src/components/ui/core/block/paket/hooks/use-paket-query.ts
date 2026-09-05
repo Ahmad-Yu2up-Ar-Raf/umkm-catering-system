@@ -10,18 +10,14 @@ import type { PaketListResponse } from "../types/paket-types"
 const PAKET_PER_PAGE = 9
 
 interface UsePaketQueryParams {
-  kategoriPaket: string[]
-  kategoriAcara: string[]
+  kategori: string
   search: string
 }
 
 /**
  * Catalog query — `useInfiniteQuery` over `GET /api/v1/paket`.
- * - `kategoriPaket`/`kategoriAcara`/`search` live in the URL (see `use-catalog-params`); they are
+ * - `kategori`/`search` live in the URL (see `use-catalog-params`); they are
  *   in the queryKey, so a filter change refetches automatically.
- * - Arrays serialize as repeated bracketed keys (`kategori_paket[]=A&kategori_paket[]=B`)
- *   via manual URLSearchParams — the format Laravel parses into arrays (see
- *   admin `usePaketList` and `PaketController::normalizeEnumFilter`).
  * - The page cursor derives from the server's `meta.pagination.hasMore` —
  *   no page state ever lives in the UI.
  * - `placeholderData: keepPreviousData` keeps the previous result rendered
@@ -29,20 +25,21 @@ interface UsePaketQueryParams {
  * - `staleTime: 5000` — deliberately NO `refetchInterval`: the catalog is
  *   read-only and polling would just spam the API.
  */
-export function usePaketQuery({ kategoriPaket, kategoriAcara, search }: UsePaketQueryParams) {
+export function usePaketQuery({ kategori, search }: UsePaketQueryParams) {
   return useInfiniteQuery({
-    queryKey: ["paket", kategoriPaket, kategoriAcara, search, PAKET_PER_PAGE],
+    queryKey: ["paket", kategori, search, PAKET_PER_PAGE],
 
-    queryFn: async ({ pageParam }) => {
-      const params = new URLSearchParams()
-      params.set("page", String(pageParam))
-      params.set("perPage", String(PAKET_PER_PAGE))
-      for (const v of kategoriPaket) params.append("kategori_paket[]", v)
-      for (const v of kategoriAcara) params.append("kategori_acara[]", v)
-      if (search) params.set("search", search)
-
-      return api.get("paket", { searchParams: params }).json<PaketListResponse>()
-    },
+    queryFn: async ({ pageParam }) =>
+      api
+        .get("paket", {
+          searchParams: {
+            page: String(pageParam),
+            perPage: String(PAKET_PER_PAGE),
+            ...(kategori ? { kategori_paket: kategori } : {}),
+            ...(search ? { search } : {}),
+          },
+        })
+        .json<PaketListResponse>(),
 
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {

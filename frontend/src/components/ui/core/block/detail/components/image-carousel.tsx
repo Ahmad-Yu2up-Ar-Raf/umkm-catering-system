@@ -216,6 +216,9 @@ export const ThumbsSlider = forwardRef<HTMLDivElement, ThumbsSliderProps>(
                 webViewLink={src}
                 alt=""
                 unstyled
+                width={200}
+                height={150}
+                sizes="120px"
                 className="size-full"
                 imageClassName="size-full object-cover"
               />

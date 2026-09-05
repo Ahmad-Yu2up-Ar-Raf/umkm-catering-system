@@ -42,12 +42,14 @@ export function PaketCard({
   layoutMode = "horizontal",
   adminActions,
   showSalesCount = false,
+  priority = false,
 }: {
   paket: Paket
   className?: string
   layoutMode?: PaketLayoutMode
   adminActions?: ReactNode
   showSalesCount?: boolean
+  priority?: boolean
 }) {
   const href = `/paket/${paket.id}`
   const showcase_images = paket.images ?? []
@@ -101,6 +103,11 @@ export function PaketCard({
         <div className="absolute inset-0 block">
           <MediaItem
             webViewLink={paket.thumbnail ?? FALLBACK_IMG}
+            alt={paket.nama_paket}
+            width={640}
+            height={480}
+            sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
+            priority={priority}
             className={cn(
               "h-full w-full object-cover object-center transition-opacity duration-700 ease-out",
               showcase_images.length > 0 && "group-hover:opacity-0"
@@ -109,6 +116,10 @@ export function PaketCard({
           {showcase_images.length > 0 && (
             <MediaItem
               webViewLink={showcase_images[0]}
+              alt={paket.nama_paket}
+              width={640}
+              height={480}
+              sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
               className="absolute inset-0 h-full w-full object-cover object-center opacity-0 transition-opacity duration-700 ease-out group-hover:opacity-100"
             />
           )}

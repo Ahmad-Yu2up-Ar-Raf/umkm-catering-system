@@ -256,7 +256,7 @@ export function FaqAccordion({
 
   return (
     <LayoutGroup>
-      <div className="relative px-5 md:px-0">
+      <div className="relative px-6 md:px-0">
         <Separator data-faq-sep className="m-0 bg-border/60" />
         <Accordion
           value={openItem}
