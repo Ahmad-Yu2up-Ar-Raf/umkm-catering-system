@@ -31,7 +31,7 @@ export function DetailGallery({
     return (
       <div
         className={cn(
-          "flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl bg-muted/50   text-center r",
+          "flex aspect-[4/4] md:aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl bg-muted/50   text-center r",
           className
         )}
       >
@@ -50,7 +50,12 @@ export function DetailGallery({
   }
 
   return (
-    <div className={cn("lg:sticky lg:top-9 lg:self-start", className)}>
+    <div
+      className={cn(
+        "w-full min-w-0 lg:sticky lg:top-9 lg:self-start",
+        className
+      )}
+    >
       <PaketImagesCarousel
         gallery={gallery}
         alt={alt}

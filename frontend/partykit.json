@@ -1,0 +1,5 @@
+{
+  "name": "catering-nusantara-presence",
+  "main": "party/main.ts",
+  "compatibilityDate": "2024-12-01"
+}

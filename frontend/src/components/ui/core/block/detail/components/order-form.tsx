@@ -16,7 +16,6 @@ import {
 import { useAppForm } from "@/hooks/use-form"
 import { FieldGroup } from "@/components/ui/fragments/shadcn-ui/field"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
-import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
 import { createOrderSchema } from "../validations/order-schema"
 import type { OrderFormValues } from "../validations/order-schema"
@@ -28,10 +27,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/fragments/shadcn-ui/dialog"
+import { pesananService } from "@/services/pesanan-service"
+import type { PesananCreatePayload } from "../../admin/pesanan/types/pesanan-types"
 
 /** Pristine order-draft shape — the baseline for dirty tracking. */
 export const orderFormDefaults = (minOrder: number): OrderFormValues => ({
   nama: "",
+  no_telepon: "",
   lokasi_acara: "",
   tanggal_acara: "",
   jumlah_porsi: minOrder,
@@ -39,17 +41,38 @@ export const orderFormDefaults = (minOrder: number): OrderFormValues => ({
   catatan: "",
 })
 
+function toPublicPayload(
+  value: OrderFormValues,
+  vm: DetailViewModel
+): PesananCreatePayload {
+  return {
+    nama_pemesan: value.nama.trim(),
+    no_telepon: value.no_telepon.trim(),
+    alamat: value.lokasi_acara.trim() || null,
+    paket_id: vm.id,
+    // FormInput type=number → Number(val) so jumlah_porsi is number; coerce defensively for safety
+    jumlah_paket: Number(value.jumlah_porsi),
+    tanggal_acara: value.tanggal_acara,
+    menu_tambahan: value.lauk_pelengkap ?? [],
+    detail_tambahan: [],
+    biaya_tambahan: null,
+    catatan: value.catatan?.trim() || null,
+  }
+}
+
 /**
  * Owns the order form instance so the SHELL (`OrderCalculationDialog`) can
  * read draft state (`isDirty` / `reset`) for close interception — same
  * ownership pattern as `usePaketForm` + `CreatePaketDrawer`.
+ *
+ * Fire-and-forget: WA redirect is instant; DB persist runs in background
+ * and never blocks the UI. Errors are silent (console only) — primary goal
+ * is getting the user to WhatsApp.
  */
 export function useOrderForm(vm: DetailViewModel, onSuccess: () => void) {
-  // ONE schema drives every validation phase. `useAppForm` reuses it for
-  // onChange/onBlur so invalid fields keep their errors until fixed, and
-  // injects the global error toast + first-error auto-focus on failed submit.
   const orderSchema = createOrderSchema({
     capacity: vm.capacity,
+    minOrder: vm.minOrder,
     addonOptions: vm.menuExtra ?? [],
   })
 
@@ -58,14 +81,28 @@ export function useOrderForm(vm: DetailViewModel, onSuccess: () => void) {
       onSubmit: orderSchema,
     },
     defaultValues: orderFormDefaults(vm.minOrder),
-    onSubmit: async ({ value }) => {
+    onSubmit: ({ value }) => {
       const calc = calculateOrder({
         jumlahPorsi: value.jumlah_porsi,
         hargaPerPorsi: vm.hargaPerPorsi,
         laukPelengkap: value.lauk_pelengkap,
       })
+      const payload = toPublicPayload(value, vm)
+
+      // 1) Generate WA URL synchronously — no await
       const msg = buildWaOrderMessage(value, vm, calc.totalLabel)
-      window.open(getWhatsAppLink(BUSINESS_NUMBER, msg), "_blank", "noopener")
+      const waUrl = getWhatsAppLink(BUSINESS_NUMBER, msg)
+
+      // 2) Fire DB persist in background — fire-and-forget, silent on failure
+      // ponytail: fire-and-forget, no await; catch prevents unhandled rejection
+      void pesananService
+        .createPublic(payload)
+        .catch((err: unknown) => {
+          console.error("Background pesanan save failed (WA already opened):", err)
+        })
+
+      // 3) Instant redirect + close — zero spinner wait
+      window.open(waUrl, "_blank", "noopener")
       toast.success("Pesanan dikirim ke WhatsApp — admin akan mengonfirmasi")
       onSuccess()
     },
@@ -87,7 +124,6 @@ export function OrderForm({
   form: OrderFormApi
 }) {
   const values = useStore(form.baseStore, (s) => s.values)
-  const isSubmitting = useStore(form.baseStore, (s) => s.isSubmitting)
 
   const calc = useMemo(
     () =>
@@ -108,7 +144,7 @@ export function OrderForm({
 
         {/* right rail — the SHELL owns max-height/scroll containment */}
         <div className="pt-0 lg:py-6">
-          <DialogHeader className="flex flex-row items-center gap-4 border-b pb-8 mb-8">
+          {/* <DialogHeader className="flex flex-row items-center gap-4 border-b pb-8 mb-8">
             <div className="flex flex-col gap-2">
               <DialogTitle className="font-heading text-3xl">
                 Pesan{" "}
@@ -118,7 +154,7 @@ export function OrderForm({
                 Lengkapi detail pesanan — estimasi dihitung otomatis.
               </DialogDescription>
             </div>
-          </DialogHeader>
+          </DialogHeader> */}
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -135,7 +171,19 @@ export function OrderForm({
                     placeholder="Contoh: Budi Santoso"
                   />
                 )}
-              </form.AppField>        
+              </form.AppField>
+
+              <form.AppField name="no_telepon">
+                {(field) => (
+                  <field.Input
+                    label="No. Telepon"
+                    LeftIcon={UserIcon}
+                    type="tel"
+                    inputMode="tel"
+                    placeholder="Contoh: 081234567890"
+                  />
+                )}
+              </form.AppField>
 
               <form.AppField name="lokasi_acara">
                 {(field) => (
@@ -169,8 +217,8 @@ export function OrderForm({
                     max={vm.capacity ?? undefined}
                     placeholder={
                       vm.capacity != null && vm.capacity > 0
-                        ? `Min. 1 porsi (maks. ${vm.capacity})`
-                        : "Masukkan jumlah porsi..."
+                        ? `Min. ${vm.minOrder} porsi (maks. ${vm.capacity})`
+                        : `Min. ${vm.minOrder} porsi`
                     }
                   />
                 )}
@@ -216,14 +264,10 @@ export function OrderForm({
               <Button
                 type="submit"
                 size="lg"
-                disabled={isSubmitting}
                 className="w-ful cursor-pointer py-6"
               >
                 <HugeiconsIcon icon={WhatsappIcon} className="size-5" />
                 <span className="font-bold">Kirim ke WhatsApp</span>
-                {isSubmitting && (
-                  <Spinner className="text-primary-foreground" />
-                )}
               </Button>
 
               <p className="text-center text-xs text-muted-foreground">

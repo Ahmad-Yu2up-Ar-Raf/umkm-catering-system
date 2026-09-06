@@ -133,7 +133,7 @@ export function FormDateInput({
             </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 bg-background" align="start">
           <Calendar
             mode="single"
             selected={dateValue}

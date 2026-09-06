@@ -29,7 +29,7 @@ export function DetailMenu({ vm }: { vm: DetailViewModel }) {
     >
       <HugeiconsIcon
         icon={Dish01Icon}
-        className="size-[18px] lg:size-5 text-primary/80"
+        className="size-[18px] sm:block hidden lg:size-5 text-primary/80"
       />
       <div className="flex w-full flex-col gap-5 md:gap-6">
         <h2

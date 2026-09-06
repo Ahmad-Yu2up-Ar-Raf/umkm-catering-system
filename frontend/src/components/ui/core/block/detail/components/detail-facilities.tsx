@@ -29,10 +29,13 @@ export function DetailFacilities({ vm }: { vm: DetailViewModel }) {
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.5, ease: LUXURY_EASE }}
       aria-labelledby="detail-facilities-heading"
-      className=" flex gap-5"
+      className="flex gap-5"
     >
-      <HugeiconsIcon icon={Spoon} className="size-5 text-primary/80" />
-      <div className="flex w-full flex-col gap-4 ">
+      <HugeiconsIcon
+        icon={Spoon}
+        className="hidden size-5 text-primary/80 sm:block"
+      />
+      <div className="flex w-full flex-col gap-4">
         <h2
           id="detail-facilities-heading"
           className="flex items-center gap-2.5 font-sans text-sm font-semibold tracking-[0.2em] text-foreground uppercase"

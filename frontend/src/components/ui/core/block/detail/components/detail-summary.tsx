@@ -82,7 +82,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
     })
 
   return (
-    <div className="flex w-full flex-col gap-5 md:gap-6 lg:py-3">
+    <div className="flex w-full flex-col gap-6 px-6 md:gap-6 md:p-0 lg:py-3">
       {/* top decision block — grouped mount reveal */}
       <motion.div
         initial="hidden"
@@ -91,10 +91,10 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
           hidden: {},
           show: { transition: { staggerChildren: 0.08 } },
         }}
-        className="flex w-full flex-col gap-5 md:gap-10"
+        className="flex w-full flex-col gap-6 md:gap-10"
       >
         {/* badges + title */}
-        <motion.div variants={item} className="flex flex-col gap-5">
+        <motion.div variants={item} className="flex flex-col gap-3 md:gap-5">
           <div className="flex w-full justify-between">
             <div className="flex flex-wrap items-center gap-2.5">
               <Badge
@@ -113,7 +113,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
               type="button"
               variant="ghost"
               size="icon"
-              className=" hover:bg-secondary/40"
+              className="hover:bg-secondary/40"
               aria-label="Bagikan paket"
               onClick={sharePackage}
             >
@@ -121,16 +121,16 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
             </Button>
           </div>
 
-          <h1 className="font-heading text-[clamp(28px,3.4vw,40px)] leading-[1.08] font-semibold tracking-tight text-foreground">
+          <h1 className="font-heading text-[clamp(27px,3.4vw,40px)] leading-[1.08] font-semibold tracking-tight text-foreground">
             {vm.name}
           </h1>
         </motion.div>
 
         {/* price + full-width CTA */}
         <motion.div variants={item} className="flex flex-col gap-5">
-          <div className="space-y-2">
+          <div className="space-y-1">
             {vm.hasPrice && (
-              <p className="font-sans text-3xl font-semibold tracking-tight text-foreground md:text-3xl">
+              <p className="font-sans text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
                 {vm.priceLabel}
                 <span className="text-sm font-normal text-muted-foreground md:text-base">
                   {" "}
@@ -152,7 +152,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
               <OriginButton
                 intensity={0.8}
                 range={120}
-                className="group w-full text-xs tracking-widest uppercase md:bg-secondary/20"
+                className="group border border-primary/40 bg-primary text-xs tracking-widest text-primary-foreground uppercase sm:border-2 sm:border-primary md:bg-transparent md:text-primary"
               >
                 <HugeiconsIcon icon={ShoppingCart} className="size-5" />
                 Pesan Sekarang
@@ -172,7 +172,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
         <>
           <Separator />
           <motion.div variants={item}>
-            <p className="max-w-2xl text-base leading-relaxed text-foreground/90 md:text-[17px]">
+            <p className="max-w-2xl text-sm leading-relaxed text-foreground/90 md:text-[17px]">
               {vm.description}
             </p>
           </motion.div>
@@ -189,7 +189,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
                 <dt className="text-[11px] tracking-[0.2em] text-muted-foreground uppercase md:text-xs">
                   {row.label}
                 </dt>
-                <dd className="ml-auto text-right text-sm font-medium text-foreground md:text-[15px]">
+                <dd className="ml-auto text-right text-xs font-medium text-foreground md:text-[15px]">
                   {row.value}
                 </dd>
               </div>
@@ -213,7 +213,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
 
       <Separator />
       <motion.div {...reveal()} className="flex gap-5">
-        <HugeiconsIcon icon={LeafIcon} className="size-5 text-primary/80" />
+        <HugeiconsIcon icon={LeafIcon} className="size-5 hidden sm:block text-primary/80" />
         <div className="flex flex-col gap-2">
           <h2 className="items-center font-sans text-sm font-semibold tracking-[0.2em] text-foreground uppercase">
             Bahan & Alergen
@@ -224,7 +224,7 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
         </div>
       </motion.div>
 
-      <Separator className="opacity-50" />
+      <Separator />
 
       {/* Desktop fallback share surface (Web Share API unavailable) */}
       <ShareDialog

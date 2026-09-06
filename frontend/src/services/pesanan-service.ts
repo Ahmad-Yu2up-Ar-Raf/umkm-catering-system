@@ -41,6 +41,11 @@ export const pesananService = {
     return api.post(BASE, { json: payload }).json<PesananSingleResponse>()
   },
 
+  /** Public unauthenticated order — POST /pesanan (no admin prefix). */
+  async createPublic(payload: PesananCreatePayload): Promise<PesananSingleResponse> {
+    return api.post("pesanan", { json: payload }).json<PesananSingleResponse>()
+  },
+
   async update(id: number, payload: PesananUpdatePayload): Promise<PesananSingleResponse> {
     return api.put(`${BASE}/${id}`, { json: payload }).json<PesananSingleResponse>()
   },

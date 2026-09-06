@@ -42,15 +42,17 @@ export function DetailContent({ vm }: { vm: DetailViewModel }) {
       }
 
   return (
-    <div className="container m-auto w-full px-5 pt-8 pb-24 lg:px-9  md:pt-19 md:pb-32">
-      <div className="grid gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
+    <div className="container m-auto w-full min-w-0 pt-8 p-0 pb-24 lg:px-9 md:pt-19 md:pb-32">
+      <div className="grid min-w-0 w-full gap-6 sm:grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
         <motion.div
           ref={galleryRef}
           initial={galleryHidden}
           animate={galleryShown}
           onAnimationComplete={() => {
             galleryRef.current?.style.removeProperty("filter")
+            galleryRef.current?.style.removeProperty("transform")
           }}
+          className="min-w-0 w-full"
         >
           <DetailGallery
             gallery={vm.gallery}
@@ -62,7 +64,7 @@ export function DetailContent({ vm }: { vm: DetailViewModel }) {
         <DetailSummary vm={vm} />
       </div>
 
-      <DetailRecommendations currentId={vm.id} className="mt-16 md:mt-20" />
+      <DetailRecommendations currentId={vm.id} className="mt-13 md:mt-20" />
     </div>
   )
 }

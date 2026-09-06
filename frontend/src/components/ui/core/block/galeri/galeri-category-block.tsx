@@ -124,7 +124,7 @@ export function GaleriCategoryBlock({ slug }: { slug: string }) {
           {category.description && (
             <motion.p
               {...reveal(0.12)}
-              className="max-w-2xl text-base text-muted-foreground md:text-lg"
+              className="max-w-2xl text-xs sm:text-base   text-muted-foreground md:text-lg"
             >
               {category.description}
             </motion.p>

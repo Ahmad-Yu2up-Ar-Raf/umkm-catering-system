@@ -65,7 +65,10 @@ export function DetailRecommendations({
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.6, ease: LUXURY_EASE }}
       aria-labelledby="rekomendasi-heading"
-      className={cn("flex w-full flex-col gap-8 lg:gap-10", className)}
+      className={cn(
+        "flex w-full flex-col gap-8 px-6 md:p-0 lg:gap-10",
+        className
+      )}
     >
       <div className="flex flex-col gap-3 lg:gap-4">
         <p className="flex items-center gap-3.5 text-xs font-normal tracking-[0.3em] text-primary uppercase lg:text-[13px]">

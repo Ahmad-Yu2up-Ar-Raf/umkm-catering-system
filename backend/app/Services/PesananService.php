@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\PesananCreated;
 use App\Models\Paket;
 use App\Models\Pesanan;
 use Illuminate\Validation\ValidationException;
@@ -45,6 +46,14 @@ class PesananService
         );
         $pesanan->nomor_struk = $this->struk->generate();
         $pesanan->save();
+
+        // Broadcast to private admin channel (Reverb) — ShouldBroadcastNow = sync, no queue
+        // No toOthers() — public guest has no socket ID, must reach all admins
+        try {
+            broadcast(new PesananCreated($pesanan));
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         return $pesanan;
     }

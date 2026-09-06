@@ -19,11 +19,12 @@ Route::prefix('v1')->group(function () {
             ->name('api.logout');
     });
 
-    // Public (no auth) — read-only catalog
+    // Public (no auth) — read-only catalog + public order submission
     Route::get('/paket', [PaketController::class, 'index'])->name('paket.index');
     Route::get('/paket/best-seller', [PaketController::class, 'bestSeller'])->name('paket.best-seller');
     Route::get('/paket/{paket}', [PaketController::class, 'show'])->name('paket.show');
     Route::get('/galeri', [GaleriController::class, 'index'])->name('galeri.index');
+    Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.public-store');
 
     // Admin (auth:sanctum) — resource names prefixed to avoid colliding
     // with the public paket/galeri routes.

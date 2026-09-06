@@ -60,16 +60,21 @@ export function OrderCalculationDialog({
   const isDesktop = useIsDesktop()
   const [confirmDiscard, setConfirmDiscard] = useState(false)
 
-  // Post-submit success handler — wired to the instance via ref (see effect).
+  // Post-submit success handler — form ownership lives HERE so shell can reset
   const formRef = useRef<OrderFormApi | null>(null)
   const handleSuccess = () => {
-    formRef.current?.reset()
+    // formRef is synced via effect below; fallback to direct form if available
+    if (formRef.current) formRef.current.reset()
     onOpenChange(false)
   }
 
   // Form ownership lives HERE (same pattern as usePaketForm + CreatePaketDrawer)
   // so the shell can read dirty state and reset on discard/success.
   const form = useOrderForm(vm, handleSuccess)
+
+  useEffect(() => {
+    formRef.current = form
+  }, [form])
 
   // Built-in TanStack dirty flag — true when values deviate from defaults.
   const isDirty = useStore(form.store, (s) => s.isDirty)

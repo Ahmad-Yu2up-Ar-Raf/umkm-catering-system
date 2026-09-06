@@ -12,12 +12,10 @@ import { scrollToHash } from "@/lib/hash-scroll"
 import { Preloader } from "@/components/motion/preloader"
 import { HeroBlock } from "@/components/ui/core/block/home/hero/hero-block"
 import AboutBlock from "@/components/ui/core/block/home/about/about-block"
-import { MengapaBlock } from "@/components/ui/core/block/home/mengapa/mengapa-block"
-import { FaqsSection } from "@/components/ui/core/block/home/faq/faq-block"
+import MengapaBlock from "@/components/ui/core/block/home/mengapa/mengapa-block"
 import OrderingBlock from "@/components/ui/core/block/home/ordering/ordering-block"
 import TestimonialBlock from "@/components/ui/core/block/home/testimonial/testimonial-block"
-
-
+import FaqBlock from "@/components/ui/core/block/home/faq/faq-block"
 const PRELOADER_FLAG = "hasSeenPreloader"
 
 /** Run-once-per-session gate — read lazily at mount so a repeat visit never
@@ -43,6 +41,7 @@ function HomePage() {
   })
 
   // Responsive bypass: <1024px never shows preloader; desktop retains full sequence.
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (!isLaptop && !preloaderDone) {
       try {
@@ -50,7 +49,6 @@ function HomePage() {
       } catch {
         /* no-op */
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPreloaderDone(true)
     }
   }, [isLaptop, preloaderDone])
@@ -209,7 +207,7 @@ function HomePage() {
           <OrderingBlock />
 
           <TestimonialBlock />
-          <FaqsSection />
+          <FaqBlock />
         </main>
       </div>
     </>

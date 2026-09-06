@@ -56,7 +56,7 @@ function HamburgerButton({
       aria-expanded={open}
       size={"default"}
       variant={"outline"}
-      className="flex scale-90 items-center justify-center rounded-full border border-primary/20 p-2 transition-colors duration-300"
+      className="flex scale-90 bg-transparent items-center justify-center rounded-full border border-primary/20 p-2 transition-colors duration-300"
     >
       <span
         className="relative flex h-3 w-5 flex-col justify-between"

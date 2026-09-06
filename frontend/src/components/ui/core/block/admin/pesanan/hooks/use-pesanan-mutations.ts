@@ -87,6 +87,31 @@ export function usePesananUpdateMutation({ onSuccess }: { onSuccess?: () => void
   })
 }
 
+/** Public create — unauthenticated POST /pesanan, same server-computed total_harga/nomor_struk. */
+export function usePublicPesananCreateMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    retry: false,
+    mutationFn: async (payload: PesananCreatePayload) => {
+      const res = await pesananService.createPublic(payload)
+      return res.data
+    },
+    onMutate: async () => {
+      toast.loading("Menyimpan pesanan...", { id: "public-pesanan-save" })
+      await queryClient.cancelQueries({ queryKey: ADMIN_PESANAN_KEY })
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_PESANAN_KEY })
+      toast.success(`Pesanan dibuat — struk ${data.nomor_struk}.`, { id: "public-pesanan-save" })
+    },
+    onError: async (error) => {
+      const message = await getErrorMessage(error, "Gagal menyimpan pesanan. Coba lagi.")
+      toast.error(message, { id: "public-pesanan-save" })
+      console.error("Public create pesanan error:", error)
+    },
+  })
+}
+
 /** Delete mutation — permanent; invalidates the list + any cached struk payloads. */
 export function usePesananDeleteMutation({ onSuccess }: { onSuccess?: () => void } = {}) {
   const queryClient = useQueryClient()
