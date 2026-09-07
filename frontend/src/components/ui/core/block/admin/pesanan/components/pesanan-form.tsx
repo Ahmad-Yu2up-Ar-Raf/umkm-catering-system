@@ -328,7 +328,7 @@ export function PesananForm({
                         {(field) => (
                           <field.CheckboxGroup
                             label="Menu Tambahan"
-                            subLabel="Opsional — dari paket terpilih"
+                            subLabel="Opsional"
                             options={menuOptions.map((item) => ({
                               label: item,
                               value: item,

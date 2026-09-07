@@ -91,7 +91,7 @@ export function PesananCalcPanel({
         <div aria-hidden="true" className="h-px w-10 bg-primary" />
         <h3 className="text-primary">Ringakasa Pemesanan</h3>
       </p> */}
-      <div className="sticky top-0 hidden h-fit flex-col gap-3 rounded-2xl bg-muted/30 p-6 ring ring-border/80 lg:flex">
+      <div className="sticky top-0 hidden h-fit flex-col gap-3 rounded-2xl p-6 ring ring-border/80 lg:flex">
         {/* Thumbnail + Name — only when a package is selected */}
         {paketDetail ? (
           <>

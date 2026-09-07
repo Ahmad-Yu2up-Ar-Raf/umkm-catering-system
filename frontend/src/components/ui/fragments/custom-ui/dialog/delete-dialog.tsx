@@ -46,13 +46,13 @@ export function DeleteDialog({
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <DialogFooter className="gap-2 flex-row sm:gap-0">
+        <DialogFooter className="flex-row gap-2 sm:gap-0">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isPending}
-            className="md:w-fit w-full flex-1"
+            className="w-full flex-1 sm:flex-none md:w-fit"
           >
             Batal
           </Button>
@@ -61,7 +61,7 @@ export function DeleteDialog({
             variant="destructive"
             onClick={onConfirm}
             disabled={isPending}
-            className="md:w-fit w-full flex-1"
+            className="w-full flex-1 sm:flex-none md:w-fit"
           >
             {isPending && <Spinner className="mr-2 size-4" />}
             {confirmLabel}

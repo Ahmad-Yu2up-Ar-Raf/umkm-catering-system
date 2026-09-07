@@ -130,7 +130,7 @@ export default function GaleriForm({ form, children }: GaleriFormProps) {
           </div>
 
           {/* RIGHT COLUMN: Sticky Thumbnail Sidebar */}
-          <aside className="sticky top-4 flex flex-col gap-8 rounded-2xl border bg-secondary/20 p-6 sm:top-10 lg:p-7">
+          <aside className="sticky top-4 flex flex-col gap-8 rounded-2xl border   p-6 sm:top-10 lg:p-7">
             <header className="flex items-center gap-2 border-b pb-4">
               <div>
                 <h2 className="font-heading text-lg font-semibold tracking-tight">

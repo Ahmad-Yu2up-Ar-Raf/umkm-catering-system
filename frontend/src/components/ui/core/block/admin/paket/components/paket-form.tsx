@@ -197,7 +197,7 @@ export default function PaketForm({ form, children }: PaketFormProps) {
           </div>
 
           {/* KOLOM KANAN: Sticky Sidebar cuma buat Thumbnail Utama */}
-          <aside className="sticky top-4 flex flex-col gap-8 rounded-2xl border bg-secondary/20 p-6 sm:top-10 lg:p-7">
+          <aside className="sticky top-4 flex flex-col gap-8 rounded-2xl border  p-6 sm:top-10 lg:p-7">
             <header className="flex items-center gap-2 border-b pb-4">
               <div>
                 <h2 className="font-heading text-lg font-semibold tracking-tight">
