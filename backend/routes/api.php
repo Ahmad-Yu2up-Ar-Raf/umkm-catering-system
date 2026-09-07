@@ -34,7 +34,11 @@ Route::prefix('v1')->group(function () {
         // resolves as its own route, never the resource's '{paket}' wildcard.
         Route::get('/paket/search', [PaketController::class, 'search'])
             ->name('admin.paket.search');
+        Route::post('/paket/bulk-update', [PaketController::class, 'bulkUpdate'])->name('admin.paket.bulk-update');
+        Route::post('/paket/bulk-delete', [PaketController::class, 'bulkDelete'])->name('admin.paket.bulk-delete');
         Route::apiResource('paket', PaketController::class)->names('admin.paket');
+        Route::post('/galeri/bulk-update', [AdminGaleriController::class, 'bulkUpdate'])->name('admin.galeri.bulk-update');
+        Route::post('/galeri/bulk-delete', [AdminGaleriController::class, 'bulkDelete'])->name('admin.galeri.bulk-delete');
         Route::apiResource('galeri', AdminGaleriController::class)->names('admin.galeri');
 
         // Cloudinary — signed upload credentials + storage cleanup (see CloudinaryService).
@@ -44,6 +48,8 @@ Route::prefix('v1')->group(function () {
             ->name('admin.cloudinary.destroy');
 
         Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
+        Route::post('/pesanan/bulk-update', [PesananController::class, 'bulkUpdate'])->name('pesanan.bulk-update');
+        Route::post('/pesanan/bulk-delete', [PesananController::class, 'bulkDelete'])->name('pesanan.bulk-delete');
         Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.store');
         Route::get('/pesanan/{pesanan}', [PesananController::class, 'show'])->name('pesanan.show');
         Route::put('/pesanan/{pesanan}', [PesananController::class, 'update'])->name('pesanan.update');

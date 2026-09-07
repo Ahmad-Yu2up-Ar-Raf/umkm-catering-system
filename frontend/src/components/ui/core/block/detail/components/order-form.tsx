@@ -29,6 +29,16 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/dialog"
 import { pesananService } from "@/services/pesanan-service"
 import type { PesananCreatePayload } from "../../admin/pesanan/types/pesanan-types"
+import {
+  METODE_PEMBAYARAN,
+  METODE_PEMBAYARAN_LABELS,
+} from "../../admin/pesanan/types/pesanan-types"
+import { useIsMobile } from "@/hooks/use-mobile"
+
+const METODE_PEMBAYARAN_OPTIONS = METODE_PEMBAYARAN.map((v) => ({
+  value: v,
+  label: METODE_PEMBAYARAN_LABELS[v],
+}))
 
 /** Pristine order-draft shape — the baseline for dirty tracking. */
 export const orderFormDefaults = (minOrder: number): OrderFormValues => ({
@@ -37,6 +47,7 @@ export const orderFormDefaults = (minOrder: number): OrderFormValues => ({
   lokasi_acara: "",
   tanggal_acara: "",
   jumlah_porsi: minOrder,
+  metode_pembayaran: null,
   lauk_pelengkap: [],
   catatan: "",
 })
@@ -50,9 +61,11 @@ function toPublicPayload(
     no_telepon: value.no_telepon.trim(),
     alamat: value.lokasi_acara.trim() || null,
     paket_id: vm.id,
-    // FormInput type=number → Number(val) so jumlah_porsi is number; coerce defensively for safety
     jumlah_paket: Number(value.jumlah_porsi),
     tanggal_acara: value.tanggal_acara,
+    ...(value.metode_pembayaran
+      ? { metode_pembayaran: value.metode_pembayaran }
+      : {}),
     menu_tambahan: value.lauk_pelengkap ?? [],
     detail_tambahan: [],
     biaya_tambahan: null,
@@ -89,19 +102,16 @@ export function useOrderForm(vm: DetailViewModel, onSuccess: () => void) {
       })
       const payload = toPublicPayload(value, vm)
 
-      // 1) Generate WA URL synchronously — no await
       const msg = buildWaOrderMessage(value, vm, calc.totalLabel)
       const waUrl = getWhatsAppLink(BUSINESS_NUMBER, msg)
 
-      // 2) Fire DB persist in background — fire-and-forget, silent on failure
-      // ponytail: fire-and-forget, no await; catch prevents unhandled rejection
-      void pesananService
-        .createPublic(payload)
-        .catch((err: unknown) => {
-          console.error("Background pesanan save failed (WA already opened):", err)
-        })
+      void pesananService.createPublic(payload).catch((err: unknown) => {
+        console.error(
+          "Background pesanan save failed (WA already opened):",
+          err
+        )
+      })
 
-      // 3) Instant redirect + close — zero spinner wait
       window.open(waUrl, "_blank", "noopener")
       toast.success("Pesanan dikirim ke WhatsApp — admin akan mengonfirmasi")
       onSuccess()
@@ -115,6 +125,10 @@ export type OrderFormApi = ReturnType<typeof useOrderForm>
  * OrderForm — the interactive order & calculation fields, shared verbatim by
  * the desktop Dialog and the mobile Drawer shells. Pure presentation + field
  * wiring: state ownership lives in `useOrderForm` (consumed by the shell).
+ *
+ * Sectioned layout mirrors `pesanan-form.tsx` / `paket-form.tsx`:
+ *  - Section 1: Informasi Utama (Required)
+ *  - Section 2: Informasi Tambahan (Optional)
  */
 export function OrderForm({
   vm,
@@ -136,25 +150,27 @@ export function OrderForm({
   )
 
   const hasAddons = (vm.menuExtra?.length ?? 0) > 0
-
+  const isMobile = useIsMobile()
   return (
     <form.AppForm>
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+      <div className="grid gap-10 md:p-9 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
         <OrderSummaryPanel vm={vm} />
 
-        {/* right rail — the SHELL owns max-height/scroll containment */}
         <div className="pt-0 lg:py-6">
-          {/* <DialogHeader className="flex flex-row items-center gap-4 border-b pb-8 mb-8">
-            <div className="flex flex-col gap-2">
-              <DialogTitle className="font-heading text-3xl">
-                Pesan{" "}
-                <span className="font-accent text-primary italic">Paket</span>
-              </DialogTitle>
-              <DialogDescription>
-                Lengkapi detail pesanan — estimasi dihitung otomatis.
-              </DialogDescription>
-            </div>
-          </DialogHeader> */}
+          {!isMobile && (
+            <DialogHeader className="mb-8 flex flex-row items-center gap-4 border-b pb-8">
+              <div className="flex flex-col gap-2">
+                <DialogTitle className="font-heading text-3xl">
+                  Pesan{" "}
+                  <span className="font-accent text-primary italic">Paket</span>
+                </DialogTitle>
+                <DialogDescription>
+                  Lengkapi detail pesanan — estimasi dihitung otomatis.
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+          )}
+
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -162,97 +178,131 @@ export function OrderForm({
             }}
             className="flex flex-col gap-8"
           >
-            <FieldGroup className="gap-10">
-              <form.AppField name="nama">
-                {(field) => (
-                  <field.Input
-                    label="Nama"
-                    LeftIcon={UserIcon}
-                    placeholder="Contoh: Budi Santoso"
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="no_telepon">
-                {(field) => (
-                  <field.Input
-                    label="No. Telepon"
-                    LeftIcon={UserIcon}
-                    type="tel"
-                    inputMode="tel"
-                    placeholder="Contoh: 081234567890"
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="lokasi_acara">
-                {(field) => (
-                  <field.TextArea
-                    label="Lokasi"
-                    LeftIcon={Location01Icon}
-                    placeholder="Contoh: Jl. Merdeka No. 45, Bogor Tengah, Kota Bogor"
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="tanggal_acara">
-                {(field) => (
-                  <field.DateInput
-                    label="Tanggal Acara"
-                    LeftIcon={Calendar01Icon}
-                    disablePast
-                    placeholder="Pilih tanggal acara..."
-                  />
-                )}
-              </form.AppField>
-
-              <form.AppField name="jumlah_porsi">
-                {(field) => (
-                  <field.Input
-                    LeftIcon={CalculatorIcon}
-                    label="Jumlah Porsi"
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={vm.capacity ?? undefined}
-                    placeholder={
-                      vm.capacity != null && vm.capacity > 0
-                        ? `Min. ${vm.minOrder} porsi (maks. ${vm.capacity})`
-                        : `Min. ${vm.minOrder} porsi`
-                    }
-                  />
-                )}
-              </form.AppField>
-
-              {hasAddons && (
-                <form.AppField name="lauk_pelengkap">
+            {/* Section 1: Informasi Utama — Required */}
+            <section className="px-3">
+              <header className="sr-only mb-8 border-b pb-6">
+                <h2 className="font-heading text-lg font-semibold">
+                  Informasi Utama
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Data wajib untuk memproses pesanan — pemesan, jadwal, dan
+                  pembayaran.
+                </p>
+              </header>
+              <FieldGroup className="gap-8">
+                <form.AppField name="nama">
                   {(field) => (
-                    <field.CheckboxGroup
-                      subLabel="Opsional"
-                      label="Menu Tambahan"
-                      options={(vm.menuExtra ?? []).map((item) => ({
-                        label: item,
-                        value: item,
-                      }))}
+                    <field.Input
+                      label="Nama"
+                      LeftIcon={UserIcon}
+                      placeholder="Contoh: Budi Santoso"
                     />
                   )}
                 </form.AppField>
-              )}
 
-              <form.AppField name="catatan">
-                {(field) => (
-                  <field.TextArea
-                    subLabel="Opsional"
-                    label="Catatan"
-                    LeftIcon={Dish01Icon}
-                    placeholder="Contoh: Mohon dikirim tepat pukul 10.00 WIB, jangan pakai kacang."
-                  />
+                <form.AppField name="no_telepon">
+                  {(field) => (
+                    <field.Input
+                      label="No. Telepon"
+                      LeftIcon={UserIcon}
+                      type="tel"
+                      inputMode="tel"
+                      placeholder="Contoh: 081234567890"
+                    />
+                  )}
+                </form.AppField>
+
+                <form.AppField name="lokasi_acara">
+                  {(field) => (
+                    <field.TextArea
+                      label="Lokasi"
+                      LeftIcon={Location01Icon}
+                      placeholder="Contoh: Jl. Merdeka No. 45, Bogor Tengah, Kota Bogor"
+                    />
+                  )}
+                </form.AppField>
+
+                <form.AppField name="tanggal_acara">
+                  {(field) => (
+                    <field.DateInput
+                      label="Tanggal Acara"
+                      LeftIcon={Calendar01Icon}
+                      disablePast
+                      placeholder="Pilih tanggal acara..."
+                    />
+                  )}
+                </form.AppField>
+
+                <form.AppField name="jumlah_porsi">
+                  {(field) => (
+                    <field.Input
+                      LeftIcon={CalculatorIcon}
+                      label="Jumlah Porsi"
+                      type="number"
+                      inputMode="numeric"
+                      min={1}
+                      max={vm.capacity ?? undefined}
+                      placeholder={
+                        vm.capacity != null && vm.capacity > 0
+                          ? `Min. ${vm.minOrder} porsi (maks. ${vm.capacity})`
+                          : `Min. ${vm.minOrder} porsi`
+                      }
+                    />
+                  )}
+                </form.AppField>
+
+                <form.AppField name="metode_pembayaran">
+                  {(field) => (
+                    <field.RadioGroup
+                      label="Metode Pembayaran"
+                      options={METODE_PEMBAYARAN_OPTIONS}
+                    />
+                  )}
+                </form.AppField>
+              </FieldGroup>
+            </section>
+
+            {/* Section 2: Informasi Tambahan — Optional */}
+            <section className="border-t border-border px-3 pt-8">
+              <header className="mb-8 space-y-2">
+                <h2 className="font-heading text-lg font-semibold">
+                  Informasi Tambahan
+                </h2>
+                <p className="text-sm text-muted-foreground md:text-sm">
+                  <span className=" hidden md:inline">Opsional — </span> permintaan khusus dan menu tambahan.
+                </p>
+              </header>
+              <FieldGroup className="gap-8">
+                {hasAddons && (
+                  <form.AppField name="lauk_pelengkap">
+                    {(field) => (
+                      <field.CheckboxGroup
+                        // subLabel="Opsional"
+                        label="Menu Tambahan"
+                        options={(vm.menuExtra ?? []).map((item) => ({
+                          label: item,
+                          value: item,
+                        }))}
+                      />
+                    )}
+                  </form.AppField>
                 )}
-              </form.AppField>
-            </FieldGroup>
 
-            <div className="flex flex-col gap-3">
-              <div className="flex items-baseline justify-between gap-3 px-2">
+                <form.AppField name="catatan">
+                  {(field) => (
+                    <field.TextArea
+                    //   subLabel="Opsional"
+                      label="Catatan"
+                      LeftIcon={Dish01Icon}
+                      placeholder="Contoh: Mohon dikirim tepat pukul 10.00 WIB, jangan pakai kacang."
+                    />
+                  )}
+                </form.AppField>
+              </FieldGroup>
+            </section>
+
+            <div className="sticky bottom-0 flex flex-col gap-3 border-t border-border bg-popover px-5 pt-6 pb-5">
+              <div className="flex items-baseline justify-between gap-3">
                 <span className="text-xs tracking-widest text-muted-foreground uppercase">
                   Estimasi
                 </span>

@@ -8,7 +8,11 @@ import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/d
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useDebouncedValue } from "./hooks/use-debounced-value"
 import { usePaketList } from "./hooks/use-paket-query"
-import { usePaketDeleteMutation } from "./hooks/use-paket-mutations"
+import {
+  usePaketBulkDeleteMutation,
+  usePaketBulkUpdateMutation,
+  usePaketDeleteMutation,
+} from "./hooks/use-paket-mutations"
 import { usePaketViewStore } from "@/store/paket-admin-view-store"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
@@ -19,6 +23,8 @@ import { PaketCardGrid } from "./components/paket-card-grid"
 import { CreatePaketDrawer } from "./components/create-paket-drawer"
 import { UpdatePaketDrawer } from "./components/update-paket-drawer"
 import { PaketDeleteDialog } from "./components/paket-delete-dialog"
+import { PaketTableActionBar } from "./components/paket-table-action-bar"
+import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "@/components/ui/fragments/shadcn-ui/sidebar"
 
@@ -56,9 +62,14 @@ function MasterPaketBlock() {
   const [createOpen, setCreateOpen] = useState(false)
   const [updateTarget, setUpdateTarget] = useState<Paket | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Paket | null>(null)
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
 
   const { mutate: deletePaket, isPending: isDeleting } =
     usePaketDeleteMutation()
+  const { mutate: bulkUpdate, isPending: isBulkUpdating } = usePaketBulkUpdateMutation()
+  const { mutate: bulkDelete, isPending: isBulkDeleting } = usePaketBulkDeleteMutation()
+  const isAnyBulkPending = isBulkUpdating || isBulkDeleting
 
   const handleFilterChange = <T,>(setter: (value: T) => void) => {
     return (value: T) => {
@@ -83,6 +94,31 @@ function MasterPaketBlock() {
     deletePaket(deleteTarget, {
       onSuccess: () => setDeleteTarget(null),
     })
+  }
+
+  const handleToggle = (id: number) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const handleToggleAll = (checked: boolean) => {
+    setSelectedIds(checked ? items.map((i) => i.id) : [])
+  }
+
+  const handleBulkUpdate = ({ field, value }: { field: "kategori_paket" | "kategori_acara"; value: string }) => {
+    if (selectedIds.length === 0) return
+    bulkUpdate(
+      { ids: selectedIds, field, value },
+      { onSuccess: () => setSelectedIds([]) }
+    )
+  }
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return
+    setBulkDeleteConfirmOpen(true)
+  }
+
+  const confirmBulkDelete = () => {
+    bulkDelete({ ids: selectedIds }, { onSuccess: () => { setSelectedIds([]); setBulkDeleteConfirmOpen(false) } })
   }
 
   const clearAllFilters = () => {
@@ -186,6 +222,9 @@ function MasterPaketBlock() {
               sortBy={sortBy}
               sortDir={sortDir}
               onSortChange={handleSortChange}
+              selectedIds={selectedIds}
+              onToggle={handleToggle}
+              onToggleAll={handleToggleAll}
             />
           </div>
         )}
@@ -224,6 +263,26 @@ function MasterPaketBlock() {
         }}
         isPending={isDeleting}
         onConfirm={handleDelete}
+      />
+
+      {selectedIds.length > 0 && (
+        <PaketTableActionBar
+          table={selectedIds}
+          setSelected={setSelectedIds}
+          onTaskUpdate={handleBulkUpdate}
+          onTaskDelete={handleBulkDelete}
+          isPending={isAnyBulkPending}
+        />
+      )}
+
+      <DeleteDialog
+        open={bulkDeleteConfirmOpen}
+        onOpenChange={setBulkDeleteConfirmOpen}
+        title={`Hapus ${selectedIds.length} Paket?`}
+        description={`${selectedIds.length} paket terpilih akan dihapus permanen. Paket dengan pesanan terkait akan dilewati.`}
+        confirmLabel="Ya, Hapus Semua"
+        isPending={isBulkDeleting}
+        onConfirm={confirmBulkDelete}
       />
     </div>
   )

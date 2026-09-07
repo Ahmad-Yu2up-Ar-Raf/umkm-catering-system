@@ -122,7 +122,7 @@ export function UpdatePesananDrawer({
     return (
       <>
         <Drawer open={open} onOpenChange={handleOpenChange}>
-          <DrawerContent className="flex max-h-[95svh] flex-col overflow-hidden">
+          <DrawerContent >
             <DrawerHeader className="shrink-0 border-b p-4 text-left">
               <DrawerTitle>Edit Pesanan</DrawerTitle>
               <DrawerDescription>

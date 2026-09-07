@@ -157,7 +157,7 @@ export function CreatePaketDrawer({
       <Dialog open={open} onOpenChange={handleOpenChange}>
         {/* max-width dan max-height dibesarkan di sini */}
         <DialogContent className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]">
-          <DialogHeader className="flex sr-only shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
+          <DialogHeader className="sr-only flex shrink-0 flex-col items-center gap-2 border-b bg-background px-6 py-6 sm:px-10">
             <DialogTitle className="font-heading text-3xl">
               Buat{" "}
               <span className="font-accent text-primary italic">Paket</span>

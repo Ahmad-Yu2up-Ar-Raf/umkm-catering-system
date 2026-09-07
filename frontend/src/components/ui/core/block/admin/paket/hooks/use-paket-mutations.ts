@@ -1,6 +1,7 @@
 import { HTTPError } from "ky"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { playDelete, playError, playSuccess } from "@/lib/audio-feedback"
 import { useAppForm } from "@/hooks/use-form"
 import { adjustActiveUploads } from "@/store/paket-upload-store"
 import {
@@ -87,6 +88,7 @@ export function usePaketCreateMutation({ onSuccess }: { onSuccess?: () => void }
       queryClient.invalidateQueries({ queryKey: ADMIN_PAKET_KEY })
       queryClient.invalidateQueries({ queryKey: ["paket"] })
       toast.success(message || "Paket berhasil ditambahkan.", { id: "paket-save" })
+      playSuccess()
       onSuccess?.()
     },
     onError: async (error, _variables, context) => {
@@ -95,6 +97,7 @@ export function usePaketCreateMutation({ onSuccess }: { onSuccess?: () => void }
       }
       const message = await getErrorMessage(error, "Gagal menambahkan paket. Coba lagi.")
       toast.error(message, { id: "paket-save" })
+      playError()
       console.error("Create paket error:", error)
     },
     onSettled: () => {
@@ -136,6 +139,7 @@ export function usePaketUpdateMutation({ onSuccess }: { onSuccess?: () => void }
       queryClient.invalidateQueries({ queryKey: ADMIN_PAKET_KEY })
       queryClient.invalidateQueries({ queryKey: ["paket"] })
       toast.success(message || "Paket berhasil diperbarui.", { id: "paket-save" })
+      playSuccess()
       onSuccess?.()
     },
     onError: async (error, _variables, context) => {
@@ -144,6 +148,7 @@ export function usePaketUpdateMutation({ onSuccess }: { onSuccess?: () => void }
       }
       const message = await getErrorMessage(error, "Gagal memperbarui paket. Coba lagi.")
       toast.error(message, { id: "paket-save" })
+      playError()
       console.error("Update paket error:", error)
     },
     onSettled: () => {
@@ -198,6 +203,7 @@ export function usePaketDeleteMutation() {
       queryClient.invalidateQueries({ queryKey: ADMIN_PAKET_KEY })
       queryClient.invalidateQueries({ queryKey: ["paket"] })
       toast.success(message || `Paket “${paket.nama_paket}” dihapus.`, { id: "paket-delete" })
+      playDelete()
     },
     onError: async (error, deletedPaket, context) => {
       console.error("[paket-delete] onError triggered with error:", error)
@@ -205,17 +211,75 @@ export function usePaketDeleteMutation() {
         console.warn("[paket-delete] already gone server-side", { id: deletedPaket.id })
         queryClient.invalidateQueries({ queryKey: ADMIN_PAKET_KEY })
         toast.success(`Paket “${deletedPaket.nama_paket}” sudah terhapus.`, { id: "paket-delete" })
+        playDelete()
         return
       }
       const message = await getErrorMessage(error, "Gagal menghapus paket. Coba lagi.")
       console.error("[paket-delete] failed resolved message:", message, { id: deletedPaket.id }, error)
       toast.error(message, { id: "paket-delete" })
+      playError()
       if (context?.previousPaket) {
         queryClient.setQueryData(ADMIN_PAKET_KEY, context.previousPaket)
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_PAKET_KEY })
+    },
+  })
+}
+
+/** Bulk update — single field for many paket IDs. */
+export function usePaketBulkUpdateMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    retry: false,
+    mutationFn: async (payload: { ids: number[]; field: string; value: string | boolean }) => {
+      const res = await api.post("admin/paket/bulk-update", { json: payload }).json<{ message: string }>()
+      return res.message
+    },
+    onMutate: async () => {
+      toast.loading("Memperbarui paket...", { id: "paket-bulk-update" })
+      await queryClient.cancelQueries({ queryKey: ADMIN_PAKET_KEY })
+    },
+    onSuccess: (message) => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_PAKET_KEY })
+      queryClient.invalidateQueries({ queryKey: ["paket"] })
+      toast.success(message || "Paket berhasil diperbarui.", { id: "paket-bulk-update" })
+      playSuccess()
+    },
+    onError: async (error) => {
+      const message = await getErrorMessage(error, "Gagal memperbarui paket. Coba lagi.")
+      toast.error(message, { id: "paket-bulk-update" })
+      playError()
+      console.error("Bulk update paket error:", error)
+    },
+  })
+}
+
+/** Bulk delete — many paket IDs. */
+export function usePaketBulkDeleteMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    retry: false,
+    mutationFn: async (payload: { ids: number[] }) => {
+      const res = await api.post("admin/paket/bulk-delete", { json: payload }).json<{ message: string }>()
+      return res.message
+    },
+    onMutate: async () => {
+      toast.loading("Menghapus paket...", { id: "paket-bulk-delete" })
+      await queryClient.cancelQueries({ queryKey: ADMIN_PAKET_KEY })
+    },
+    onSuccess: (message) => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_PAKET_KEY })
+      queryClient.invalidateQueries({ queryKey: ["paket"] })
+      toast.success(message || "Paket berhasil dihapus.", { id: "paket-bulk-delete" })
+      playDelete()
+    },
+    onError: async (error) => {
+      const message = await getErrorMessage(error, "Gagal menghapus paket. Coba lagi.")
+      toast.error(message, { id: "paket-bulk-delete" })
+      playError()
+      console.error("Bulk delete paket error:", error)
     },
   })
 }

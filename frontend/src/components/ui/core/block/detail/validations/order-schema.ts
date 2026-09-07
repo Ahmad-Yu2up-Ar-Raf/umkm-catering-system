@@ -1,5 +1,6 @@
 import * as z from "zod"
 import { isMatch, isValid, parse, startOfToday } from "date-fns"
+import { METODE_PEMBAYARAN } from "../../admin/pesanan/types/pesanan-types"
 
 /** Package runtime values injected at form-creation time (per-package validation). */
 export interface OrderSchemaParams {
@@ -51,6 +52,9 @@ export const createOrderSchema = ({
         { message: "Tanggal acara tidak boleh di masa lalu" }
       ),
     jumlah_porsi: createJumlahSchema(minOrder, capacity),
+    metode_pembayaran: z
+      .enum(METODE_PEMBAYARAN, { error: "Pilih metode pembayaran" })
+      .nullish(),
     lauk_pelengkap: z
       .array(z.string())
       .max(addonOptions.length, "Pilihan tidak valid"),

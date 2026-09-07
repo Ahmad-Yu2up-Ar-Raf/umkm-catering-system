@@ -26,7 +26,7 @@ export function getUISFX(): UISFXPlayer {
   if (_ui) return _ui
   _ui = createUISFX({
     pack: "minimal",
-    volume: 0.7,
+    volume: 1.0,
     preferences: { key: PREF_KEY },
   })
   return _ui

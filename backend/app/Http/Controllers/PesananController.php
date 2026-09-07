@@ -158,6 +158,56 @@ class PesananController extends Controller
     }
 
     /**
+     * Bulk update — single field for many pesanan IDs.
+     */
+    public function bulkUpdate(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', \Illuminate\Validation\Rule::exists('pesanan', 'id')],
+            'field' => ['required', 'string', \Illuminate\Validation\Rule::in(['status_pesanan', 'metode_pembayaran'])],
+            'value' => ['required', 'string'],
+        ]);
+
+        $ids = $request->input('ids');
+        $field = $request->input('field');
+        $value = $request->input('value');
+
+        if ($field === 'status_pesanan') {
+            $allowed = ['pending', 'confirmed', 'completed', 'cancelled'];
+            if (!in_array($value, $allowed, true)) {
+                return response()->json(['status' => false, 'message' => 'Invalid status_pesanan value'], 422);
+            }
+        }
+        if ($field === 'metode_pembayaran') {
+            $allowed = ['transfer', 'cash', 'qris'];
+            if (!in_array($value, $allowed, true)) {
+                return response()->json(['status' => false, 'message' => 'Invalid metode_pembayaran value'], 422);
+            }
+        }
+
+        \App\Models\Pesanan::whereIn('id', $ids)->update([$field => $value]);
+
+        return response()->json(['status' => true, 'message' => count($ids) . ' pesanan berhasil diperbarui'], 200);
+    }
+
+    /**
+     * Bulk delete — hard delete.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', \Illuminate\Validation\Rule::exists('pesanan', 'id')],
+        ]);
+
+        $ids = $request->input('ids');
+        \App\Models\Pesanan::whereIn('id', $ids)->delete();
+
+        return response()->json(['status' => true, 'message' => count($ids) . ' pesanan berhasil dihapus'], 200);
+    }
+
+    /**
      * Remove the specified resource from storage (admin).
      */
     public function destroy(Pesanan $pesanan)

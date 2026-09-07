@@ -215,10 +215,10 @@ export function PesananForm({
                                 onChange={(e) => setPaketSearch(e.target.value)}
                                 placeholder="Cari paket..."
                                 leftIcon={Search01Icon}
-                                className="h-9 w-full"
+                                className="h-9 w-full rounded-xl"
                                 autoFocus
                               />
-                              <ScrollArea className="h-60 w-full rounded-md border">
+                              <ScrollArea className="h-60 w-full rounded-xl border">
                                 <div className="flex flex-col p-1">
                                   {filteredPaketOptions.length === 0 ? (
                                     <div className="py-6 text-center text-sm text-muted-foreground">

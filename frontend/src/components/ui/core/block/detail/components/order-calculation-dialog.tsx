@@ -107,11 +107,11 @@ export function OrderCalculationDialog({
       <>
         <Dialog open={open} onOpenChange={handleOpenChange}>
           <DialogContent
-            className="h-full max-h-[90svh] max-w-4xl gap-0 overflow-hidden p-0 sm:max-w-[70em]"
+            className="flex h-full max-h-[95vh] w-full max-w-4xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]"
             showCloseButton
             data-lenis-prevent
           >
-            <div className="show-scrollbar h-full overflow-y-auto overscroll-contain p-6 pt-0 md:p-9">
+            <div className="show-scrollbar h-full overflow-y-auto overscroll-contain p-6 pt-0 md:p-0">
               <OrderForm vm={vm} form={form} />
             </div>
           </DialogContent>
@@ -133,15 +133,18 @@ export function OrderCalculationDialog({
     <>
       <Drawer open={open} onOpenChange={handleOpenChange}>
         <DrawerContent data-lenis-prevent>
-          <DrawerHeader className="px-2 pt-2">
-            <DrawerTitle className="font-heading text-2xl">{vm.name}</DrawerTitle>
-            <DrawerDescription>
-              Lengkapi detail pesanan — estimasi dihitung otomatis.
+          <DrawerHeader className="space-y-1 border-b px-2 pt-2">
+            <DrawerTitle className="font-heading text-2xl">
+              Pesan{" "}
+              <span className="font-accent text-primary italic">Paket</span>
+            </DrawerTitle>
+            <DrawerDescription className="  text-xs ">
+              Lengkapi detail pesanan Berikut ini
             </DrawerDescription>
           </DrawerHeader>
-          <Separator className="mx-6 mb-5" />
+          {/* <Separator className="mx-6 mb-5" /> */}
 
-          <div className="max-h-[65svh] overflow-y-auto overscroll-contain px-5 pb-8">
+          <div className="h-full w-full overflow-y-auto overscroll-contain ">
             <OrderForm vm={vm} form={form} />
           </div>
         </DrawerContent>

@@ -18,7 +18,6 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('web')->group(base_path('routes/auth.php'));
         },
     )
-    ->withBroadcasting(__DIR__.'/../routes/channels.php', ['middleware' => ['web', 'auth:sanctum']])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->api(prepend: [
             EnsureFrontendRequestsAreStateful::class,

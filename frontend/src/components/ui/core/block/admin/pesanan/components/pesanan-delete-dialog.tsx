@@ -2,7 +2,6 @@
 
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import type { Pesanan } from "../types/pesanan-types"
-import { usePesananDeleteMutation } from "../hooks/use-pesanan-mutations"
 
 interface PesananDeleteDialogProps {
   pesanan: Pesanan | null
@@ -19,13 +18,6 @@ export function PesananDeleteDialog({
   isPending,
   onConfirm,
 }: PesananDeleteDialogProps) {
-  const { mutate: deletePesanan } = usePesananDeleteMutation()
-
-  const handleConfirm = () => {
-    if (!pesanan) return
-    deletePesanan({ id: pesanan.id }, { onSuccess: onConfirm })
-  }
-
   return (
     <DeleteDialog
       open={open}
@@ -36,7 +28,7 @@ export function PesananDeleteDialog({
       }
       confirmLabel="Ya, Hapus"
       isPending={isPending}
-      onConfirm={handleConfirm}
+      onConfirm={onConfirm}
     />
   )
 }

@@ -6,6 +6,8 @@ import {
   ArrowLeft02Icon,
   ArrowRight02Icon,
   Cancel01Icon,
+  ChevronLeft,
+  ChevronRight,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -286,7 +288,7 @@ export function GlobalImageModal() {
           <div
             ref={stageRef}
             onClick={close}
-            className="relative z-10 flex min-h-0 flex-1 w-full items-center justify-center px-3 pt-10 pb-24 sm:px-6 sm:pt-12 sm:pb-28"
+            className="relative z-10 flex min-h-0 w-full flex-1 items-center justify-center px-3 pt-10 pb-24 sm:px-6 sm:pt-12 sm:pb-28"
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -365,7 +367,7 @@ export function GlobalImageModal() {
             size="icon"
             aria-label="Tutup"
             onClick={close}
-            className="absolute top-4 right-4 z-[80] flex size-12 touch-manipulation select-none items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 pointer-events-auto hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none"
+            className="pointer-events-auto absolute top-4 right-4 z-[80] flex size-10 md:size-12 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none"
           >
             <HugeiconsIcon
               icon={Cancel01Icon}
@@ -401,11 +403,11 @@ export function GlobalImageModal() {
                   e.stopPropagation()
                   prev()
                 }}
-                className="absolute top-1/2 left-3 z-[80] flex size-12 -translate-y-1/2 touch-manipulation select-none items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 pointer-events-auto hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:left-6"
+                className="pointer-events-auto absolute top-1/2 left-3 z-[80] flex size-10 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:left-6 md:size-12"
               >
                 <HugeiconsIcon
-                  icon={ArrowLeft02Icon}
-                  className="pointer-events-none size-5"
+                  icon={ChevronLeft}
+                  className="pointer-events-none  size-5"
                 />
               </Button>
               <Button
@@ -417,11 +419,11 @@ export function GlobalImageModal() {
                   e.stopPropagation()
                   next()
                 }}
-                className="absolute top-1/2 right-3 z-[80] flex size-12 -translate-y-1/2 touch-manipulation select-none items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 pointer-events-auto hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:right-6"
+                className="pointer-events-auto absolute top-1/2 right-3 z-[80] flex size-10 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:right-6 md:size-12"
               >
                 <HugeiconsIcon
-                  icon={ArrowRight02Icon}
-                  className="pointer-events-none size-5"
+                  icon={ChevronRight}
+                  className="pointer-events-none  size-5"
                 />
               </Button>
             </>

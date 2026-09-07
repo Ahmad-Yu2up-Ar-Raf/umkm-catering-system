@@ -43,6 +43,7 @@ import {
   getAcaraIcon,
 } from "../../../paket/utils/paket-kategori-utils.ts"
 import type { Paket } from "../../../paket/types/paket-types"
+import { Checkbox } from "@/components/ui/fragments/shadcn-ui/checkbox"
 import { cn } from "@/lib/utils"
 
 interface PaketTableProps {
@@ -52,6 +53,9 @@ interface PaketTableProps {
   sortBy?: string
   sortDir?: "asc" | "desc"
   onSortChange?: (column: string, dir: "asc" | "desc") => void
+  selectedIds?: number[]
+  onToggle?: (id: number) => void
+  onToggleAll?: (checked: boolean) => void
 }
 
 /**
@@ -64,7 +68,12 @@ export function PaketTable({
   sortBy,
   sortDir,
   onSortChange,
+  selectedIds = [],
+  onToggle,
+  onToggleAll,
 }: PaketTableProps) {
+  const isAllSelected = items.length > 0 && selectedIds.length === items.length
+  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < items.length
   const { isPending: isDeleting, variables: deleteVariables } =
     usePaketDeleteMutation()
 
@@ -130,6 +139,14 @@ export function PaketTable({
     <Table className="relative bg-transparent">
       <TableHeader>
         <TableRow className="border-border hover:bg-transparent">
+          <TableHead className="w-12">
+            <Checkbox
+              checked={isAllSelected ? true : isIndeterminate ? "indeterminate" : false}
+              onCheckedChange={(checked: boolean | "indeterminate") => onToggleAll?.(checked === true)}
+              aria-label="Select all"
+              className="mx-3 translate-y-0.5"
+            />
+          </TableHead>
           {!hiddenCols.nama_paket && (
             <TableHead className="min-w-64">
               {renderSortHeader("Paket", "nama_paket")}
@@ -184,6 +201,14 @@ export function PaketTable({
               key={paket.id}
               className="group border-border transition-colors hover:bg-muted/40"
             >
+              <TableCell>
+                <Checkbox
+                  checked={selectedIds.includes(paket.id)}
+                  onCheckedChange={() => onToggle?.(paket.id)}
+                  aria-label="Select row"
+                  className="mx-3 translate-y-0.5"
+                />
+              </TableCell>
               {!hiddenCols.nama_paket && (
                 <TableCell>
                   <div className="flex items-center gap-3">

@@ -38,7 +38,7 @@ export function OrderSummaryPanel({ vm }: { vm: DetailViewModel }) {
 
   return (
     <aside className="relative">
-      <div className="sticky top-0 hidden h-fit flex-col gap-7 rounded-2xl bg-muted/30 p-5 ring ring-border/80 lg:flex">
+      <div className="sticky top-0 hidden h-fit flex-col gap-7 rounded-2xl p-5 ring ring-border/80 lg:flex">
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
           <MediaItem
             webViewLink={vm.gallery[0] ?? DETAIL_FALLBACK_IMAGE}
@@ -61,7 +61,7 @@ export function OrderSummaryPanel({ vm }: { vm: DetailViewModel }) {
             >
               <span className="font-medium">{vm.categoryLabel}</span>
             </Badge>
-            <p className="mb-4 font-heading text-2xl font-medium tracking-tight text-foreground">
+            <p className="mb-1 font-heading text-2xl font-medium tracking-tight text-foreground">
               {vm.name}
             </p>
           </div>
@@ -75,14 +75,14 @@ export function OrderSummaryPanel({ vm }: { vm: DetailViewModel }) {
                 {vm.priceLabel} / porsi
               </dd>
             </div>
-            {/* <div className="flex justify-between gap-3">
+            <div className="flex justify-between gap-3">
               <dt className="text-xs tracking-widest text-muted-foreground uppercase">
                 Jumlah porsi
               </dt>
               <dd className="text-sm font-medium text-foreground">
                 {values.jumlah_porsi || "—"} Porsi
               </dd>
-            </div> */}
+            </div>
             <div className="flex justify-between gap-3">
               <dt className="text-xs tracking-widest text-muted-foreground uppercase">
                 Kapasitas produksi

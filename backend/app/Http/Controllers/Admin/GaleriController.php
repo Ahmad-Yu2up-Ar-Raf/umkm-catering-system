@@ -153,6 +153,59 @@ class GaleriController extends Controller
     }
 
     /**
+     * Bulk update — single field for many galeri IDs.
+     */
+    public function bulkUpdate(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', \Illuminate\Validation\Rule::exists('galeri', 'id')],
+            'field' => ['required', 'string', \Illuminate\Validation\Rule::in(['kategori_acara'])],
+            'value' => ['required', 'string'],
+        ]);
+
+        $ids = $request->input('ids');
+        $field = $request->input('field');
+        $value = $request->input('value');
+
+        $allowed = array_map(fn($c) => $c->value, \App\Enums\GaleriKategoriEnum::cases());
+        if (!in_array($value, $allowed, true)) {
+            return response()->json(['status' => false, 'message' => 'Invalid kategori_acara value'], 422);
+        }
+
+        \App\Models\Galeri::whereIn('id', $ids)->update([$field => $value]);
+
+        return response()->json(['status' => true, 'message' => count($ids) . ' galeri berhasil diperbarui'], 200);
+    }
+
+    /**
+     * Bulk delete — hard delete with Cloudinary cleanup.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', \Illuminate\Validation\Rule::exists('galeri', 'id')],
+        ]);
+
+        $ids = $request->input('ids');
+        $galeris = \App\Models\Galeri::whereIn('id', $ids)->get();
+        $urls = $galeris->pluck('gambar_acara')->filter()->all();
+
+        \App\Models\Galeri::whereIn('id', $ids)->delete();
+
+        if ($urls !== []) {
+            try {
+                (new \App\Jobs\PurgeCloudinaryAssets($urls))->handle();
+            } catch (\Throwable $e) {
+                Log::error('Bulk Cloudinary purge failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json(['status' => true, 'message' => count($ids) . ' galeri berhasil dihapus'], 200);
+    }
+
+    /**
      * Normalize an enum-column filter value into a whitelisted array.
      */
     private function normalizeEnumFilter(mixed $input, array $allowed): array

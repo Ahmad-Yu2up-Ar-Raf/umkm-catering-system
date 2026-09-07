@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/dialog"
 
 import { copyToClipboard, shareUrlFor, type SharePayload } from "@/lib/share"
+import { Link } from "react-router"
 
 /** Social targets for the desktop fallback — Hugeicon brand marks. */
 const SOCIALS = [
@@ -70,10 +71,10 @@ export function ShareDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-2xl sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-heading text-xl font-semibold tracking-tight">
+          <DialogTitle className="font-heading text-center text-xl font-semibold tracking-tight">
             Bagikan Paket
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className=" sr-only">
             Pilih aplikasi favorit atau salin tautannya — preview lengkap
             (gambar, judul, deskripsi) akan tampil di sana.
           </DialogDescription>
@@ -84,21 +85,21 @@ export function ShareDialog({
             {/* Social channels */}
             <div className="grid grid-cols-2 gap-2.5">
               {SOCIALS.map(({ name, icon, hrefFor }) => (
-                <a
+                <Link
                   key={name}
-                  href={hrefFor(payload)}
+                  to={hrefFor(payload)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-medium text-foreground transition-colors duration-300 hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <HugeiconsIcon icon={icon} className="size-4 text-primary" />
                   {name}
-                </a>
+                </Link>
               ))}
             </div>
 
             {/* Copy link */}
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <div className="relative min-w-0 flex-1">
                 <HugeiconsIcon
                   icon={Link01Icon}
@@ -124,7 +125,7 @@ export function ShareDialog({
                 />
                 {copied ? "Tersalin" : "Salin"}
               </Button>
-            </div>
+            </div> */}
           </div>
         )}
       </DialogContent>

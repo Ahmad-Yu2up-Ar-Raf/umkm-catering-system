@@ -15,7 +15,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <HugeiconsIcon
             icon={CheckmarkCircle02Icon}
             strokeWidth={2}
-            className="size-4"
+            className="size-4  text-primary"
           />
         ),
         info: (

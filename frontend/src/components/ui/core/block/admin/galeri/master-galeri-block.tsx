@@ -7,7 +7,11 @@ import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/d
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useDebouncedValue } from "@/hooks/use-debounced-value"
 import { useGaleriList } from "./hooks/use-galeri-query"
-import { useGaleriDeleteMutation } from "./hooks/use-galeri-mutations"
+import {
+  useGaleriBulkDeleteMutation,
+  useGaleriBulkUpdateMutation,
+  useGaleriDeleteMutation,
+} from "./hooks/use-galeri-mutations"
 import { useGaleriViewStore } from "@/store/galeri-admin-view-store"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
@@ -18,6 +22,8 @@ import { GaleriCardGrid } from "./components/galeri-card-grid"
 import { CreateGaleriDrawer } from "./components/create-galeri-drawer"
 import { UpdateGaleriDrawer } from "./components/update-galeri-drawer"
 import { GaleriDeleteDialog } from "./components/galeri-delete-dialog"
+import { GaleriTableActionBar } from "./components/galeri-table-action-bar"
+import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { cn } from "@/lib/utils"
 
 /**
@@ -52,9 +58,14 @@ function MasterGaleriBlock() {
   const [createOpen, setCreateOpen] = useState(false)
   const [updateTarget, setUpdateTarget] = useState<Galeri | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Galeri | null>(null)
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
 
   const { mutate: deleteGaleri, isPending: isDeleting } =
     useGaleriDeleteMutation()
+  const { mutate: bulkUpdate, isPending: isBulkUpdating } = useGaleriBulkUpdateMutation()
+  const { mutate: bulkDelete, isPending: isBulkDeleting } = useGaleriBulkDeleteMutation()
+  const isAnyBulkPending = isBulkUpdating || isBulkDeleting
 
   const handleFilterChange = <T,>(setter: (value: T) => void) => {
     return (value: T) => {
@@ -74,6 +85,31 @@ function MasterGaleriBlock() {
     deleteGaleri(deleteTarget, {
       onSuccess: () => setDeleteTarget(null),
     })
+  }
+
+  const handleToggle = (id: number) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
+  const handleToggleAll = (checked: boolean) => {
+    setSelectedIds(checked ? items.map((i) => i.id) : [])
+  }
+
+  const handleBulkUpdate = ({ field, value }: { field: "kategori_acara"; value: string }) => {
+    if (selectedIds.length === 0) return
+    bulkUpdate(
+      { ids: selectedIds, field, value },
+      { onSuccess: () => setSelectedIds([]) }
+    )
+  }
+
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return
+    setBulkDeleteConfirmOpen(true)
+  }
+
+  const confirmBulkDelete = () => {
+    bulkDelete({ ids: selectedIds }, { onSuccess: () => { setSelectedIds([]); setBulkDeleteConfirmOpen(false) } })
   }
 
   const clearAllFilters = () => {
@@ -164,6 +200,9 @@ function MasterGaleriBlock() {
               sortBy={sortBy}
               sortDir={sortDir}
               onSortChange={handleSortChange}
+              selectedIds={selectedIds}
+              onToggle={handleToggle}
+              onToggleAll={handleToggleAll}
             />
           </div>
         )}
@@ -202,6 +241,26 @@ function MasterGaleriBlock() {
         }}
         isPending={isDeleting}
         onConfirm={handleDelete}
+      />
+
+      {selectedIds.length > 0 && (
+        <GaleriTableActionBar
+          table={selectedIds}
+          setSelected={setSelectedIds}
+          onTaskUpdate={handleBulkUpdate}
+          onTaskDelete={handleBulkDelete}
+          isPending={isAnyBulkPending}
+        />
+      )}
+
+      <DeleteDialog
+        open={bulkDeleteConfirmOpen}
+        onOpenChange={setBulkDeleteConfirmOpen}
+        title={`Hapus ${selectedIds.length} Galeri?`}
+        description={`${selectedIds.length} galeri terpilih akan dihapus permanen.`}
+        confirmLabel="Ya, Hapus Semua"
+        isPending={isBulkDeleting}
+        onConfirm={confirmBulkDelete}
       />
     </div>
   )

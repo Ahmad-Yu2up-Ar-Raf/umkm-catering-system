@@ -110,7 +110,7 @@ export function GalleryBlock() {
         </div>
 
         {/* 3 — category previews: one editorial rail per category. */}
-        <div className="container m-auto w-full pt-12 pb-24 md:pt-16 md:pb-32">
+        <div className="container p-0 m-auto w-full pt-12 pb-24 md:pt-16 md:pb-32">
           {previewsSettled ? (
             <div className="flex flex-col gap-16 md:gap-20">
               {results.map((result, index) => {

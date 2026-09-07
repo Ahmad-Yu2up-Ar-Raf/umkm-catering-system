@@ -262,6 +262,89 @@ class PaketController extends Controller
     }
 
     /**
+     * Bulk update — single field for many paket IDs.
+     */
+    public function bulkUpdate(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', \Illuminate\Validation\Rule::exists('paket', 'id')],
+            'field' => ['required', 'string', \Illuminate\Validation\Rule::in(['kategori_paket', 'kategori_acara', 'is_best_seller'])],
+            'value' => ['required'],
+        ]);
+
+        $ids = $request->input('ids');
+        $field = $request->input('field');
+        $value = $request->input('value');
+
+        // Field-specific enum validation
+        if ($field === 'kategori_paket') {
+            $allowed = array_map(fn($c) => $c->value, \App\Enums\PaketKategoriEnum::cases());
+            if (!in_array($value, $allowed, true)) {
+                return response()->json(['status' => false, 'message' => 'Invalid kategori_paket value'], 422);
+            }
+        }
+        if ($field === 'kategori_acara') {
+            $allowed = array_map(fn($c) => $c->value, \App\Enums\KategoriAcaraEnum::cases());
+            // Allow Umum as well (nullable handling)
+            if (!in_array($value, $allowed, true)) {
+                return response()->json(['status' => false, 'message' => 'Invalid kategori_acara value'], 422);
+            }
+        }
+        if ($field === 'is_best_seller') {
+            $value = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($value === null) {
+                return response()->json(['status' => false, 'message' => 'Invalid is_best_seller value'], 422);
+            }
+        }
+
+        \App\Models\Paket::whereIn('id', $ids)->update([$field => $value]);
+
+        return response()->json(['status' => true, 'message' => count($ids) . ' paket berhasil diperbarui'], 200);
+    }
+
+    /**
+     * Bulk delete — hard delete with Cloudinary cleanup per model.
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => ['required', 'array', 'min:1'],
+            'ids.*' => ['integer', \Illuminate\Validation\Rule::exists('paket', 'id')],
+        ]);
+
+        $ids = $request->input('ids');
+        $pakets = \App\Models\Paket::whereIn('id', $ids)->with('images')->get();
+
+        // Guard: block if any has pesanan
+        $blocked = $pakets->filter(fn($p) => $p->pesanan()->exists());
+        if ($blocked->isNotEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Beberapa paket tidak dapat dihapus karena memiliki pesanan terkait: ' . $blocked->pluck('nama_paket')->join(', '),
+            ], 409);
+        }
+
+        $urls = [];
+        foreach ($pakets as $paket) {
+            $urls = array_merge($urls, $paket->images()->pluck('image_url')->all());
+            if ($paket->thumbnail) $urls[] = $paket->thumbnail;
+        }
+
+        \App\Models\Paket::whereIn('id', $ids)->delete();
+
+        if ($urls !== []) {
+            try {
+                (new \App\Jobs\PurgeCloudinaryAssets($urls))->handle();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Bulk Cloudinary purge failed', ['error' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json(['status' => true, 'message' => count($ids) . ' paket berhasil dihapus'], 200);
+    }
+
+    /**
      * Keep `paket_images` in sync with the authoritative URL list.
      */
     private function syncImages(Paket $paket, array $newUrls): void

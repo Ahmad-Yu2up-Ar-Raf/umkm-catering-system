@@ -1,6 +1,7 @@
 import { HTTPError } from "ky"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import { playDelete, playError, playSuccess } from "@/lib/audio-feedback"
 import { useAppForm } from "@/hooks/use-form"
 import { adjustActiveGaleriUploads } from "@/store/galeri-upload-store"
 import {
@@ -78,6 +79,7 @@ export function useGaleriCreateMutation({ onSuccess }: { onSuccess?: () => void 
       queryClient.invalidateQueries({ queryKey: ADMIN_GALERI_KEY })
       queryClient.invalidateQueries({ queryKey: ["galeri"] })
       toast.success(message || "Galeri berhasil ditambahkan.", { id: "galeri-save" })
+      playSuccess()
       onSuccess?.()
     },
     onError: async (error, _variables, context) => {
@@ -86,6 +88,7 @@ export function useGaleriCreateMutation({ onSuccess }: { onSuccess?: () => void 
       }
       const message = await getErrorMessage(error, "Gagal menambahkan galeri. Coba lagi.")
       toast.error(message, { id: "galeri-save" })
+      playError()
       console.error("Create galeri error:", error)
     },
     onSettled: () => {
@@ -127,6 +130,7 @@ export function useGaleriUpdateMutation({ onSuccess }: { onSuccess?: () => void 
       queryClient.invalidateQueries({ queryKey: ADMIN_GALERI_KEY })
       queryClient.invalidateQueries({ queryKey: ["galeri"] })
       toast.success(message || "Galeri berhasil diperbarui.", { id: "galeri-save" })
+      playSuccess()
       onSuccess?.()
     },
     onError: async (error, _variables, context) => {
@@ -135,6 +139,7 @@ export function useGaleriUpdateMutation({ onSuccess }: { onSuccess?: () => void 
       }
       const message = await getErrorMessage(error, "Gagal memperbarui galeri. Coba lagi.")
       toast.error(message, { id: "galeri-save" })
+      playError()
       console.error("Update galeri error:", error)
     },
     onSettled: () => {
@@ -189,6 +194,7 @@ export function useGaleriDeleteMutation() {
       queryClient.invalidateQueries({ queryKey: ADMIN_GALERI_KEY })
       queryClient.invalidateQueries({ queryKey: ["galeri"] })
       toast.success(message || `Galeri “${galeri.nama_acara}” dihapus.`, { id: "galeri-delete" })
+      playDelete()
     },
     onError: async (error, deletedGaleri, context) => {
       console.error("[galeri-delete] onError triggered with error:", error)
@@ -196,17 +202,75 @@ export function useGaleriDeleteMutation() {
         console.warn("[galeri-delete] already gone server-side", { id: deletedGaleri.id })
         queryClient.invalidateQueries({ queryKey: ADMIN_GALERI_KEY })
         toast.success(`Galeri “${deletedGaleri.nama_acara}” sudah terhapus.`, { id: "galeri-delete" })
+        playDelete()
         return
       }
       const message = await getErrorMessage(error, "Gagal menghapus galeri. Coba lagi.")
       console.error("[galeri-delete] failed resolved message:", message, { id: deletedGaleri.id }, error)
       toast.error(message, { id: "galeri-delete" })
+      playError()
       if (context?.previousGaleri) {
         queryClient.setQueryData(ADMIN_GALERI_KEY, context.previousGaleri)
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ADMIN_GALERI_KEY })
+    },
+  })
+}
+
+/** Bulk update — single field for many galeri IDs. */
+export function useGaleriBulkUpdateMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    retry: false,
+    mutationFn: async (payload: { ids: number[]; field: string; value: string }) => {
+      const res = await api.post("admin/galeri/bulk-update", { json: payload }).json<{ message: string }>()
+      return res.message
+    },
+    onMutate: async () => {
+      toast.loading("Memperbarui galeri...", { id: "galeri-bulk-update" })
+      await queryClient.cancelQueries({ queryKey: ADMIN_GALERI_KEY })
+    },
+    onSuccess: (message) => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_GALERI_KEY })
+      queryClient.invalidateQueries({ queryKey: ["galeri"] })
+      toast.success(message || "Galeri berhasil diperbarui.", { id: "galeri-bulk-update" })
+      playSuccess()
+    },
+    onError: async (error) => {
+      const message = await getErrorMessage(error, "Gagal memperbarui galeri. Coba lagi.")
+      toast.error(message, { id: "galeri-bulk-update" })
+      playError()
+      console.error("Bulk update galeri error:", error)
+    },
+  })
+}
+
+/** Bulk delete — many galeri IDs. */
+export function useGaleriBulkDeleteMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    retry: false,
+    mutationFn: async (payload: { ids: number[] }) => {
+      const res = await api.post("admin/galeri/bulk-delete", { json: payload }).json<{ message: string }>()
+      return res.message
+    },
+    onMutate: async () => {
+      toast.loading("Menghapus galeri...", { id: "galeri-bulk-delete" })
+      await queryClient.cancelQueries({ queryKey: ADMIN_GALERI_KEY })
+    },
+    onSuccess: (message) => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_GALERI_KEY })
+      queryClient.invalidateQueries({ queryKey: ["galeri"] })
+      toast.success(message || "Galeri berhasil dihapus.", { id: "galeri-bulk-delete" })
+      playDelete()
+    },
+    onError: async (error) => {
+      const message = await getErrorMessage(error, "Gagal menghapus galeri. Coba lagi.")
+      toast.error(message, { id: "galeri-bulk-delete" })
+      playError()
+      console.error("Bulk delete galeri error:", error)
     },
   })
 }

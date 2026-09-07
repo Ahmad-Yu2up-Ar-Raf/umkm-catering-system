@@ -77,7 +77,7 @@ export function GalleryCategorySection({
     >
       <motion.div
         variants={lineVariants}
-        className="mb-5 flex flex-wrap items-baseline justify-between gap-2"
+        className="mb-5  px-6 flex flex-wrap items-baseline justify-between gap-2"
       >
         <h2
           id={headingId}
@@ -116,7 +116,7 @@ export function GalleryCategorySection({
             opts={{ align: "start", containScroll: "trimSnaps" }}
             className="w-full"
           >
-            <CarouselContent className="-ml-3">
+            <CarouselContent className="ml-3">
               {items.map((item, index) => (
                 <CarouselItem
                   key={item.id}

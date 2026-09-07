@@ -2,6 +2,7 @@ import { HTTPError } from "ky"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { pesananService } from "@/services/pesanan-service"
+import { playDelete, playError, playSuccess } from "@/lib/audio-feedback"
 import type {
   PesananCreatePayload,
   PesananUpdatePayload,
@@ -49,11 +50,13 @@ export function usePesananCreateMutation({ onSuccess }: { onSuccess?: () => void
     onSuccess: (nomorStruk) => {
       queryClient.invalidateQueries({ queryKey: ADMIN_PESANAN_KEY })
       toast.success(`Pesanan dibuat — struk ${nomorStruk}.`, { id: "pesanan-save" })
+      playSuccess()
       onSuccess?.()
     },
     onError: async (error) => {
       const message = await getErrorMessage(error, "Gagal menyimpan pesanan. Coba lagi.")
       toast.error(message, { id: "pesanan-save" })
+      playError()
       console.error("Create pesanan error:", error)
     },
   })
@@ -77,11 +80,13 @@ export function usePesananUpdateMutation({ onSuccess }: { onSuccess?: () => void
       queryClient.invalidateQueries({ queryKey: ADMIN_PESANAN_KEY })
       queryClient.invalidateQueries({ queryKey: STRUK_KEY })
       toast.success(message || "Pesanan berhasil diperbarui.", { id: "pesanan-save" })
+      playSuccess()
       onSuccess?.()
     },
     onError: async (error) => {
       const message = await getErrorMessage(error, "Gagal memperbarui pesanan. Coba lagi.")
       toast.error(message, { id: "pesanan-save" })
+      playError()
       console.error("Update pesanan error:", error)
     },
   })
@@ -103,10 +108,12 @@ export function usePublicPesananCreateMutation() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ADMIN_PESANAN_KEY })
       toast.success(`Pesanan dibuat — struk ${data.nomor_struk}.`, { id: "public-pesanan-save" })
+      playSuccess()
     },
     onError: async (error) => {
       const message = await getErrorMessage(error, "Gagal menyimpan pesanan. Coba lagi.")
       toast.error(message, { id: "public-pesanan-save" })
+      playError()
       console.error("Public create pesanan error:", error)
     },
   })
@@ -132,12 +139,69 @@ export function usePesananDeleteMutation({ onSuccess }: { onSuccess?: () => void
       toast.success(message || "Pesanan berhasil dihapus.", {
         id: `pesanan-delete-${id}`,
       })
+      playDelete()
       onSuccess?.()
     },
     onError: async (error, { id }) => {
       const message = await getErrorMessage(error, "Gagal menghapus pesanan. Coba lagi.")
       toast.error(message, { id: `pesanan-delete-${id}` })
+      playError()
       console.error("Delete pesanan error:", error)
+    },
+  })
+}
+
+/** Bulk update — single field for many IDs. */
+export function usePesananBulkUpdateMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    retry: false,
+    mutationFn: async (payload: { ids: number[]; field: string; value: string }) => {
+      const res = await pesananService.bulkUpdate(payload)
+      return res.message
+    },
+    onMutate: async () => {
+      toast.loading("Memperbarui pesanan...", { id: "pesanan-bulk-update" })
+      await queryClient.cancelQueries({ queryKey: ADMIN_PESANAN_KEY })
+    },
+    onSuccess: (message) => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_PESANAN_KEY })
+      toast.success(message || "Pesanan berhasil diperbarui.", { id: "pesanan-bulk-update" })
+      playSuccess()
+    },
+    onError: async (error) => {
+      const message = await getErrorMessage(error, "Gagal memperbarui pesanan. Coba lagi.")
+      toast.error(message, { id: "pesanan-bulk-update" })
+      playError()
+      console.error("Bulk update pesanan error:", error)
+    },
+  })
+}
+
+/** Bulk delete — many IDs. */
+export function usePesananBulkDeleteMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    retry: false,
+    mutationFn: async (payload: { ids: number[] }) => {
+      const res = await pesananService.bulkDelete(payload)
+      return res.message
+    },
+    onMutate: async () => {
+      toast.loading("Menghapus pesanan...", { id: "pesanan-bulk-delete" })
+      await queryClient.cancelQueries({ queryKey: ADMIN_PESANAN_KEY })
+    },
+    onSuccess: (message) => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_PESANAN_KEY })
+      queryClient.invalidateQueries({ queryKey: STRUK_KEY })
+      toast.success(message || "Pesanan berhasil dihapus.", { id: "pesanan-bulk-delete" })
+      playDelete()
+    },
+    onError: async (error) => {
+      const message = await getErrorMessage(error, "Gagal menghapus pesanan. Coba lagi.")
+      toast.error(message, { id: "pesanan-bulk-delete" })
+      playError()
+      console.error("Bulk delete pesanan error:", error)
     },
   })
 }

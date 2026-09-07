@@ -32,7 +32,7 @@ export function GalleryHero() {
         <WordReveal text="Galeri *perayaan*" blur={8} trigger="mount" />
       </h1>
 
-      <p className="max-w-2xl text-base text-muted-foreground md:text-lg">
+      <p className="max-w-2xl text-sm sm:text-base text-muted-foreground md:text-lg">
         <BlurReveal delay={0.15} amount={0.3}>
           Momen-momen yang kami rayakan bersama pelanggan — pernikahan, acara
           korporat, hingga bingkisan istimewa.

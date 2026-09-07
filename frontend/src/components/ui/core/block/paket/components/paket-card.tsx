@@ -196,7 +196,7 @@ export function PaketCard({
             <h2
               className={cn(
                 "font-sans font-semibold text-foreground",
-                isHorizontal ? "text-lg md:text-xl" : "text-base md:text-lg"
+                isHorizontal ? "text-lg md:text-xl" : "text-lg"
               )}
             >
               {formatIDR(paket.harga_per_porsi)}
@@ -205,7 +205,7 @@ export function PaketCard({
                 / Porsi
               </span>
             </h2>
-            <div className="flex items-center gap-1.5 font-sans text-xs text-muted-foreground md:text-sm">
+            <div className="flex items-center gap-1.5 font-sans   text-muted-foreground text-sm">
               <p className="line-clamp-1">{paket.jenis_kemasan}</p>
             </div>
           </div>

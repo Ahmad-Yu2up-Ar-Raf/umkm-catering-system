@@ -10,6 +10,8 @@ import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { getCategoryById, AUTO_ADVANCE_MS } from "../galeri-data"
 import type { GalleryItem } from "../types/gallery-types"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowExpand01Icon } from "@hugeicons/core-free-icons"
 
 /** Builds the meta strip parts (venue · date · guests) — honest "—" fallback. */
 function metaParts(item: GalleryItem): string[] {
@@ -114,9 +116,10 @@ export function GalleryFeatured({
           size={"icon-sm"}
           className="absolute top-4 right-4 z-10 grid size-11 place-items-center rounded-full border border-background/30 bg-foreground/40 text-lg text-background/90 backdrop-blur-sm transition-colors duration-300 hover:bg-foreground/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:top-6 sm:right-6"
         >
-          <span aria-hidden="true" className="translate-y-[-1px]">
+        <HugeiconsIcon  icon={ArrowExpand01Icon}/>
+          {/* <span aria-hidden="true" className="translate-y-[-1px]">
             ⤢
-          </span>
+          </span> */}
           <span className="sr-only">Perbesar</span>
         </Button>
 

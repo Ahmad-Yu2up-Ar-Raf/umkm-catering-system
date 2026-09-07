@@ -40,6 +40,7 @@ import {
   getMetodePembayaranLabel,
   getMetodePembayaranColor,
 } from "../utils/pesanan-badge-utils"
+import { Checkbox } from "@/components/ui/fragments/shadcn-ui/checkbox"
 
 interface PesananTableProps {
   items: Pesanan[]
@@ -50,6 +51,9 @@ interface PesananTableProps {
   sortBy?: string
   sortDir?: "asc" | "desc"
   onSortChange?: (column: string, dir: "asc" | "desc") => void
+  selectedIds?: number[]
+  onToggle?: (id: number) => void
+  onToggleAll?: (checked: boolean) => void
 }
 
 /**
@@ -64,7 +68,12 @@ export function PesananTable({
   sortBy,
   sortDir,
   onSortChange,
+  selectedIds = [],
+  onToggle,
+  onToggleAll,
 }: PesananTableProps) {
+  const isAllSelected = items.length > 0 && selectedIds.length === items.length
+  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < items.length
   const { isPending: isDeleting, variables: deleteVariables } =
     usePesananDeleteMutation()
 
@@ -130,6 +139,15 @@ export function PesananTable({
     <Table className="relative bg-transparent">
       <TableHeader>
         <TableRow className="border-border hover:bg-transparent">
+          <TableHead className="">
+            <Checkbox
+              checked={isAllSelected ? true : isIndeterminate ? "indeterminate" : false}
+              onCheckedChange={(checked) => onToggleAll?.(checked === true)}
+              aria-label="Select all"
+              className="mx-3 mr-4 translate-y-0.5"
+            />
+          </TableHead>
+
           {!hiddenCols.nomor_struk && (
             <TableHead className="min-w-40">
               {renderSortHeader("Nomor Struk", "nomor_struk")}
@@ -176,13 +194,22 @@ export function PesananTable({
       </TableHeader>
       <TableBody>
         {items.map((pesanan) => {
-          const isThisDeleting = isDeleting && deleteVariables?.id === pesanan.id
+          const isThisDeleting =
+            isDeleting && deleteVariables?.id === pesanan.id
 
           return (
             <TableRow
               key={pesanan.id}
               className="group border-border transition-colors hover:bg-muted/40"
             >
+              <TableCell className="sticky right-0 font-medium">
+                <Checkbox
+                  checked={selectedIds.includes(pesanan.id)}
+                  onCheckedChange={() => onToggle?.(pesanan.id)}
+                  aria-label="Select row"
+                  className="mx-3 mr-4 translate-y-0.5"
+                />
+              </TableCell>
               {!hiddenCols.nomor_struk && (
                 <TableCell>
                   <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
@@ -208,12 +235,12 @@ export function PesananTable({
                 </TableCell>
               )}
               {!hiddenCols.jumlah_paket && (
-                <TableCell className=" whitespace-nowrap tabular-nums">
+                <TableCell className="whitespace-nowrap tabular-nums">
                   {pesanan.jumlah_paket} porsi
                 </TableCell>
               )}
               {!hiddenCols.total_harga && (
-                <TableCell className="  font-medium whitespace-nowrap tabular-nums">
+                <TableCell className="font-medium whitespace-nowrap tabular-nums">
                   {formatRupiah(pesanan.total_harga)}
                 </TableCell>
               )}

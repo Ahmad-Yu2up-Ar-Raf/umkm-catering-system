@@ -58,6 +58,14 @@ export const pesananService = {
     return api.get(`${BASE}/${id}/struk`).json<StrukResponse>()
   },
 
+  async bulkUpdate(payload: { ids: number[]; field: string; value: string }): Promise<{ status: boolean; message: string }> {
+    return api.post(`${BASE}/bulk-update`, { json: payload }).json<{ status: boolean; message: string }>()
+  },
+
+  async bulkDelete(payload: { ids: number[] }): Promise<{ status: boolean; message: string }> {
+    return api.post(`${BASE}/bulk-delete`, { json: payload }).json<{ status: boolean; message: string }>()
+  },
+
   /** Lightweight lookup for the POS paket combobox (GET admin/paket/search). */
   async searchPaket(q: string): Promise<PaketSearchOption[]> {
     const res = await api
