@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /dashboard
 
-Sitemap: https://cateringnusantara.id/sitemap.xml
+Sitemap: https://cateringnusantara.vercel.app/sitemap.xml

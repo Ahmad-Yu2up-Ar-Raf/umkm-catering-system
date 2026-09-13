@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 
 /** Placeholder domain — swap at go-live (docs/seo/README.md). */
-const BASE_URL = "https://cateringnusantara.id"
+const BASE_URL = "https://cateringnusantara.vercel.app"
 
 const SITE_NAME = "Catering Nusantara"
 
@@ -23,7 +23,12 @@ export interface SeoOptions {
  * (per-route defaults). Always updates <title>, OG/Twitter titles, canonical
  * and og:url; description is overwritten when provided; image only when given.
  */
-export function applySeo({ title, description, path = "/", image }: SeoOptions) {
+export function applySeo({
+  title,
+  description,
+  path = "/",
+  image,
+}: SeoOptions) {
   const fullTitle = `${title}${TITLE_SEPARATOR}${SITE_NAME}`
   const url = `${BASE_URL}${path}`
 
