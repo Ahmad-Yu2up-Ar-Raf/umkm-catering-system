@@ -201,7 +201,15 @@ export function PesananForm({
                       typeof rawError === "string"
                         ? rawError
                         : (rawError?.message ?? "Pilih paket terlebih dahulu.")
+                    // `disabled` MUST subscribe to isSubmitting reactively:
+                    // useField only tracks the field store, so a snapshot
+                    // read freezes at its last render — after a failed submit
+                    // that freeze left this trigger permanently disabled.
+                    // form.Subscribe (same primitive as the submit button)
+                    // re-renders on every lifecycle change.
                     return (
+                      <form.Subscribe selector={(state) => state.isSubmitting}>
+                        {(isSubmitting) => (
                       <div className="flex flex-col gap-1.5">
                         <span className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                           Paket <span className="text-destructive">*</span>
@@ -215,11 +223,7 @@ export function PesananForm({
                               variant="outline"
                               type="button"
                               id={field.name}
-                              // Interactivity must NEVER hinge on the async
-                              // lookup: a stalled search query left this
-                              // trigger permanently disabled after a failed
-                              // submit, with no way to fix the error.
-                              disabled={field.form.state.isSubmitting}
+                              disabled={isSubmitting}
                               aria-invalid={hasError}
                               aria-busy={isPaketLoading}
                               className={
@@ -325,6 +329,8 @@ export function PesananForm({
                           </p>
                         )}
                       </div>
+                        )}
+                      </form.Subscribe>
                     )
                   }}
                 </form.AppField>
