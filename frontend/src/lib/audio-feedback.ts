@@ -39,3 +39,41 @@ export function playDownload() {
 export function playNotification() {
   safePlay("notification")
 }
+
+/**
+ * Pitch-varied rating tone (WebAudio oscillator, no assets).
+ * 1★ low/warm → 5★ bright/chime (C-major pentatonic climb).
+ * Gesture-triggered only (autoplay-safe), SSR-safe, never throws.
+ */
+const RATING_FREQS = [329.63, 392.0, 440.0, 523.25, 659.25]
+
+let _audioCtx: AudioContext | null = null
+
+export function playRatingTone(rating: number) {
+  try {
+    if (typeof window === "undefined") return
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext
+    if (!Ctx) return
+    _audioCtx ??= new Ctx()
+    if (_audioCtx.state === "suspended") void _audioCtx.resume()
+
+    const freq = RATING_FREQS[Math.min(5, Math.max(1, Math.round(rating))) - 1]
+    const now = _audioCtx.currentTime
+    const osc = _audioCtx.createOscillator()
+    const gain = _audioCtx.createGain()
+    osc.type = "sine"
+    osc.frequency.setValueAtTime(freq, now)
+    gain.gain.setValueAtTime(0.0001, now)
+    gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02)
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35)
+    osc.connect(gain)
+    gain.connect(_audioCtx.destination)
+    osc.start(now)
+    osc.stop(now + 0.4)
+  } catch {
+    // never throw — audio is enhancement only
+  }
+}

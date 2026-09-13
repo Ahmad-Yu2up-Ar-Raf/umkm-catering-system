@@ -5,7 +5,8 @@ import { motion, type Variants } from "framer-motion"
 
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
-import { useShare } from "@/hooks/use-share"
+import { useSavedPaketStore } from "@/store/saved-paket-store"
+import { toggleSavedWithFeedback } from "@/lib/wishlist-feedback"
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import {
@@ -13,19 +14,18 @@ import {
   DialogTrigger,
 } from "@/components/ui/fragments/shadcn-ui/dialog"
 import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
-import { HugeiconsIcon } from "@hugeicons/react"
 import {
-  LeafIcon,
-  Share08FreeIcons,
-  ShoppingCart,
-  WhatsappIcon,
-} from "@hugeicons/core-free-icons"
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/fragments/shadcn-ui/tooltip"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { HeartIcon, LeafIcon, ShoppingCart, StarIcon } from "@hugeicons/core-free-icons"
 
 import type { DetailViewModel } from "../utils/detail-view-model"
 import { DetailMenu } from "./detail-menu"
 import { DetailFacilities } from "./detail-facilities"
 import { OrderCalculationDialog } from "./order-calculation-dialog"
-import { ShareDialog } from "@/components/ui/fragments/custom-ui/share-dialog"
 import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -48,13 +48,13 @@ function itemVariant(reduced: boolean): Variants {
  * DetailSummary — the full right rail of the two-column layout.
  *
  * Logical hierarchy, hairline-divided, consistent `gap-5/6` rhythm:
- *   badges (+ share action) → bold title → price + WhatsApp CTA →
+ *   badges (+ save action) → bold title → price + WhatsApp CTA →
  *   description → Menu → Facilities → Metadata (Acara/Kemasan/Kapasitas) →
  *   Bahan & Alergen.
  *
- * Sharing: the top-right button uses the native Web Share API where available
- * and falls back to the Shadcn `ShareDialog` (social links + copy link) on
- * desktop. The shared URL is the current canonical package route.
+ * Saving: the top-right heart toggles this package in the persisted
+ * `useSavedPaketStore` (localStorage) — the catalog's `?saved=1` view lists
+ * everything the user saved.
  */
 export function DetailSummary({ vm }: { vm: DetailViewModel }) {
   const reduced = useReducedMotion()
@@ -68,19 +68,13 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
       transition: { duration: 0.5, ease: LUXURY_EASE },
     }) as const
 
-  const { isOpen, payload, share, close } = useShare()
+  // Saved wishlist — persisted UI state (IDs only, never server data).
+  // Toggling plays one sound cue + one toast via the shared helper.
+  const isSaved = useSavedPaketStore((s) => s.savedIds.includes(vm.id))
 
   // Order modal — transient UI state, local to this block (no store needed).
   const [orderOpen, setOrderOpen] = useState(false)
   const isMobile = useIsMobile()
-  const sharePackage = () =>
-    void share({
-      title: vm.name,
-      text:
-        vm.description?.slice(0, 160) ??
-        `Paket ${vm.categoryLabel} dari Catering Nusantara`,
-      url: window.location.href,
-    })
 
   return (
     <>
@@ -112,21 +106,52 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
                   <span className="font-medium">{vm.categoryLabel}</span>
                 </Badge>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="hover:bg-secondary/40"
-                aria-label="Bagikan paket"
-                onClick={sharePackage}
-              >
-                <HugeiconsIcon className="size-5" icon={Share08FreeIcons} />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-secondary/40"
+                    aria-label={
+                      isSaved ? "Hapus dari simpanan" : "Simpan paket"
+                    }
+                    aria-pressed={isSaved}
+                    onClick={() => toggleSavedWithFeedback(vm.id)}
+                  >
+                    <HugeiconsIcon
+                      icon={HeartIcon}
+                      className={cn(
+                        "size-5",
+                        isSaved && "fill-destructive text-destructive"
+                      )}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isSaved ? "Tersimpan — klik untuk hapus" : "Simpan paket"}
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             <h1 className="font-heading text-[clamp(27px,3.4vw,40px)] leading-[1.08] font-semibold tracking-tight text-foreground">
               {vm.name}
             </h1>
+
+            {(vm.testimoniCount ?? 0) > 0 && vm.ratingAvg != null && (
+              <div className="flex items-center gap-1.5 text-sm">
+                <HugeiconsIcon
+                  icon={StarIcon}
+                  className="size-4 fill-amber-400 text-amber-400"
+                />
+                <span className="font-semibold text-foreground tabular-nums">
+                  {vm.ratingAvg.toFixed(1)}
+                </span>
+                <span className="text-muted-foreground">
+                  · {vm.testimoniCount} ulasan
+                </span>
+              </div>
+            )}
           </motion.div>
 
           {/* price + full-width CTA */}
@@ -234,17 +259,6 @@ export function DetailSummary({ vm }: { vm: DetailViewModel }) {
             </p>
           </div>
         </motion.div>
-
-        <Separator />
-
-        {/* Desktop fallback share surface (Web Share API unavailable) */}
-        <ShareDialog
-          open={isOpen}
-          onOpenChange={(open) => {
-            if (!open) close()
-          }}
-          payload={payload}
-        />
       </div>
       {isMobile && (
         <Dialog open={orderOpen} onOpenChange={setOrderOpen}>

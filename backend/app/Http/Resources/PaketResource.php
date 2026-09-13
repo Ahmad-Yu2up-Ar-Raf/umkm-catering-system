@@ -31,6 +31,10 @@ class PaketResource extends JsonResource
             'thumbnail' => $this->thumbnail,
             'images' => $this->whenLoaded('images', fn () => $this->images->pluck('image_url')),
             'pesanan_count' => $this->whenCounted('pesanan'),
+            'testimoni_count' => $this->whenCounted('testimoni'),
+            'rating_avg' => isset($this->rating_avg) && $this->rating_avg !== null
+                ? round((float) $this->rating_avg, 1)
+                : null,
             'is_best_seller' => $this->is_best_seller,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

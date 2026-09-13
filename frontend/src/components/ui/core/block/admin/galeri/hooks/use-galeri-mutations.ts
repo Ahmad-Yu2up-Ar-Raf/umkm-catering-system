@@ -280,10 +280,14 @@ export function useGaleriBulkDeleteMutation() {
  * Bumps the shared upload counter so the footer shows "Mengunggah gambar…"
  * while submit-phase uploads run.
  */
-async function uploadDeferredImage(file: File, folder: string): Promise<string> {
+async function uploadDeferredImage(
+  file: File,
+  folder: string,
+  signatureBody?: Record<string, string>
+): Promise<string> {
   adjustActiveGaleriUploads(1)
   try {
-    const transport = createCloudinaryTransportForFolder(folder)
+    const transport = createCloudinaryTransportForFolder(folder, signatureBody)
     const wrapper = { file } as Parameters<typeof transport.upload>[0]
     const { response } = await transport.upload(wrapper, {
       onProgress: () => {},
@@ -309,7 +313,9 @@ async function resolveUploads(value: GaleriFormValues): Promise<GaleriFormValues
   const folder = `catering-nusantara/galeri/${valid.includes(normalized) ? normalized : "lainnya"}`
 
   if (value.gambar_acara && typeof value.gambar_acara !== "string") {
-    const url = await uploadDeferredImage(value.gambar_acara as File, folder)
+    const url = await uploadDeferredImage(value.gambar_acara as File, folder, {
+      kategori_acara: value.kategori_acara,
+    })
     return { ...value, gambar_acara: url }
   }
   return value
@@ -340,7 +346,19 @@ export function useGaleriForm({
     defaultValues: galeri ? toFormDefaults(galeri) : defaultFormValues,
     onSubmit: async ({ value }) => {
       toast.loading("Membangun galeri...", { id: "galeri-save" })
-      const resolved = await resolveUploads(value)
+      let resolved: GaleriFormValues
+      try {
+        resolved = await resolveUploads(value)
+      } catch (error) {
+        // Submit-phase upload failure: the mutation never ran, so its
+        // onError can't fire — surface the failure here or the loading
+        // toast sticks forever with the form appearing hung.
+        const message = error instanceof Error ? error.message : "Gagal mengunggah gambar. Coba lagi."
+        toast.error(message, { id: "galeri-save" })
+        playError()
+        console.error("Resolve galeri uploads error:", error)
+        return
+      }
       const payload = toGaleriPayload(resolved)
       if (galeriId) {
         await updateGaleri({ id: galeriId, ...payload })

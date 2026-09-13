@@ -49,6 +49,9 @@ export interface DetailViewModel {
   minOrder: number
   capacity: number | null
   hargaPerPorsi: number
+  /** Public-review social proof (from show-endpoint aggregates). */
+  ratingAvg: number | null
+  testimoniCount: number
 }
 
 /**
@@ -107,5 +110,7 @@ export function toDetailViewModel(paket: Paket): DetailViewModel {
     minOrder: paket.min_order,
     capacity: paket.kapasitas_produksi,
     hargaPerPorsi: Number(paket.harga_per_porsi),
+    ratingAvg: paket.rating_avg ?? null,
+    testimoniCount: paket.testimoni_count ?? 0,
   }
 }

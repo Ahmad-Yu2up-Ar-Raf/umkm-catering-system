@@ -10,6 +10,7 @@ import {
   HeartIcon,
   PlateIcon,
   Sorting01Icon,
+  StarIcon,
 } from "@hugeicons/core-free-icons"
 import {
   Avatar,
@@ -175,6 +176,9 @@ export function PaketTable({
           {!hiddenCols.pesanan && (
             <TableHead className="min-w-24">Terjual</TableHead>
           )}
+          {!hiddenCols.ulasan && (
+            <TableHead className="min-w-28">Ulasan</TableHead>
+          )}
           {!hiddenCols.status && (
             <TableHead className="min-w-28">
               {renderSortHeader("Status", "is_best_seller")}
@@ -291,6 +295,22 @@ export function PaketTable({
               {!hiddenCols.pesanan && (
                 <TableCell className="text-muted-foreground tabular-nums">
                   {paket.pesanan_count ?? 0}x
+                </TableCell>
+              )}
+
+              {!hiddenCols.ulasan && (
+                <TableCell>
+                  {(paket.testimoni_count ?? 0) > 0 && paket.rating_avg != null ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-700 dark:text-amber-400">
+                      <HugeiconsIcon
+                        icon={StarIcon}
+                        className="size-3.5 fill-amber-400 text-amber-400"
+                      />
+                      {paket.rating_avg} ({paket.testimoni_count})
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </TableCell>
               )}
 

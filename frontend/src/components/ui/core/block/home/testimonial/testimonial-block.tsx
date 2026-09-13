@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
 
 import { MotionConfig, motion, useInView } from "framer-motion"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 
+import { api } from "@/api/client"
 import { cn } from "@/lib/utils"
 
 /** Luxury ease — premium Apple-like cubic-bezier (shared project grammar). */
@@ -55,6 +57,63 @@ const TESTIMONIALS: Testimonial[] = [
     event: "Tumpeng Mini · Cibinong",
   },
 ]
+
+interface PublicTestimoni {
+  id: number
+  nama: string
+  pesanan: string
+  acara: string
+  lokasi: string
+}
+
+interface PublicTestimoniResponse {
+  status: boolean
+  message: string
+  data: PublicTestimoni[]
+}
+
+/**
+ * Wrap EXACTLY ONE word of a live quote in `*asterisks*` for the italic
+ * accent treatment (consumed by QuoteWords below). Picks the longest
+ * letter-bearing word (≥5 chars); falls back to the middle word so short
+ * order-style texts ("Paket X × N") still get one accent, never zero or two.
+ */
+function accentuate(text: string): string {
+  const words = text.split(" ").filter(Boolean)
+  if (words.length === 0) return text
+  const cleanLen = (w: string) => w.replace(/[^A-Za-zÀ-ÿ0-9]/g, "").length
+  let best = -1
+  words.forEach((w, i) => {
+    if (cleanLen(w) >= 5 && (best === -1 || cleanLen(w) > cleanLen(words[best]))) {
+      best = i
+    }
+  })
+  if (best === -1) best = Math.min(2, words.length - 1)
+  return words.map((w, i) => (i === best ? `*${w}*` : w)).join(" ")
+}
+
+/**
+ * Live public testimonials (`GET /testimoni` — latest 5, visibility=public).
+ * Fail-soft: any error/empty response falls back to the static blueprint
+ * copy so the section never renders blank.
+ */
+function usePublicTestimonials() {
+  return useQuery({
+    queryKey: ["testimoni", "public"],
+    queryFn: async (): Promise<Testimonial[]> => {
+      const res = await api.get("testimoni").json<PublicTestimoniResponse>()
+      return res.data.slice(0, 5).map((t) => ({
+        id: String(t.id),
+        quote: accentuate(t.pesanan),
+        author: t.nama,
+        event: `${t.acara} · ${t.lokasi}`,
+      }))
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
+    retry: 1,
+  })
+}
 
 /**
  * One word of the quote — blur-fades in (`blur(12px) → 0`, `y 20 → 0`) with a
@@ -204,14 +263,18 @@ function TestimonialBlock() {
   // Once the content is genuinely in view — the "magical first load" gate.
   const revealed = useInView(contentRef, { once: true, amount: 0.35 })
 
+  // Live slides with static fallback (never blank on error/empty).
+  const { data: liveSlides } = usePublicTestimonials()
+  const slides = liveSlides && liveSlides.length > 0 ? liveSlides : TESTIMONIALS
+
   // Autoplay loop — resets on every activeIndex change (incl. dot clicks).
   useEffect(() => {
     if (paused) return
     const id = window.setInterval(() => {
-      setActiveIndex((i) => (i + 1) % TESTIMONIALS.length)
+      setActiveIndex((i) => (i + 1) % slides.length)
     }, AUTOPLAY_MS)
     return () => window.clearInterval(id)
-  }, [paused, activeIndex])
+  }, [paused, activeIndex, slides.length])
 
   return (
     <MotionConfig reducedMotion="user">
@@ -244,7 +307,7 @@ function TestimonialBlock() {
 
           {/* Grid-stacked quotes — the row height is always the tallest slide. */}
           <div className="grid">
-            {TESTIMONIALS.map((t, i) => {
+            {slides.map((t, i) => {
               const isActive = i === activeIndex
               const play = revealed && isActive
               return (
@@ -273,7 +336,7 @@ function TestimonialBlock() {
             transition={{ duration: 0.6, ease: LUXURY_EASE, delay: 1.1 }}
             className="mt-13 flex items-center justify-center md:mt-12"
           >
-            {TESTIMONIALS.map((t, i) => {
+            {slides.map((t, i) => {
               const isActive = i === activeIndex
               return (
                 <button

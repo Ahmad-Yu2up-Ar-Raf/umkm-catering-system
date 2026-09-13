@@ -238,6 +238,8 @@ function MasterPaketBlock() {
               setPage(1)
             }}
             isLoading={isFetching}
+            visibleCount={items.length}
+            unit="paket"
           />
         )}
       </div>

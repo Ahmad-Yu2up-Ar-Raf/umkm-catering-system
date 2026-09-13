@@ -22,6 +22,8 @@ class CloudinarySignatureRequest extends FormRequest
         return [
             'category' => ['nullable', 'string', Rule::enum(PaketKategoriEnum::class)],
             'kategori_acara' => ['nullable', 'string', Rule::enum(GaleriKategoriEnum::class)],
+            // Flat dedicated folder for Master Testimoni uploads (no category routing).
+            'folder' => ['nullable', 'string', Rule::in(['testimoni'])],
         ];
     }
 }

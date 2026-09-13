@@ -2,17 +2,28 @@
 
 import { useEffect, useRef } from "react"
 
+import { useLenis } from "lenis/react"
+
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
 import { useCatalogStore } from "@/store/catalog-store"
+import { useSavedPaketStore } from "@/store/saved-paket-store"
 
 import { CatalogHeader } from "./components/catalog-header"
 import { CategoryNav } from "./components/category-nav"
 import { SearchBar } from "./components/search-bar"
 import { PaketGrid } from "./components/paket-grid"
 import { useCatalogParams } from "./hooks/use-catalog-params"
-import { usePaketQuery } from "./hooks/use-paket-query"
+import { usePaketQuery, useSavedPaketsSource } from "./hooks/use-paket-query"
 import { useHeaderOffset } from "./hooks/use-header-offset"
+
+/**
+ * Anchor the saved-filter toggle landing (`?saved=1`) scrolls to. Flipping
+ * the filter is same-page (no pathname change), so the global `ScrollToTop`
+ * never fires — this block owns the viewport and glides straight past the
+ * hero to the list instead.
+ */
+const SAVED_LIST_ANCHOR = "paket-list"
 
 /**
  * Katalog Paket — the public package catalog (sitemap #3).
@@ -20,6 +31,11 @@ import { useHeaderOffset } from "./hooks/use-header-offset"
  * Composition: hero header → sticky filter bar (category + search) → grid.
  * Filters ARE the URL (`useCatalogParams`); data is React Query
  * (`usePaketQuery`, infinite pages, cursor from the server).
+ *
+ * Saved view (`?saved=1`): the grid shows only packages whose IDs are in the
+ * persisted `useSavedPaketStore`, sourced from one bulk fetch
+ * (`useSavedPaketsSource`, enabled solely here) and filtered client-side.
+ * Landing on it auto-scrolls past the hero to the list.
  *
  * Motion: ONE GSAP reveal on the hero only (per `design-system/pages/
  * catalog.md` — opacity/y 24px, stagger 0.08s), fully gated by
@@ -29,17 +45,55 @@ export function PaketBlock() {
   const headerRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
   const top = useHeaderOffset()
+  const lenis = useLenis()
 
-  const { kategori, search, setKategori, setSearch } = useCatalogParams()
+  const { kategori, search, savedOnly, setKategori, setSearch, setSavedOnly } =
+    useCatalogParams()
   const query = usePaketQuery({ kategori, search })
 
-  const pakets = query.data?.pages.flatMap((page) => page.data) ?? []
-  const total = query.data?.pages[0]?.meta.pagination.total ?? 0
+  // Saved view — local-only IDs over one bulk fetch (enabled solely here),
+  // narrowed further by the active kategori/search like the server would.
+  const savedIds = useSavedPaketStore((s) => s.savedIds)
+  const savedSource = useSavedPaketsSource(savedOnly)
+  const savedPakets = (savedSource.data ?? []).filter(
+    (p) =>
+      savedIds.includes(p.id) &&
+      (!kategori || p.kategori_paket === kategori) &&
+      (!search ||
+        p.nama_paket.toLowerCase().includes(search.trim().toLowerCase()))
+  )
+
+  const pakets = savedOnly
+    ? savedPakets
+    : (query.data?.pages.flatMap((page) => page.data) ?? [])
+  const total = savedOnly
+    ? savedPakets.length
+    : (query.data?.pages[0]?.meta.pagination.total ?? 0)
+
+  // Saved-view landing: bypass the hero and glide straight to the package
+  // list. Runs when `savedOnly` flips on via the filter-bar toggle — one rAF
+  // so the fresh layout is measured before scrolling.
+  useEffect(() => {
+    if (!savedOnly) return
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(SAVED_LIST_ANCHOR)
+      if (!el) return
+      if (lenis) lenis.scrollTo(el, { duration: reduced ? 0 : 1.1 })
+      else
+        el.scrollIntoView({
+          behavior: reduced ? "auto" : "smooth",
+          block: "start",
+        })
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [savedOnly, lenis, reduced])
 
   // Signal the global layout when the catalog is fully drained (CTA band +
   // footer only appear after the last page — hidden while loading/scrollable).
   const setCatalogEnded = useCatalogStore((s) => s.setEnded)
-  const catalogEnded = !query.isFetching && !query.hasNextPage
+  const activeFetching = savedOnly ? savedSource.isFetching : query.isFetching
+  const activeHasNext = savedOnly ? false : query.hasNextPage
+  const catalogEnded = !activeFetching && !activeHasNext
 
   useEffect(() => {
     setCatalogEnded(catalogEnded)
@@ -91,7 +145,13 @@ export function PaketBlock() {
         >
           <div className="mx-auto flex max-w-5xl items-center gap-4  md:gap-6 md:px-6">
             <div className="min-w-0 flex-1">
-              <CategoryNav active={kategori} onSelect={setKategori} />
+              <CategoryNav
+                active={kategori}
+                onSelect={setKategori}
+                savedActive={savedOnly}
+                savedCount={savedIds.length}
+                onToggleSaved={setSavedOnly}
+              />
             </div>
             <div className="hidden w-64 shrink-0 md:block">
               <SearchBar search={search} onSearchChange={setSearch} />
@@ -99,24 +159,33 @@ export function PaketBlock() {
           </div>
         </div>
 
-        <div className="container m-auto w-full pt-10 pb-24 md:pt-10 md:pb-32">
-        <PaketGrid
-          pakets={pakets}
-          total={total}
-          isLoading={query.isLoading}
-          isPlaceholderData={query.isPlaceholderData}
-          isError={query.isError}
-          hasNextPage={query.hasNextPage}
-          isFetchingNextPage={query.isFetchingNextPage}
-          kategori={kategori}
-          search={search}
-          onLoadMore={query.fetchNextPage}
-          onRetry={() => query.refetch()}
-          onReset={() => {
-            setKategori("")
-            setSearch("")
-          }}
-        />
+        <div
+          id={SAVED_LIST_ANCHOR}
+          className="container m-auto w-full scroll-mt-24 pt-10 pb-24 md:pt-10 md:pb-32"
+        >
+          <PaketGrid
+            pakets={pakets}
+            total={total}
+            isLoading={savedOnly ? savedSource.isLoading : query.isLoading}
+            isPlaceholderData={savedOnly ? false : query.isPlaceholderData}
+            isError={savedOnly ? savedSource.isError : query.isError}
+            hasNextPage={savedOnly ? false : query.hasNextPage}
+            isFetchingNextPage={savedOnly ? false : query.isFetchingNextPage}
+            kategori={kategori}
+            search={search}
+            savedOnly={savedOnly}
+            onLoadMore={() => {
+              if (!savedOnly) void query.fetchNextPage()
+            }}
+            onRetry={() => {
+              void (savedOnly ? savedSource.refetch() : query.refetch())
+            }}
+            onReset={() => {
+              setKategori("")
+              setSearch("")
+              setSavedOnly(false)
+            }}
+          />
         </div>
       </div>
     </section>

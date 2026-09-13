@@ -194,7 +194,7 @@ export default function FaqBlock() {
       <section
         ref={sectionRef}
         id="faq"
-        className="container min-h-lvh content-center space-y-10 p-0 py-20 md:space-y-10 md:pt-25"
+        className="container min-h-lvh content-center md:px-8 space-y-10 p-0 py-20 md:space-y-10 md:pt-25"
       >
         <header className="flex w-full flex-1 flex-col items-end gap-y-6 px-6 sm:flex-row sm:justify-between md:gap-y-9 md:px-0">
           <div className="flex w-full flex-col gap-y-1">

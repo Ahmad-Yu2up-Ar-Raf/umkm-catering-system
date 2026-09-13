@@ -25,17 +25,46 @@ class CloudinaryController extends Controller
             ], 500);
         }
 
-        // Support both paket (category) and galeri (kategori_acara) folder routing
-        $category = $request->input('kategori_acara') ?? $request->input('category');
+        // Testimoni uploads go to a flat dedicated folder (no category routing).
+        if ($request->input('folder') === 'testimoni') {
+            $folder = 'catering-nusantara/testimoni';
+        } else {
+            // Support both paket (category) and galeri (kategori_acara) folder routing
+            $category = $request->input('kategori_acara') ?? $request->input('category');
 
-        $folder = $category
-            ? $this->resolveFolder($category)
-            : 'catering-nusantara/products';
+            $folder = $category
+                ? $this->resolveFolder($category)
+                : 'catering-nusantara/products';
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'Upload signature generated',
             'data' => $service->signedParams($folder),
+        ]);
+    }
+
+    /**
+     * Signed params for ANONYMOUS review photo uploads. Folder is fixed
+     * server-side (catering-nusantara/testimoni) — the client sends no
+     * folder/category key, so there is nothing to tamper with.
+     */
+    public function publicSignature()
+    {
+        $service = CloudinaryService::fromConfig();
+
+        if (! $service->isConfigured()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Cloudinary tidak dikonfigurasi.',
+                'data' => null,
+            ], 500);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Upload signature generated',
+            'data' => $service->signedParams('catering-nusantara/testimoni'),
         ]);
     }
 

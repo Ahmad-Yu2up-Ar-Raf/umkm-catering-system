@@ -355,6 +355,8 @@ function MasterPesananBlock() {
               setPage(1)
             }}
             isLoading={isFetching}
+            visibleCount={items.length}
+            unit="pesanan"
           />
         )}
       </div>

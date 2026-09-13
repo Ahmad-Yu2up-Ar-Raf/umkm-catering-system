@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             PaketSeeder::class,
             GaleriSeeder::class,
             PesananSeeder::class,
+            TestimoniSeeder::class,
         ]);
     }
 }

@@ -13,6 +13,7 @@ import { AUTO_ADVANCE_MS } from "./galeri-data"
 import { GalleryHero } from "./components/gallery-hero"
 import { GalleryFeatured } from "./components/gallery-featured"
 import { GalleryCategorySection } from "./components/gallery-category-section"
+import { cn } from "@/lib/utils"
 
 /** Luxury ease — premium Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
@@ -110,7 +111,13 @@ export function GalleryBlock() {
         </div>
 
         {/* 3 — category previews: one editorial rail per category. */}
-        <div className="container p-0 m-auto w-full pt-12 pb-24 md:pt-16 md:pb-32">
+        <div
+          className={cn(
+            "container m-auto w-full pt-12 pb-24 md:pt-16 md:pb-32",
+
+            previewsSettled && "p-0 md:px-8"
+          )}
+        >
           {previewsSettled ? (
             <div className="flex flex-col gap-16 md:gap-20">
               {results.map((result, index) => {

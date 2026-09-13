@@ -9,6 +9,7 @@ import type { DetailViewModel } from "../utils/detail-view-model"
 import { DetailGallery } from "./detail-gallery"
 import { DetailSummary } from "./detail-summary"
 import { DetailRecommendations } from "./detail-recommendations"
+import { PackageReviews } from "./package-reviews"
 
 /** Premium ease — Apple-like cubic-bezier (project grammar). */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
@@ -64,6 +65,7 @@ export function DetailContent({ vm }: { vm: DetailViewModel }) {
         <DetailSummary vm={vm} />
       </div>
 
+      <PackageReviews paketId={vm.id} vm={vm} />
       <DetailRecommendations currentId={vm.id} className="mt-13 md:mt-20" />
     </div>
   )

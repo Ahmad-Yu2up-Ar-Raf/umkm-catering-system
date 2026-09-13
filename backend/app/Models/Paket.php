@@ -87,4 +87,12 @@ class Paket extends Model
     {
         return $this->hasMany(PaketImage::class);
     }
+
+    /**
+     * Get the testimonials referencing the package.
+     */
+    public function testimoni(): HasMany
+    {
+        return $this->hasMany(Testimoni::class);
+    }
 }

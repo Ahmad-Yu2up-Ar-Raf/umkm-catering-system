@@ -1,12 +1,10 @@
 import { type IconSvgElement } from "@hugeicons/react"
 import {
   DashboardCircleIcon,
+  Message01Icon,
   ShoppingCart01Icon,
-  Calendar01Icon,
   SpoonAndForkIcon,
   Image01Icon,
-  UserMultipleIcon,
-  Settings01Icon,
   HelpCircleIcon,
   ActivityIcon,
 } from "@hugeicons/core-free-icons"
@@ -56,6 +54,11 @@ export const navGroups: SidebarNavGroup[] = [
         title: "Master Galeri",
         path: "/dashboard/galeri",
         icon: Image01Icon,
+      },
+      {
+        title: "Master Testimoni",
+        path: "/dashboard/testimoni",
+        icon: Message01Icon,
       },
     ],
   },

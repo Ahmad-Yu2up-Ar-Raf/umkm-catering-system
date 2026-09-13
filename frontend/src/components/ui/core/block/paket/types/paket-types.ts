@@ -29,6 +29,10 @@ export interface Paket {
   harga_per_porsi: string
   kapasitas_produksi: number | null
   pesanan_count: number
+  /** public-review count — present when the endpoint loads aggregates */
+  testimoni_count?: number
+  /** public-review average (1 decimal) — null when no public reviews */
+  rating_avg?: number | null
   deskripsi: string | null
   /** Cloudinary secure_url of the first gallery image — nullable on the wire */
   thumbnail: string | null

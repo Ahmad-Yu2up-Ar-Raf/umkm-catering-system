@@ -4,6 +4,12 @@ import type { ReactNode } from "react"
 import { Link } from "react-router"
 
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
+import { Button } from "@/components/ui/fragments/shadcn-ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/fragments/shadcn-ui/tooltip"
 import {
   Card,
   CardTitle,
@@ -13,8 +19,12 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/card"
 import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { cn } from "@/lib/utils"
+import { toggleSavedWithFeedback } from "@/lib/wishlist-feedback"
 import { HeartIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { StarIcon } from "@hugeicons/core-free-icons"
 import type { PaketLayoutMode } from "@/store/paket-layout-store"
+import { useSavedPaketStore } from "@/store/saved-paket-store"
 import type { Paket } from "../types/paket-types"
 import {
   getCategoryColor,
@@ -60,6 +70,11 @@ export function PaketCard({
   const isHorizontal = layoutMode === "horizontal"
   const isCompact = layoutMode === "grid-3"
 
+  // Wishlist — subscribes to this card's own saved status only (other cards
+  // toggling does not re-render this one). Hidden on admin cards.
+  const isSaved = useSavedPaketStore((s) => s.savedIds.includes(paket.id))
+  const showSaveButton = !adminActions
+
   const cardContent = (
     <Card
       className={cn(
@@ -78,6 +93,40 @@ export function PaketCard({
             : "min-h-[16em] md:min-h-[20em]"
         )}
       >
+        {showSaveButton && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                aria-pressed={isSaved}
+                aria-label={isSaved ? "Hapus dari simpanan" : "Simpan paket"}
+                onClick={(e) => {
+                  // The whole card is a <Link> — guard so saving never
+                  // navigates (same precedent as the `adminActions` wrapper
+                  // below). Stays on the Button: Trigger only forwards.
+                  e.preventDefault()
+                  e.stopPropagation()
+                  toggleSavedWithFeedback(paket.id)
+                }}
+                className="absolute top-2 right-2 z-30 size-9 rounded-full bg-background/70 shadow-none backdrop-blur-sm hover:bg-background/80"
+              >
+                <HugeiconsIcon
+                  icon={HeartIcon}
+                  className={cn(
+                    "size-4",
+                    isSaved && "fill-destructive text-destructive"
+                  )}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isSaved ? "Tersimpan — klik untuk hapus" : "Simpan paket"}
+            </TooltipContent>
+          </Tooltip>
+        )}
+
         {paket.is_best_seller && (
           <Badge
             icon={HeartIcon}
@@ -94,7 +143,11 @@ export function PaketCard({
         {showSalesCount && paket.pesanan_count !== undefined && (
           <Badge
             variant="secondary"
-            className="absolute top-3 right-3 z-30 w-fit rounded-full bg-background/90 px-2.5 py-1 text-xs shadow-sm backdrop-blur"
+            className={cn(
+              "absolute top-3 z-30 w-fit rounded-full bg-background/90 px-2.5 py-1 text-xs shadow-sm backdrop-blur",
+              // Yields the top-right corner to the save heart when visible.
+              showSaveButton ? "right-14" : "right-3"
+            )}
           >
             {paket.pesanan_count} Terjual
           </Badge>
@@ -138,30 +191,42 @@ export function PaketCard({
             isHorizontal ? "md:gap-3" : "mt-2"
           )}
         >
-          <div className="flex items-center gap-2">
-            <Badge
-              icon={IconProduct}
-              variant="outline"
-              className={cn(
-                "w-fit gap-2 border-0 text-accent-foreground shadow-none lg:text-xs [&_svg]:size-4",
-                ColorProduct,
-                "hover:bg-transparent"
-              )}
-            >
-              <span className="font-medium">{category}</span>
-            </Badge>
-
-            {paket.kategori_acara && (
+          <div className="flex items-center justify-between gap-1">
+            <span className="flex min-w-0 items-center gap-1">
               <Badge
-                icon={getAcaraIcon(paket.kategori_acara)}
+                icon={IconProduct}
                 variant="outline"
                 className={cn(
-                  "w-fit gap-1.5 border-0 text-xs shadow-none",
-                  getAcaraColor(paket.kategori_acara)
+                  "w-fit gap-1 border-0 text-[11px] text-accent-foreground shadow-none lg:text-[11px] [&_svg]:size-3.5",
+                  ColorProduct,
+                  "hover:bg-transparent"
                 )}
               >
-                <span className="font-medium">{paket.kategori_acara}</span>
+                <span className="font-medium">{category}</span>
               </Badge>
+
+              {paket.kategori_acara && (
+                <Badge
+                  icon={getAcaraIcon(paket.kategori_acara)}
+                  variant="outline"
+                  className={cn(
+                    "w-fit gap-1 border-0 text-[11px] shadow-none [&_svg]:size-3.5",
+                    getAcaraColor(paket.kategori_acara)
+                  )}
+                >
+                  <span className="font-medium">{paket.kategori_acara}</span>
+                </Badge>
+              )}
+            </span>
+
+            {(paket.testimoni_count ?? 0) > 0 && paket.rating_avg != null && (
+              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium whitespace-nowrap text-amber-700 dark:text-amber-400">
+                <HugeiconsIcon
+                  icon={StarIcon}
+                  className="size-3.5 fill-amber-400 text-amber-400"
+                />
+                {paket.rating_avg} ({paket.testimoni_count})
+              </span>
             )}
           </div>
 

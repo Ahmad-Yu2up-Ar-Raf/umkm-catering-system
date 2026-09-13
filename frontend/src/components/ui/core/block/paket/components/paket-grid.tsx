@@ -46,6 +46,7 @@ export function PaketGrid({
   isFetchingNextPage,
   kategori,
   search,
+  savedOnly = false,
   onLoadMore,
   onRetry,
   onReset,
@@ -59,11 +60,13 @@ export function PaketGrid({
   isFetchingNextPage: boolean
   kategori: string
   search: string
+  /** Wishlist view (`?saved=1`) — adjusts the empty state copy. */
+  savedOnly?: boolean
   onLoadMore: () => void
   onRetry: () => void
   onReset: () => void
 }) {
-  const isFiltered = Boolean(kategori || search)
+  const isFiltered = Boolean(kategori || search || savedOnly)
 
   // View mode is global, persisted UI state (localStorage) — read it straight
   // from the store so the toggle anywhere updates the grid everywhere. A
@@ -187,15 +190,27 @@ export function PaketGrid({
         </div>
       ) : pakets.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-20 text-center">
-          <p className="font-heading text-xl">Tidak ada paket yang cocok</p>
+          <p className="font-heading text-xl">
+            {savedOnly
+              ? "Belum ada paket tersimpan"
+              : "Tidak ada paket yang cocok"}
+          </p>
           {isFiltered && (
             <>
               <p className="max-w-md text-sm text-muted-foreground">
-                Tidak ada hasil untuk{" "}
-                <span className="font-medium text-foreground">
-                  {[kategori, search].filter(Boolean).join(" · ")}
-                </span>
-                .
+                {savedOnly && !kategori && !search ? (
+                  "Ketuk ikon hati pada halaman detail paket untuk menyimpannya di sini."
+                ) : (
+                  <>
+                    Tidak ada hasil untuk{" "}
+                    <span className="font-medium text-foreground">
+                      {[savedOnly ? "Tersimpan" : "", kategori, search]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                    .
+                  </>
+                )}
               </p>
               <Button variant="outline" onClick={onReset}>
                 Reset filter

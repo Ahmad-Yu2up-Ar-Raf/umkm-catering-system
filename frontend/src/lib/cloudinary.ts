@@ -4,6 +4,9 @@ import type { UploadTransport } from "react-mediadrop"
 /** Canonical Cloudinary product folder — identical prefix to PaketSeeder. */
 export const CLOUDINARY_PRODUCTS_FOLDER = "catering-nusantara/products"
 
+/** Flat dedicated folder for Master Testimoni uploads (no category routing). */
+export const CLOUDINARY_TESTIMONI_FOLDER = "catering-nusantara/testimoni"
+
 /**
  * Fire-and-forget orphan sweep: deletes Cloudinary assets that were uploaded
  * during a draft session but never committed (drawer discarded/cancelled, or
@@ -42,21 +45,40 @@ async function getUploadSignature(): Promise<SignatureResponse> {
   return cachedSignature
 }
 
-/** Get a signature for a specific Cloudinary folder (bypasses cache). */
-async function getUploadSignatureForFolder(folder: string): Promise<SignatureResponse> {
+/**
+ * Get a signature for a specific Cloudinary folder (bypasses cache).
+ *
+ * The `signatureBody` MUST satisfy CloudinarySignatureRequest: enum-validated
+ * `kategori_acara`/`category` labels, or the exact `folder: 'testimoni'` key.
+ * Passing a full folder path as `kategori_acara` fails validation (422) —
+ * never do that.
+ */
+async function getUploadSignatureForFolder(
+  folder: string,
+  signatureBody?: Record<string, string>,
+  signaturePath = "admin/cloudinary/signature"
+): Promise<SignatureResponse> {
   const res = await api
-    .post("admin/cloudinary/signature", { json: { kategori_acara: folder } })
+    .post(signaturePath, {
+      json: signatureBody ?? { kategori_acara: folder },
+    })
     .json<{ data: SignatureResponse }>()
   return res.data
 }
 
 /**
  * Transport that uploads one file straight to Cloudinary using a specific folder.
+ * `signaturePath` allows anonymous surfaces (public review form) to use the
+ * public signature endpoint instead of the admin one.
  */
-export function createCloudinaryTransportForFolder(folder: string): UploadTransport {
+export function createCloudinaryTransportForFolder(
+  folder: string,
+  signatureBody?: Record<string, string>,
+  signaturePath?: string
+): UploadTransport {
   return {
     async upload(file, { onProgress, signal }) {
-      const signature = await getUploadSignatureForFolder(folder)
+      const signature = await getUploadSignatureForFolder(folder, signatureBody, signaturePath)
 
       const formData = new FormData()
       formData.append("file", file.file)
@@ -113,7 +135,15 @@ export function toCanonicalCloudinaryUrl(upload: {
   if (!upload || typeof upload !== "object" || !upload.public_id || upload.version === undefined || !upload.format) {
     return (upload as { secure_url?: string })?.secure_url ?? ""
   }
-  return `https://res.cloudinary.com/${cachedSignature?.cloudName ?? ""}/image/upload/v${upload.version}/${upload.public_id}.${upload.format}`
+  // Never trust the ambient signature cache: folder-scoped transports don't
+  // populate it, which once produced URLs with an EMPTY cloud name
+  // (https://res.cloudinary.com//image/upload/…). Parse the cloud name from
+  // the upload's own secure_url first — Cloudinary always returns it.
+  const fromSecureUrl = /res\.cloudinary\.com\/([^/]+)\//.exec(
+    upload.secure_url ?? ""
+  )?.[1]
+  const cloudName = fromSecureUrl || cachedSignature?.cloudName || ""
+  return `https://res.cloudinary.com/${cloudName}/image/upload/v${upload.version}/${upload.public_id}.${upload.format}`
 }
 
 /**

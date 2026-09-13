@@ -216,6 +216,8 @@ function MasterGaleriBlock() {
               setPage(1)
             }}
             isLoading={isFetching}
+            visibleCount={items.length}
+            unit="galeri"
           />
         )}
       </div>

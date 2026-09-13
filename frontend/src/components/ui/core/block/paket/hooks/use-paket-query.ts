@@ -78,3 +78,25 @@ export function useBestSellerPakets() {
     },
   })
 }
+
+/**
+ * Saved-packages source — ONE bulk fetch (`perPage=500`, same batching
+ * rationale as `useBestSellerPakets`), `enabled` ONLY in the `?saved=1` view.
+ * The caller filters the rows by the persisted ID list client-side; no server
+ * support is needed because "saved" is local-only UI state.
+ */
+export function useSavedPaketsSource(enabled: boolean) {
+  return useQuery({
+    queryKey: ["paket", "saved-source"],
+    enabled,
+    staleTime: 1000 * 60 * 5,
+    queryFn: async () => {
+      const res = await api
+        .get("paket", {
+          searchParams: { page: "1", perPage: "500" },
+        })
+        .json<PaketListResponse>()
+      return res.data
+    },
+  })
+}

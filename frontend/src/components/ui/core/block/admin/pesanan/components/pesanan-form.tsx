@@ -71,13 +71,35 @@ export function PesananForm({
     useState<PaketSearchOption | null>(null)
 
   useEffect(() => {
-    if (paketOpen) {
-      const t = window.setTimeout(() => searchInputRef.current?.focus(), 50)
-      return () => window.clearTimeout(t)
-    } else {
-      setPaketSearch("")
-    }
+    if (!paketOpen) return
+    const t = window.setTimeout(() => searchInputRef.current?.focus(), 50)
+    return () => window.clearTimeout(t)
   }, [paketOpen])
+
+  const handlePaketOpenChange = (open: boolean) => {
+    if (!open) setPaketSearch("")
+    setPaketOpen(open)
+  }
+
+  const selectPaket = (
+    pkg: PaketSearchOption,
+    fieldApi: {
+      handleChange: (v: number) => void
+      validate?: (cause: "change") => void
+    }
+  ) => {
+    setSelectedPaketData(pkg)
+    fieldApi.handleChange(pkg.id)
+    const formApi = form as unknown as {
+      setFieldValue?: (key: string, value: unknown) => void
+    }
+    formApi.setFieldValue?.("paket_id", pkg.id)
+    // Re-run change validation explicitly so a prior submit-phase error
+    // clears the instant a valid paket is picked (no blur needed).
+    fieldApi.validate?.("change")
+    setPaketSearch("")
+    setPaketOpen(false)
+  }
 
   const mergedPaketOptions = useMemo(() => {
     const baseOptions = paketOptions ?? []
@@ -168,6 +190,17 @@ export function PesananForm({
                     const hasError =
                       (field.state.meta.errors?.length ?? 0) > 0 &&
                       (field.form.state.submissionAttempts ?? 0) > 0
+                    // Zod/Standard-Schema issues arrive as objects
+                    // ({ message }), never strings — String() on them
+                    // renders "[object Object]".
+                    const rawError = field.state.meta.errors[0] as
+                      | string
+                      | { message?: string }
+                      | undefined
+                    const errorMessage =
+                      typeof rawError === "string"
+                        ? rawError
+                        : (rawError?.message ?? "Pilih paket terlebih dahulu.")
                     return (
                       <div className="flex flex-col gap-1.5">
                         <span className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -175,22 +208,33 @@ export function PesananForm({
                         </span>
                         <Collapsible
                           open={paketOpen}
-                          onOpenChange={setPaketOpen}
+                          onOpenChange={handlePaketOpenChange}
                         >
                           <CollapsibleTrigger asChild>
                             <Button
                               variant="outline"
                               type="button"
-                              disabled={
-                                isPaketLoading || field.form.state.isSubmitting
+                              // Interactivity must NEVER hinge on the async
+                              // lookup: a stalled search query left this
+                              // trigger permanently disabled after a failed
+                              // submit, with no way to fix the error.
+                              disabled={field.form.state.isSubmitting}
+                              aria-invalid={hasError}
+                              aria-busy={isPaketLoading}
+                              className={
+                                "flex h-12 w-full items-center justify-between rounded-2xl border px-4 text-sm font-normal shadow-none disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-primary data-[state=open]:bg-primary/5 " +
+                                (hasError
+                                  ? "border-destructive bg-destructive/5 hover:bg-destructive/10"
+                                  : "border-border/40 bg-transparent hover:bg-primary/5")
                               }
-                              className="flex h-12 w-full items-center justify-between rounded-2xl border border-border/40 bg-transparent px-4 text-sm font-normal shadow-none hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50 data-[state=open]:border-primary data-[state=open]:bg-primary/5"
                             >
                               <span
                                 className={
                                   selectedPaketLabel
                                     ? "font-medium text-primary"
-                                    : "text-muted-foreground"
+                                    : hasError
+                                      ? "text-destructive"
+                                      : "text-muted-foreground"
                                 }
                               >
                                 {selectedPaketLabel ?? "Pilih paket..."}
@@ -235,22 +279,10 @@ export function PesananForm({
                                           role="button"
                                           tabIndex={0}
                                           onClick={() => {
-                                            setSelectedPaketData(pkg)
-                                            ;(
-                                              field as unknown as {
-                                                handleChange: (
-                                                  v: number
-                                                ) => void
-                                              }
-                                            ).handleChange(pkg.id)
-                                            try {
-                                              form.setFieldValue(
-                                                "paket_id" as never,
-                                                pkg.id as never
-                                              )
-                                            } catch {}
-                                            setPaketSearch("")
-                                            setPaketOpen(false)
+                                            selectPaket(pkg, field as unknown as {
+                                              handleChange: (v: number) => void
+                                              validate?: (cause: "change") => void
+                                            })
                                           }}
                                           onKeyDown={(e) => {
                                             if (
@@ -258,22 +290,10 @@ export function PesananForm({
                                               e.key === " "
                                             ) {
                                               e.preventDefault()
-                                              setSelectedPaketData(pkg)
-                                              ;(
-                                                field as unknown as {
-                                                  handleChange: (
-                                                    v: number
-                                                  ) => void
-                                                }
-                                              ).handleChange(pkg.id)
-                                              try {
-                                                form.setFieldValue(
-                                                  "paket_id" as never,
-                                                  pkg.id as never
-                                                )
-                                              } catch {}
-                                              setPaketSearch("")
-                                              setPaketOpen(false)
+                                              selectPaket(pkg, field as unknown as {
+                                                handleChange: (v: number) => void
+                                                validate?: (cause: "change") => void
+                                              })
                                             }
                                           }}
                                           className={
@@ -299,11 +319,8 @@ export function PesananForm({
                           </CollapsibleContent>
                         </Collapsible>
                         {hasError && (
-                          <p className="text-xs text-destructive">
-                            {String(
-                              field.state.meta.errors[0] ??
-                                "Pilih paket terlebih dahulu."
-                            )}
+                          <p role="alert" className="text-xs text-destructive">
+                            {errorMessage}
                           </p>
                         )}
                       </div>

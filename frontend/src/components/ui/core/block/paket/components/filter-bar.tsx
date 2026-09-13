@@ -28,7 +28,13 @@ export function FilterBar({
           <SearchBar search={search} onSearchChange={onSearchChange} />
         </div>
         <div className="min-w-0 flex-1 md:order-1">
-          <CategoryNav active={kategori} onSelect={onKategoriChange} />
+          <CategoryNav
+            active={kategori}
+            onSelect={onKategoriChange}
+            savedActive={false}
+            savedCount={0}
+            onToggleSaved={() => {}}
+          />
         </div>
       </div>
     </div>

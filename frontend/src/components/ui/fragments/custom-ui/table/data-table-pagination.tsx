@@ -20,6 +20,11 @@ interface DataTablePaginationProps {
   onPageChange: (page: number) => void
   onPerPageChange: (perPage: number) => void
   isLoading?: boolean
+  /** Rows actually rendered on the current page — drives the summary text.
+   *  Defaults to perPage when the caller doesn't track it. */
+  visibleCount?: number
+  /** Entity noun for the summary text (e.g. "paket", "testimoni"). */
+  unit?: string
 }
 
 /** Prev/next + per-page size for server-side paginated admin tables — minimalist, transparent. */
@@ -28,8 +33,11 @@ export function DataTablePagination({
   onPageChange,
   onPerPageChange,
   isLoading = false,
+  visibleCount,
+  unit = "data",
 }: DataTablePaginationProps) {
   const { total, currentPage, lastPage, perPage, hasMore } = pagination
+  const shown = visibleCount ?? Math.min(perPage, Math.max(total - (currentPage - 1) * perPage, 0))
 
   const paginationRange = usePagination({
     currentPage,
@@ -40,7 +48,8 @@ export function DataTablePagination({
   return (
     <div className="flex flex-col items-center justify-between gap-3 px-2 py-3 sm:flex-row">
       <p className="text-xs text-muted-foreground">
-        Menampilkan <span className="font-medium text-foreground">{total}</span> paket
+        Menampilkan <span className="font-medium text-foreground">{shown}</span> dari{" "}
+        <span className="font-medium text-foreground">{total}</span> {unit}
       </p>
 
       <div className="flex items-center gap-2">

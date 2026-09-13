@@ -17,7 +17,6 @@ import { Link, useLocation, useNavigate } from "react-router"
 import { WhatsappIcon } from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { BUSINESS_NUMBER, getWhatsAppLink } from "@/lib/whatsapp"
-import { useIsMobile } from "@/hooks/use-mobile"
 
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 

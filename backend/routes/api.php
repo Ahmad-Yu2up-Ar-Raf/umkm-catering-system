@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\Admin\GaleriController as AdminGaleriController;
+use App\Http\Controllers\Admin\TestimoniController as AdminTestimoniController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CloudinaryController;
 use App\Http\Controllers\GaleriController;
 use App\Http\Controllers\PaketController;
+use App\Http\Controllers\TestimoniController;
 use App\Http\Controllers\PesananController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +26,10 @@ Route::prefix('v1')->group(function () {
     Route::get('/paket/best-seller', [PaketController::class, 'bestSeller'])->name('paket.best-seller');
     Route::get('/paket/{paket}', [PaketController::class, 'show'])->name('paket.show');
     Route::get('/galeri', [GaleriController::class, 'index'])->name('galeri.index');
+    Route::get('/testimoni', [TestimoniController::class, 'index'])->name('testimoni.index');
+    Route::get('/testimoni/paket/{paket}', [TestimoniController::class, 'byPaket'])->name('testimoni.by-paket');
+    Route::post('/testimoni', [TestimoniController::class, 'store'])->name('testimoni.public-store');
+    Route::post('/testimoni/signature', [CloudinaryController::class, 'publicSignature'])->name('testimoni.signature');
     Route::post('/pesanan', [PesananController::class, 'store'])->name('pesanan.public-store');
 
     // Admin (auth:sanctum) — resource names prefixed to avoid colliding
@@ -40,6 +46,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/galeri/bulk-update', [AdminGaleriController::class, 'bulkUpdate'])->name('admin.galeri.bulk-update');
         Route::post('/galeri/bulk-delete', [AdminGaleriController::class, 'bulkDelete'])->name('admin.galeri.bulk-delete');
         Route::apiResource('galeri', AdminGaleriController::class)->names('admin.galeri');
+        // Testimoni bulk ops (bulk-update whitelists `visibility` only).
+        Route::post('/testimoni/bulk-update', [AdminTestimoniController::class, 'bulkUpdate'])->name('admin.testimoni.bulk-update');
+        Route::post('/testimoni/bulk-delete', [AdminTestimoniController::class, 'bulkDelete'])->name('admin.testimoni.bulk-delete');
+        Route::apiResource('testimoni', AdminTestimoniController::class)->names('admin.testimoni');
 
         // Cloudinary — signed upload credentials + storage cleanup (see CloudinaryService).
         Route::post('/cloudinary/signature', [CloudinaryController::class, 'signature'])

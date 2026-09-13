@@ -14,9 +14,9 @@
 - **Connection:** `.env.example` ships with `DB_CONNECTION=pgsql` and a Neon host; fill `DB_*` vars from your Neon connection string (`DB_SSLMODE=require`).
 - **Agent Context:** The OpenCode agent is globally equipped with the **Neon MCP** to manage this database, run SQL queries, and inspect schemas when needed.
 
-## Core Tables (5 — the original 4 + `paket_images`, approved with the Cloudinary gallery upgrade)
+## Core Tables (6 — the original 4 + `paket_images`, approved with the Cloudinary gallery upgrade, + `testimoni`, approved via `frontend/docs/PRD-Master-Testimoni.md` §15)
 
-`testimoni` and `faq` remain future candidates — **NOT approved**. Do not create migrations for them.
+`faq` remains a future candidate — **NOT approved**. Do not create a migration for it.
 
 ```dbml
 Table users {
@@ -80,6 +80,20 @@ Table pesanan {
   catatan text
   total_harga decimal(12,2) [not null]          // SERVER-ONLY, never from client
   status_pesanan varchar [default: 'pending']   // pending|confirmed|completed|cancelled
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table testimoni {
+  id int [pk, increment]
+  nama varchar [not null]                       // SSP: nama pemberi testimoni
+  pesanan text [not null]                       // review message ("Pesan", ≤2000, NOT a FK)
+  acara varchar [not null]                      // free string, e.g. "Pernikahan"
+  lokasi varchar [not null]                     // e.g. "Taman Sari, Bogor"
+  tanggal_acara date [nullable]                 // optional event date (added post-launch; old rows NULL)
+  visibility varchar [default: 'private']       // public|private (string col + PHP enum Rule::enum, not native PG enum)
+  rating smallint [default: 5]                  // 1–5, FormRequest min|max + native CHECK (rating BETWEEN 1 AND 5)
+  paket_id int [ref: > paket.id, not null]      // restrict: paket delete guarded 409 while referenced
   created_at timestamp
   updated_at timestamp
 }

@@ -87,12 +87,6 @@ const Tile = function Tile({
         />
       )}
 
-      {isFile && (
-        <span className="absolute bottom-2 left-2 rounded-full bg-background/90 px-2 py-0.5 text-[10px] text-muted-foreground shadow-sm">
-          Siap diunggah
-        </span>
-      )}
-
       <Button
         type="button"
         aria-label="Hapus gambar"

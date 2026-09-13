@@ -20,8 +20,25 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
+        // Localhost & Local Network
         env('FRONTEND_URL', 'http://localhost:5173'),
-        'http://192.168.1.4:5173', // <-- Tambahkan baris ini
+        'http://192.168.1.4:5173',
+
+        // Domain Gratisan (Vercel)
+        'https://catering-nusantara.vercel.app',
+        'https://cateringnusantara.vercel.app',
+
+        // Domain Custom Premium (.com)
+        'https://catering-nusantara.com',
+        'https://www.catering-nusantara.com',
+        'https://cateringnusantara.com',
+        'https://www.cateringnusantara.com',
+
+        // Domain Custom Nasional (.id)
+        'https://catering-nusantara.id',
+        'https://www.catering-nusantara.id',
+        'https://cateringnusantara.id',
+        'https://www.cateringnusantara.id',
     ],
 
     'allowed_origins_patterns' => [],

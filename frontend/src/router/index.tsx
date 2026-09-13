@@ -14,6 +14,7 @@ import PaketDetail from "@/pages/paket/paket-detail"
 import MasterPaketPage from "@/pages/admin/master-paket-page"
 import MasterGaleriPage from "@/pages/admin/master-galeri-page"
 import MasterPesananPage from "@/pages/admin/master-pesanan-page"
+import TestimoniPage from "@/pages/admin/testimoni-page"
 
 export const router = createBrowserRouter([
   {
@@ -83,6 +84,10 @@ export const router = createBrowserRouter([
           {
             path: "pesanan",
             element: <MasterPesananPage />,
+          },
+          {
+            path: "testimoni",
+            element: <TestimoniPage />,
           },
         ],
       },

@@ -39,6 +39,11 @@ class PaketController extends Controller
 
         $query = Paket::query()->with('images')->withCount('pesanan');
 
+        // Public-review aggregates for rating badges (cards + admin table).
+        // Constrained to approved (public) testimonials only.
+        $query->withCount(['testimoni as testimoni_count' => fn ($q) => $q->where('visibility', 'public')]);
+        $query->withAvg(['testimoni as rating_avg' => fn ($q) => $q->where('visibility', 'public')], 'rating');
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('nama_paket', 'like', "%{$search}%")
@@ -82,6 +87,8 @@ class PaketController extends Controller
     public function bestSeller()
     {
         $paket = Paket::query()->with('images')->bestSeller()->latest()->get();
+        $paket->loadCount(['testimoni as testimoni_count' => fn ($q) => $q->where('visibility', 'public')]);
+        $paket->loadAvg(['testimoni as rating_avg' => fn ($q) => $q->where('visibility', 'public')], 'rating');
 
         return response()->json([
             'status' => true,
@@ -123,6 +130,8 @@ class PaketController extends Controller
     public function show(Paket $paket)
     {
         $paket->load('images');
+        $paket->loadCount(['testimoni as testimoni_count' => fn ($q) => $q->where('visibility', 'public')]);
+        $paket->loadAvg(['testimoni as rating_avg' => fn ($q) => $q->where('visibility', 'public')], 'rating');
 
         return response()->json([
             'status' => true,
@@ -189,16 +198,27 @@ class PaketController extends Controller
         Log::info('DELETE ROUTE HIT', ['id' => $paket->id]);
         Log::info('PAKET FOUND', ['paket' => $paket->toArray()]);
 
-        // Guard: active orders block deletion (409 Conflict).
-        if ($paket->pesanan()->exists()) {
-            Log::warning('DELETE BLOCKED: pesanan exists', [
+        // Guard: active orders or testimonials block deletion (409 Conflict).
+        $hasPesanan = $paket->pesanan()->exists();
+        $hasTestimoni = $paket->testimoni()->exists();
+        if ($hasPesanan || $hasTestimoni) {
+            Log::warning('DELETE BLOCKED: dependents exist', [
                 'paket_id' => $paket->id,
                 'pesanan_count' => $paket->pesanan()->count(),
+                'testimoni_count' => $paket->testimoni()->count(),
             ]);
+
+            $blockers = [];
+            if ($hasPesanan) {
+                $blockers[] = 'pesanan';
+            }
+            if ($hasTestimoni) {
+                $blockers[] = 'testimoni';
+            }
 
             return response()->json([
                 'status' => false,
-                'message' => 'Paket tidak dapat dihapus karena masih memiliki pesanan terkait.',
+                'message' => 'Paket tidak dapat dihapus karena masih memiliki '.implode(' dan ', $blockers).' terkait.',
                 'data' => null,
             ], 409);
         }
@@ -316,12 +336,12 @@ class PaketController extends Controller
         $ids = $request->input('ids');
         $pakets = \App\Models\Paket::whereIn('id', $ids)->with('images')->get();
 
-        // Guard: block if any has pesanan
-        $blocked = $pakets->filter(fn($p) => $p->pesanan()->exists());
+        // Guard: block if any has pesanan or testimoni
+        $blocked = $pakets->filter(fn($p) => $p->pesanan()->exists() || $p->testimoni()->exists());
         if ($blocked->isNotEmpty()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Beberapa paket tidak dapat dihapus karena memiliki pesanan terkait: ' . $blocked->pluck('nama_paket')->join(', '),
+                'message' => 'Beberapa paket tidak dapat dihapus karena memiliki pesanan atau testimoni terkait: ' . $blocked->pluck('nama_paket')->join(', '),
             ], 409);
         }
 

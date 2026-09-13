@@ -50,6 +50,10 @@
 | `GET` | `/paket/best-seller` | Best-seller packages (homepage) |
 | `GET` | `/paket/{paket}` | Package detail |
 | `GET` | `/galeri` | List event-gallery entries |
+| `GET` | `/testimoni` | Public showcase — latest 5 testimonials (`visibility=public`), for the homepage (no auth) |
+| `GET` | `/testimoni/paket/{paket}` | Public reviews for one package — strictly `visibility=public`, newest first (no auth) |
+| `POST` | `/testimoni` | Anonymous review submission (no auth) — `nama`, `pesanan` (≤2000), `acara`, `lokasi`, `tanggal_acara?` (date), `rating` 1–5, `paket_id`; `visibility` is **forced to `private`** server-side, forged values discarded |
+| `POST` | `/testimoni/signature` | Public Cloudinary signature for review photos — folder fixed server-side to `catering-nusantara/testimoni` (no auth, no client folder key) |
 
 ### 4.2 Admin & Mini POS (auth: `Bearer` token)
 
@@ -68,6 +72,13 @@ All under `/api/v1/admin`.
 | `POST` | `/admin/galeri` | Create gallery entry |
 | `GET` | `/admin/galeri/{galeri}` | Show gallery entry |
 | `DELETE` | `/admin/galeri/{galeri}` | Delete gallery entry |
+| `GET` | `/admin/testimoni` | List testimonials — supports `page`, `perPage` (default 10), `search` (LIKE across `nama`, `pesanan`, `acara`, `lokasi`), repeated `visibility[]` (`public`/`private`; invalid values dropped), `sort_by` (whitelist: `nama`, `acara`, `lokasi`, `visibility`, `created_at`, `updated_at`), `sort_dir` (`asc`\|`desc`); eager-loads `paket` (`id`, `nama_paket`, `thumbnail`) |
+| `POST` | `/admin/testimoni` | Create testimonial (`201` + resource) |
+| `GET` | `/admin/testimoni/{testimoni}` | Show testimonial |
+| `PUT` | `/admin/testimoni/{testimoni}` | Update testimonial (partial via `sometimes` rules) |
+| `DELETE` | `/admin/testimoni/{testimoni}` | Delete testimonial |
+| `POST` | `/admin/testimoni/bulk-delete` | Bulk-delete testimonials (`{ ids: number[] }`) |
+| `POST` | `/admin/testimoni/bulk-update` | Bulk-update testimonials (`{ ids, field: "visibility", value: "public"｜"private" }`; invalid values 422) |
 | `GET` | `/admin/pesanan` | List orders — supports `page`, `perPage` (default 15), repeated `status_pesanan[]` (whitelisted: `pending`/`confirmed`/`completed`/`cancelled`), `search` (LIKE across `nomor_struk`, `nama_pemesan`, `no_telepon`), `sort_by` (whitelist: `created_at`, `total_harga`, `nomor_struk`, `nama_pemesan`), `sort_dir` (`asc`\|`desc`) |
 | `POST` | `/admin/pesanan` | Create order |
 | `GET` | `/admin/pesanan/{pesanan}` | Show order |
@@ -88,7 +99,10 @@ All under `/api/v1/admin`.
 - **`images`** on `paket` (admin create/update): required array of canonical Cloudinary URL strings (1–8, each a valid URL). Files are uploaded **directly to Cloudinary by the browser** (signed via `POST /admin/cloudinary/signature`) before the payload is sent, so the API only ever sees URLs. URLs are stored under the project prefix `catering-nusantara/products/` — the same namespace the PaketSeeder uses. On update: URLs no longer present are removed (DB rows synchronously; Cloudinary asset deletion is dispatched as a queued job `DeleteCloudinaryAssets` **after the response**, so storage latency never blocks the request); new URLs become new `paket_images` rows. Omit the field to keep the existing gallery untouched.
 - **`thumbnail`** on `paket`: required primary cover image URL. When set and not already inside `images`, the backend also records it as a `paket_images` row so the cover always belongs to the gallery.
 - **Deletion job:** `DeleteCloudinaryAssets` runs best-effort, pooled (`Http::pool`, concurrency 5) destruction of removed assets — dispatched with `afterResponse()` on update/delete. It repairs orphans even if individual Cloudinary calls fail (failures are logged, never thrown). For a truly async worker on production, switch `QUEUE_CONNECTION` to `database` and run `php artisan queue:work`.
-- **Delete guard:** `DELETE /api/v1/admin/paket/{id}` returns `409` when the paket still has orders (`pesanan` rows referencing it) — delete is blocked to protect order history.
+- **Delete guard:** `DELETE /api/v1/admin/paket/{id}` (and bulk-delete) returns `409` when the paket still has orders (`pesanan` rows) or testimonials (`testimoni` rows referencing it) — delete is blocked to protect order history and testimonial integrity.
+- **`visibility`** on `testimoni`: `public` | `private`, validated via `Rule::enum(TestimoniVisibilityEnum)` (optional on create — omitted falls through to the DB default `private`). Radio group in the admin form; `MultiSelectFilter` + status badge in the admin table.
+- **`rating`** on `testimoni`: integer 1–5, validated via `min:1|max:5` (optional on create — omitted falls through to the DB default `5`) and enforced by a native `CHECK (rating BETWEEN 1 AND 5)` constraint. Star-rating field in the admin form; sortable tiered rating badge (`★ n/5`) in the admin table.
+- **`pesanan`** on `testimoni` is free-text `text` (renamed "Pesan" in the admin form, textarea, `max:2000`) — the review message itself, also consumed as the homepage quote.
 - **Tumpeng Mini** is priced per package: `harga_per_porsi` = Rp25.000 with `min_order` = 10. Never send Rp250.000 as `harga_per_porsi`.
 
 ## 6. Request/Response Shapes
