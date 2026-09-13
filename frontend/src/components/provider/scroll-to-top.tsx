@@ -5,7 +5,7 @@ import { useEffect } from "react"
 import { useLenis } from "lenis/react"
 import { useLocation } from "react-router"
 
-import { ScrollTrigger } from "@/components/motion/gsap"
+import { refreshRoute } from "@/lib/refresh-route"
 
 /**
  * Global scroll restoration for the Lenis-powered SPA.
@@ -51,9 +51,10 @@ export function ScrollToTop() {
 
     // Once the new route's layout settles, re-measure every ScrollTrigger and
     // re-assert the top in case a late mount (pin spacer, heavy images)
-    // adjusted scroll after the first reset.
+    // adjusted scroll after the first reset. P4 perf: debounced centrally so
+    // concurrent hosts (CTA, parallax) share one layout pass.
     requestAnimationFrame(() => {
-      ScrollTrigger.refresh()
+      refreshRoute()
       if (window.scrollY !== 0) resetToTop()
     })
   }, [pathname, lenis])

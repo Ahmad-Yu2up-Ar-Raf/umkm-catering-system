@@ -326,6 +326,14 @@
   }
 }
 
+/* P7 perf: layout containment for long off-screen rails/grids — the browser
+   skips layout+paint for below-viewport containers (progressive enhancement;
+   no visual change). Pair with a class like `cv-auto` on rail/column roots. */
+@utility cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
 /* --- OVERRIDE SONNER UI --- */
 /* Paksa Sonner untuk menggunakan variabel OKLCH milikmu */
 

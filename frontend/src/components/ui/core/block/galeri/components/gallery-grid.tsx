@@ -161,9 +161,10 @@ export function GalleryGrid({
     return () => observer.disconnect()
   }, [hasNextPage, isFetchingNextPage, onLoadMore])
 
-  /** Renders one column as a list of nodes (cards). */
+  /** Renders one column as a list of nodes (cards). P7: `cv-auto` skips
+      off-screen layout/paint for below-viewport columns. */
   const renderColumnNodes = (nodes: React.ReactNode[]) => (
-    <div className="flex min-w-0 flex-1 flex-col gap-4">
+    <div className="flex min-w-0 flex-1 flex-col gap-4 cv-auto">
       {nodes}
     </div>
   )

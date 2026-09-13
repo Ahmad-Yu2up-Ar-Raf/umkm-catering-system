@@ -214,6 +214,7 @@ export function PesananForm({
                             <Button
                               variant="outline"
                               type="button"
+                              id={field.name}
                               // Interactivity must NEVER hinge on the async
                               // lookup: a stalled search query left this
                               // trigger permanently disabled after a failed

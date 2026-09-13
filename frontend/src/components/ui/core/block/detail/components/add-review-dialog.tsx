@@ -204,7 +204,7 @@ export function AddReviewDialog({
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent
           data-lenis-prevent
-          className="my-6 flex max-h-[90vh] w-full max-w-5xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]"
+          className="flex max-h-[90vh] w-full max-w-5xl flex-col gap-0 overflow-hidden p-0 lg:max-w-[80em]"
         >
           <DialogHeader className="sr-only">
             <DialogTitle>
@@ -216,7 +216,7 @@ export function AddReviewDialog({
           </DialogHeader>
           <div className="show-scrollbar flex-1 overflow-y-auto overscroll-contain">
             <div className="grid gap-10 p-6 sm:p-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-              <aside className="min-w-0 self-start lg:sticky lg:top-0">
+              <aside className="min-w-0 self-start lg:sticky lg:top-4">
                 <PaketPreview vm={vm} />
               </aside>
               <div className="flex min-w-0 flex-col gap-8">

@@ -70,11 +70,18 @@ export function WordReveal({
   useGSAP(
     () => {
       if (reduced || !rootRef.current) return
+      // P2 perf: blur cost scales ~radius² × layer count — on phones a 12px
+      // per-word blur is the GPU killer. Cap the radius on small viewports;
+      // desktop keeps the full grain. End states are identical (blur → 0).
+      const mobile =
+        typeof window !== "undefined" &&
+        window.matchMedia("(max-width: 767px)").matches
+      const radius = blur !== undefined && mobile ? Math.min(blur, 4) : blur
       const targets = rootRef.current.querySelectorAll<HTMLElement>("[data-word]")
-      const hidden = blur
-        ? { opacity: 0, y: 24, filter: `blur(${blur}px)` }
+      const hidden = radius
+        ? { opacity: 0, y: 24, filter: `blur(${radius}px)` }
         : { yPercent: 110 }
-      const reveal = blur
+      const reveal = radius
         ? {
             opacity: 1,
             y: 0,

@@ -54,9 +54,11 @@ export function GalleryFeatured({
 
   return (
     <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl ring-1 ring-border sm:aspect-[2/1] lg:aspect-auto lg:h-[min(60vh,520px)]">
-      {/* Keyed slide — incoming crossfades in while scaling out; exit is the
-          outgoing blend (mode="wait" keeps overlapping frames impossible). */}
-      <AnimatePresence mode="wait" initial={false}>
+      {/* Keyed slide — incoming crossfades in while scaling out.
+          P6 perf: mode="sync" (was "wait") — exit and enter blend in the
+          same 0.7s window instead of serializing exit→enter (~2× feel on
+          auto-advance). Same durations/eases, no visual language change. */}
+      <AnimatePresence mode="sync" initial={false}>
         <motion.div
           key={active.id}
           initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.08, filter: "blur(6px)" }}

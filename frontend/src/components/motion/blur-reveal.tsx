@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import type { ElementType, ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 /** Luxury ease — premium Apple-like cubic-bezier. */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
@@ -113,6 +114,10 @@ export function BlurReveal({
   amount = 0.2,
 }: BlurRevealProps) {
   const words = typeof children === "string" ? children.split(" ") : null
+  // P2 perf: cap the blur radius ONCE per reveal (not per word) — ≤4px on
+  // phones where per-word blur layers tank the GPU; desktop keeps full grain.
+  const isMobile = useIsMobile()
+  const radius = isMobile ? Math.min(blur, 4) : blur
 
   return (
     <Comp className={className}>
@@ -124,7 +129,7 @@ export function BlurReveal({
             delay={delay}
             duration={duration}
             stagger={i * stagger}
-            blur={blur}
+            blur={radius}
             scale={scale}
             onMount={onMount}
             amount={amount}
@@ -139,7 +144,7 @@ export function BlurReveal({
           delay={delay}
           duration={duration}
           stagger={0}
-          blur={blur}
+          blur={radius}
           scale={scale}
           onMount={onMount}
           amount={amount}

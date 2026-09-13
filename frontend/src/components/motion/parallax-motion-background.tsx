@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react"
 
 import { cn } from "@/lib/utils"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
-import { gsap, ScrollTrigger, useGSAP } from "@/components/motion/gsap"
+import { gsap, useGSAP } from "@/components/motion/gsap"
+import { refreshRoute } from "@/lib/refresh-route"
 
 type ParallaxMotionBackgroundProps = {
   /** Background image URL — served path, e.g. "/assets/images/...". */
@@ -78,9 +79,11 @@ export function ParallaxMotionBackground({
 
   // Delayed re-measure after mount (see docstring). `reduced` is a stable
   // dependency; host components refresh on route/preloader changes.
+  // P4 perf: routes through the central debounced helper so N mounted
+  // backdrops collapse into ONE refresh per frame instead of N timeouts.
   useEffect(() => {
     if (reduced) return
-    const t = window.setTimeout(() => ScrollTrigger.refresh(), 100)
+    const t = window.setTimeout(() => refreshRoute(), 100)
     return () => window.clearTimeout(t)
   }, [reduced])
 
@@ -169,12 +172,16 @@ export function ParallaxMotionBackground({
         ref={layerRef}
         className="absolute inset-x-0 -top-[10%] h-[120%] will-change-transform"
       >
+        {/* P7 perf: only preloader-gated heroes (revealTrigger="mount") keep
+            eager/high — every below-fold instance lazy-decodes so image work
+            never competes with the hero reveal on route change. */}
         <img
           src={imageUrl}
           alt={alt}
           className="h-full w-full object-cover"
-          loading="eager"
-          fetchPriority="high"
+          loading={revealTrigger === "mount" ? "eager" : "lazy"}
+          fetchPriority={revealTrigger === "mount" ? "high" : "auto"}
+          decoding="async"
         />
       </div>
       {overlayGradient &&

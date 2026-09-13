@@ -286,26 +286,32 @@ export function Marque({ preloaderDone }: { preloaderDone: boolean }) {
     () => {
       if (reduced || !sectionRef.current) return
 
-      const scrub = 0.5 // tight, responsive to the wheel
-      const trigger = {
-        trigger: sectionRef.current,
-        start: "top bottom",
-        end: "bottom top",
-        scrub,
-      }
+      // P8 perf: scroll-scrubbed drift runs on tablet/desktop only — on
+      // phones the bands are static (no per-frame scrub cost). The entrance
+      // fade below is ungated so the reveal still plays everywhere.
+      const mm = gsap.matchMedia()
+      mm.add("(min-width: 768px)", () => {
+        const scrub = 0.5 // tight, responsive to the wheel
+        const trigger = {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub,
+        }
 
-      // Row 1 — drifts LEFT, subtle travel as the user scrolls down.
-      gsap.fromTo(
-        row1Ref.current,
-        { xPercent: -10 },
-        { xPercent: -20, ease: "none", scrollTrigger: trigger }
-      )
-      // Row 2 — drifts RIGHT, opposite direction.
-      gsap.fromTo(
-        row2Ref.current,
-        { xPercent: -20 },
-        { xPercent: -10, ease: "none", scrollTrigger: trigger }
-      )
+        // Row 1 — drifts LEFT, subtle travel as the user scrolls down.
+        gsap.fromTo(
+          row1Ref.current,
+          { xPercent: -10 },
+          { xPercent: -20, ease: "none", scrollTrigger: trigger }
+        )
+        // Row 2 — drifts RIGHT, opposite direction.
+        gsap.fromTo(
+          row2Ref.current,
+          { xPercent: -20 },
+          { xPercent: -10, ease: "none", scrollTrigger: trigger }
+        )
+      })
     },
     { scope: sectionRef }
   )

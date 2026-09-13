@@ -3,8 +3,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 
 import {
-  ArrowLeft02Icon,
-  ArrowRight02Icon,
   Cancel01Icon,
   ChevronLeft,
   ChevronRight,
@@ -290,7 +288,9 @@ export function GlobalImageModal() {
             onClick={close}
             className="relative z-10 flex min-h-0 w-full flex-1 items-center justify-center px-3 pt-10 pb-24 sm:px-6 sm:pt-12 sm:pb-28"
           >
-            <AnimatePresence mode="wait" initial={false}>
+            {/* P6 perf: mode="sync" (was "wait") — prev/next slides crossfade
+                in one 0.3s window instead of exit-then-enter. Same tween. */}
+            <AnimatePresence mode="sync" initial={false}>
               <motion.div
                 key={item.src}
                 initial={blurVariant}

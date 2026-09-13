@@ -5,7 +5,8 @@ import { useEffect, useRef } from "react"
 import { useLocation } from "react-router"
 
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
-import { gsap, ScrollTrigger, useGSAP } from "@/components/motion/gsap"
+import { gsap, useGSAP } from "@/components/motion/gsap"
+import { refreshRoute } from "@/lib/refresh-route"
 import { BlurReveal } from "@/components/motion/blur-reveal"
 import { WordReveal } from "@/components/motion/word-reveal"
 import { ParallaxMotionBackground } from "@/components/motion/parallax-motion-background"
@@ -45,9 +46,11 @@ function CTABlock() {
   // navigation or once the curtain lifts and the footer/images settle. Re-pin
   // the geometry shortly after each route change and preloader flip so the
   // reveal/parallax always fire (fixes the disappearing background).
+  // P4 perf: central debounced helper — absorbed into the shared per-frame
+  // refresh instead of firing its own layout pass.
   useEffect(() => {
     if (reduced) return
-    const t = window.setTimeout(() => ScrollTrigger.refresh(), 100)
+    const t = window.setTimeout(() => refreshRoute(), 100)
     return () => window.clearTimeout(t)
   }, [preloaderDone, location.pathname, reduced])
 

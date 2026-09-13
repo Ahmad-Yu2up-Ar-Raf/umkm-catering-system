@@ -119,7 +119,7 @@ export function GalleryBlock() {
           )}
         >
           {previewsSettled ? (
-            <div className="flex flex-col gap-16 md:gap-20">
+            <div className="flex flex-col gap-16 md:gap-20 cv-auto">
               {results.map((result, index) => {
                 const category = categories[index]
                 if (!category) return null

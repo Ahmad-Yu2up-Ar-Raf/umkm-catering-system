@@ -116,6 +116,8 @@ export function PaketGrid({
   } as const
 
   const gridContainerClass = cn(
+    // P7: `cv-auto` skips off-screen layout/paint for below-fold cards.
+    "cv-auto",
     layoutMode === "horizontal" && "flex flex-col gap-8",
     layoutMode === "grid-3" &&
       "grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"

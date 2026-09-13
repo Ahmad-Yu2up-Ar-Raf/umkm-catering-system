@@ -6,15 +6,17 @@ import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
 import { LayoutWrapper } from "@/components/provider/layout-wrapper"
 
 import LoginBlock from "@/components/ui/core/block/auth/login-block"
-import PaketPage from "@/pages/paket/paket-page"
 import { AppShell } from "@/components/ui/core/layout/dashboard/app-shell"
-import GaleryPage from "@/pages/gallery/galery-page"
-import GaleriCategoryPage from "@/pages/gallery/galeri-category-page"
-import PaketDetail from "@/pages/paket/paket-detail"
 import MasterPaketPage from "@/pages/admin/master-paket-page"
 import MasterGaleriPage from "@/pages/admin/master-galeri-page"
 import MasterPesananPage from "@/pages/admin/master-pesanan-page"
 import TestimoniPage from "@/pages/admin/testimoni-page"
+import {
+  PublicGaleriCategoryPage,
+  PublicGaleryPage,
+  PublicPaketDetail,
+  PublicPaketPage,
+} from "@/router/public-routes"
 
 export const router = createBrowserRouter([
   {
@@ -39,11 +41,11 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <PaketPage />,
+            element: <PublicPaketPage />,
           },
           {
             path: ":id",
-            element: <PaketDetail />, // Buat komponen page baru untuk detail poli
+            element: <PublicPaketDetail />, // Buat komponen page baru untuk detail poli
           },
         ],
       },
@@ -52,11 +54,11 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <GaleryPage />,
+            element: <PublicGaleryPage />,
           },
           {
             path: ":kategori",
-            element: <GaleriCategoryPage />,
+            element: <PublicGaleriCategoryPage />,
           },
         ],
       },

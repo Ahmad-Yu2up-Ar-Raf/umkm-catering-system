@@ -96,11 +96,13 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
           1.55
         )
         // Luxurious pause — let the type and light breathe before exiting.
+        // P1 perf: 1.5s → 0.6s — the full sequence still reads calmly, but
+        // first paint no longer waits on a dead beat (saves ~0.9s).
         // STEP A — Eyebrow exits first (slides up, fades out).
         .to(
           eyebrowRef.current,
           { y: -20, autoAlpha: 0, duration: 0.6, ease: "power2.in" },
-          "+=1.5"
+          "+=0.6"
         )
         // STEP B — Main title slides up and fades (slightly higher travel).
         .to(
@@ -115,9 +117,10 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
           "-=0.3"
         )
         // STEP D — Curtain lifts (±100%) … then release scroll + fire onComplete.
+        // P1 perf: 1.0s → 0.7s expo.inOut — identical ease curve, less dwell.
         .to(
           rootRef.current,
-          { yPercent: -100, duration: 1.0, ease: "expo.inOut", onComplete },
+          { yPercent: -100, duration: 0.7, ease: "expo.inOut", onComplete },
           "-=0.15"
         )
     },

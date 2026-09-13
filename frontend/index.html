@@ -113,6 +113,20 @@
       }
     </script>
 
+    <!-- P9 perf: prerender the two heaviest catalog routes on likely intent —
+         next navigation paints near-instantly. `moderate` waits for a hover/
+         focus-class signal, so idle browsing pays no bandwidth cost. -->
+    <script type="speculationrules">
+      {
+        "prerender": [
+          {
+            "where": { "href_matches": ["/paket", "/galeri"] },
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </head>
   <!-- Inline paint BEFORE any JS/CSS parses: the browser paints the muted

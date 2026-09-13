@@ -53,13 +53,17 @@ export function ScrollIndicator() {
       )
 
       // IDLE — the dot drifts down the track, then back.
-      gsap.to(dotRef.current, {
-        y: 10,
-        duration: 1.5,
-        ease: "sine.inOut",
-        yoyo: true,
-        repeat: -1,
-      })
+      // P8 perf: desktop-only loop — on touch devices the cue is static
+      // (no infinite rAF-driven tween competing with scroll).
+      if (!window.matchMedia("(max-width: 767px)").matches) {
+        gsap.to(dotRef.current, {
+          y: 10,
+          duration: 1.5,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+        })
+      }
 
       // SCROLL FADE — the pill fades over the hero's first 160px of scroll.
       // Trigger = the hero section (`top top` = scroll 0, `+=160` = 160px).

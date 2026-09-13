@@ -4,6 +4,7 @@ import { useRef } from "react"
 
 import { motion, useScroll, useSpring, useTransform } from "framer-motion"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import MediaItem from "../../fragments/custom-ui/media-item"
 
@@ -38,6 +39,8 @@ export function ScrollRotatingVisual({
 }: ScrollRotatingVisualProps) {
   const ref = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
+  // P8 perf: static on phones — no per-frame spring tracking while scrolling.
+  const isMobile = useIsMobile()
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -53,7 +56,7 @@ export function ScrollRotatingVisual({
   return (
     <motion.div
       ref={ref}
-      style={{ rotate: reduced ? 0 : rotation, transformOrigin: "center" }}
+      style={{ rotate: reduced || isMobile ? 0 : rotation, transformOrigin: "center" }}
       className={cn("relative", className)}
     >
       <MediaItem
