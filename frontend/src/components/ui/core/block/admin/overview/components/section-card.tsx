@@ -1,10 +1,7 @@
-import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/fragments/shadcn-ui/card"

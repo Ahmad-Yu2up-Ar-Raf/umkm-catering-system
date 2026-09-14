@@ -2,10 +2,6 @@
 
 import { BlurReveal } from "@/components/motion/blur-reveal"
 import { WordReveal } from "@/components/motion/word-reveal"
-import { OriginButton } from "@/components/ui/fragments/custom-ui/button/cta-button"
-import { ArrowRight } from "@hugeicons/core-free-icons"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { Link } from "react-router"
 
 /**
  * GalleryHero — ultra-minimalist, editorial, centered (architectural

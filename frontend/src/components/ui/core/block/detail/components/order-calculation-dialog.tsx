@@ -16,7 +16,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/fragments/shadcn-ui/drawer"
-import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 
 import type { DetailViewModel } from "../utils/detail-view-model"

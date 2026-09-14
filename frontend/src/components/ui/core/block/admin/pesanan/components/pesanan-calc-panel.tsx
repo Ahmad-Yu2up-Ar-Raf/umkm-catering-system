@@ -13,10 +13,7 @@ import type { Paket } from "../../../paket/types/paket-types"
 import {
   getCategoryColor,
   getCategoryIcon,
-  getAcaraColor,
-  getAcaraIcon,
 } from "../../../paket/utils/paket-kategori-utils.ts"
-import { Separator } from "@/components/ui/fragments/shadcn-ui/separator.tsx"
 
 type CalcPaketDetail = Paket | null
 

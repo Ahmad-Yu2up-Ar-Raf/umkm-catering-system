@@ -13,7 +13,6 @@ import {
   KATEGORI_ACARA_OPTIONS,
 } from "../config/paket-enum-options"
 import type { PaketFormReturnType } from "../hooks/use-paket-mutations"
-import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
 
 interface PaketFormProps {
   form: PaketFormReturnType

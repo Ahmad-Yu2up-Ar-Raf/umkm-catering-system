@@ -6,8 +6,6 @@ import { Edit01Icon, Delete01Icon, EyeIcon } from "@hugeicons/core-free-icons"
 import { PaketCard } from "@/components/ui/core/block/paket/components/paket-card"
 import { usePaketDeleteMutation } from "../hooks/use-paket-mutations"
 import type { Paket } from "../../../paket/types/paket-types"
-import { useSidebar } from "@/components/ui/fragments/shadcn-ui/sidebar"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 interface PaketCardGridProps {

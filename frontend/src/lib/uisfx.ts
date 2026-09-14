@@ -1,6 +1,5 @@
 "use client"
 
-// @ts-expect-error — uisfx types resolve after pnpm install completes
 import { createUISFX, type UISFXPlayer } from "uisfx"
 
 // ponytail: singleton + preference persistence per docs/uisfx-guide.md §prefs

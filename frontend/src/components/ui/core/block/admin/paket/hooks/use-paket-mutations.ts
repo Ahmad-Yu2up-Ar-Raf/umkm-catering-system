@@ -48,12 +48,12 @@ async function getErrorMessage(error: unknown, fallback: string): Promise<string
   return error instanceof Error ? error.message : fallback
 }
 
-const defaultFormValues = {
+const defaultFormValues: Partial<PaketFormValues> & Record<string, unknown> = {
   nama_paket: "",
-  kategori_paket: null, // Set null secara eksplisit
+  kategori_paket: null as unknown as PaketFormValues["kategori_paket"],
   kategori_acara: null,
-  harga_per_porsi: null, // Set null secara eksplisit
-  min_order: null, // Set null secara eksplisit
+  harga_per_porsi: null as unknown as PaketFormValues["harga_per_porsi"],
+  min_order: null as unknown as PaketFormValues["min_order"],
   kapasitas_produksi: null,
   is_best_seller: false,
   menu_utama: [],
@@ -354,13 +354,15 @@ export function usePaketForm({
       onChange: paketSchema,
       onSubmit: paketSchema,
     },
-    defaultValues: paket ? toFormDefaults(paket) : defaultFormValues,
+    defaultValues: (paket ? toFormDefaults(paket) : defaultFormValues) as PaketFormValues,
     onSubmit: async ({ value }) => {
+      // Validated by paketSchema — value is PaketFormValues at this point
+      const validated = value as PaketFormValues
       // EAGER feedback: the loading toast must land before any network work
       // starts. The mutations reuse this id, so it later flips to
       // success/error without a second delayed appearance.
       toast.loading("Membangun paket...", { id: "paket-save" })
-      const resolved = await resolveUploads(value)
+      const resolved = await resolveUploads(validated)
       const payload = toPaketPayload(resolved)
       if (paketId) {
         await updatePaket({ id: paketId, ...payload })
