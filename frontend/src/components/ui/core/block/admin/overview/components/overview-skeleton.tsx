@@ -24,6 +24,11 @@ export function OverviewSkeleton() {
           <Skeleton className="h-full w-full rounded-2xl" />
         </Card>
       </div>
+
+      {/* Row 3: Latest orders table */}
+      <Card className="h-[300px] p-0 rounded-2xl shadow-none">
+        <Skeleton className="h-full w-full rounded-2xl" />
+      </Card>
     </div>
   )
 }

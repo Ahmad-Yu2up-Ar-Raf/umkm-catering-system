@@ -1,0 +1,122 @@
+"use client"
+
+import { format } from "date-fns"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/fragments/shadcn-ui/table"
+import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/fragments/shadcn-ui/card"
+import { cn } from "@/lib/utils"
+import { formatRupiah } from "@/components/ui/core/block/admin/pesanan/utils/pesanan-calculator"
+import {
+  getStatusPesananIcon,
+  getStatusPesananLabel,
+  getStatusPesananColor,
+} from "@/components/ui/core/block/admin/pesanan/utils/pesanan-badge-utils"
+import type { LatestPesanan } from "../types/overview-type"
+
+/**
+ * Latest-orders strip — simplified read-only table (no sorting, no selection,
+ * no pagination, no actions). Maps directly over the 5 items from the API.
+ * Cell styling mirrors pesanan-table.tsx.
+ */
+export function LatestOrders({ items }: { items: LatestPesanan[] }) {
+  return (
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle>Pesanan Terbaru</CardTitle>
+        <CardDescription>5 data pesanan terbaru</CardDescription>
+      </CardHeader>
+      <CardContent className="overflow-x-auto p-0">
+        <Table className="relative bg-transparent">
+          <caption className="sr-only">5 data pesanan terbaru</caption>
+          <TableHeader>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="min-w-40 pl-6">Nomor Struk</TableHead>
+              <TableHead className="min-w-48">Pemesan</TableHead>
+              <TableHead className="min-w-40">Paket</TableHead>
+              <TableHead className="min-w-24">Jumlah</TableHead>
+              <TableHead className="min-w-36">Total</TableHead>
+              <TableHead className="min-w-28">Status</TableHead>
+              <TableHead className="min-w-32 pr-6">Tgl Acara</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.length === 0 ? (
+              <TableRow className="border-border hover:bg-transparent">
+                <TableCell colSpan={7}>
+                  <p role="status" className="px-6 py-8 text-center text-sm text-muted-foreground">
+                    Belum ada pesanan.
+                  </p>
+                </TableCell>
+              </TableRow>
+            ) : (
+              items.map((pesanan) => (
+                <TableRow
+                  key={pesanan.id}
+                  className="border-border transition-colors hover:bg-muted/40"
+                >
+                  <TableCell className="pl-6">
+                    <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
+                      {pesanan.nomor_struk}
+                    </code>
+                  </TableCell>
+                  <TableCell>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {pesanan.nama_pemesan}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {pesanan.no_telepon}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm font-medium text-foreground">
+                    {pesanan.paket?.nama_paket ?? "—"}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap tabular-nums">
+                    {pesanan.jumlah_paket} porsi
+                  </TableCell>
+                  <TableCell className="font-medium whitespace-nowrap tabular-nums">
+                    {formatRupiah(pesanan.total_harga)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      icon={getStatusPesananIcon(pesanan.status_pesanan)}
+                      className={cn(
+                        "w-fit gap-1.5 shadow-none",
+                        getStatusPesananColor(pesanan.status_pesanan)
+                      )}
+                    >
+                      <span className="font-medium">
+                        {getStatusPesananLabel(pesanan.status_pesanan)}
+                      </span>
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="pr-6 text-xs whitespace-nowrap text-muted-foreground">
+                    {pesanan.tanggal_acara
+                      ? format(new Date(pesanan.tanggal_acara), "dd MMM yyyy")
+                      : "—"}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  )
+}

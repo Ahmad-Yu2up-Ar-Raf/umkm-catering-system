@@ -11,7 +11,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react"
 export interface DataCard {
   title: string
   description: string
-  value: number | number
+  value: number | string
   icon: IconSvgElement
   label?: string
   className?: string

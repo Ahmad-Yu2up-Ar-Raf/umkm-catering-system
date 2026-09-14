@@ -7,12 +7,14 @@ import { useDashboardFilters } from "./hooks/use-dashboard-filters"
 import {
   PackageIcon,
   ShoppingBag02Icon,
-  Clock01Icon,
+  Wallet02Icon,
   Image01Icon,
 } from "@hugeicons/core-free-icons"
+import { formatRupiah } from "@/components/ui/core/block/admin/pesanan/utils/pesanan-calculator"
 
 import { ChartActivityTrends } from "./components/chart-activity-trends"
 import { ChartBarActive } from "./components/chart-bar-active"
+import { LatestOrders } from "./components/latest-orders"
 import { CalendarDateRangePicker } from "./components/date-range-picker"
 
 function OverviewBlock() {
@@ -59,11 +61,11 @@ function OverviewBlock() {
           label: "Pesanan",
         },
         {
-          title: "Pesanan Pending",
-          description: "Perlu konfirmasi",
-          value: reports.totalPesananPending,
-          icon: Clock01Icon,
-          label: "Pending",
+          title: "Total Pendapatan",
+          description: "Di luar pesanan batal",
+          value: formatRupiah(reports.totalPendapatan),
+          icon: Wallet02Icon,
+          label: "Pendapatan",
         },
         {
           title: "Galeri Acara",
@@ -115,6 +117,11 @@ function OverviewBlock() {
                 subFooter="Diurutkan dari yang terlaris"
                 className="lg:col-span-4"
               />
+            </div>
+
+            {/* Row 3: Latest orders (simplified, no pagination/filtering) */}
+            <div className="mt-6">
+              <LatestOrders items={reports?.latestPesanan ?? []} />
             </div>
           </div>
         )}

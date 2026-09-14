@@ -39,10 +39,13 @@ class OverviewController extends Controller
             };
 
             // --- Totals (filtered by date when range provided) ---
+            // ponytail: revenue excludes cancelled only (pending/confirmed/completed all
+            // carry a server-computed total_harga); narrow to completed if finance needs it.
             $totals = [
                 'totalPaket' => Paket::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->count(),
                 'totalPesanan' => Pesanan::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->count(),
                 'totalPesananPending' => Pesanan::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->where('status_pesanan', 'pending')->count(),
+                'totalPendapatan' => (int) Pesanan::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->where('status_pesanan', '!=', 'cancelled')->sum('total_harga'),
                 'totalGaleri' => Galeri::when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))->count(),
             ];
 
@@ -90,9 +93,37 @@ class OverviewController extends Controller
                 ];
             })->values();
 
+            // --- Latest 5 orders (flat array, no pagination; same date scope as totals) ---
+            // Eager-loads paket (select-constrained) to avoid N+1. Plain arrays so the
+            // cached payload stays serializable; shape mirrors PesananResource fields.
+            $latestPesanan = Pesanan::with('paket:id,nama_paket')
+                ->when($hasRange, fn ($q) => $q->whereBetween('created_at', [$start, $end]))
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get()
+                ->map(fn ($pesanan) => [
+                    'id' => $pesanan->id,
+                    'nomor_struk' => $pesanan->nomor_struk,
+                    'nama_pemesan' => $pesanan->nama_pemesan,
+                    'no_telepon' => $pesanan->no_telepon,
+                    'paket_id' => $pesanan->paket_id,
+                    'paket' => $pesanan->paket ? [
+                        'id' => $pesanan->paket->id,
+                        'nama_paket' => $pesanan->paket->nama_paket,
+                    ] : null,
+                    'jumlah_paket' => $pesanan->jumlah_paket,
+                    'total_harga' => $pesanan->total_harga,
+                    'status_pesanan' => $pesanan->status_pesanan?->value ?? $pesanan->status_pesanan,
+                    'metode_pembayaran' => $pesanan->metode_pembayaran?->value ?? $pesanan->metode_pembayaran,
+                    'tanggal_acara' => $pesanan->tanggal_acara ? \Carbon\Carbon::parse($pesanan->tanggal_acara)->toDateString() : null,
+                    'created_at' => $pesanan->created_at,
+                    'updated_at' => $pesanan->updated_at,
+                ]);
+
             return array_merge($totals, [
                 'topPaket' => $topPaket,
                 'countsByDate' => $countsByDate,
+                'latestPesanan' => $latestPesanan,
             ]);
         });
 
