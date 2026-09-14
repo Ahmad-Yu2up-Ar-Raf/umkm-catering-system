@@ -6,7 +6,6 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,15 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->api(prepend: [
-            EnsureFrontendRequestsAreStateful::class,
-        ]);
-
+        // ponytail: stateless Bearer token only — cross-TLD (vercel.app vs smkpesat.id)
+        // blocks third-party cookies (SameSite/CHIPS). SPA stateful (session+CSRF)
+        // via EnsureFrontendRequestsAreStateful would force 419 on every POST
+        // without X-XSRF-TOKEN. API uses Bearer tokens (client.ts + createToken),
+        // so no stateful middleware, no session cookies, no CSRF on api/*.
         $middleware->alias([
             'verified' => EnsureEmailIsVerified::class,
         ]);
-
-        //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
