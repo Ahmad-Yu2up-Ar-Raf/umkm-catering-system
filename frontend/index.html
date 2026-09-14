@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#B0713F" />
 
-    <!-- Favicon -->
+    <!-- Favicon (files live in public/assets/logo/) -->
     <link
       rel="icon"
       type="image/png"
-      href="/assets/ui/favicon-96x96.png"
+      href="/assets/logo/favicon-96x96.png"
       sizes="96x96"
     />
-    <link rel="icon" type="image/svg+xml" href="/assets/ui/favicon.svg" />
-    <link rel="shortcut icon" href="/assets/ui/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/assets/logo/favicon.svg" />
+    <link rel="shortcut icon" href="/assets/logo/favicon.ico" />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="/assets/ui/apple-touch-icon.png"
+      href="/assets/logo/apple-touch-icon.png"
     />
-    <link rel="manifest" href="/assets/ui/site.webmanifest" />
+    <link rel="manifest" href="/assets/logo/site.webmanifest" />
 
     <!-- SEO: Primary -->
     <title>
@@ -48,6 +48,12 @@
       property="og:image"
       content="https://cateringnusantara.vercel.app/assets/images/banners/hero-banner-tumpeng.png"
     />
+    <meta property="og:image:width" content="2048" />
+    <meta property="og:image:height" content="1143" />
+    <meta
+      property="og:image:alt"
+      content="Tumpeng megah Catering Nusantara — katering masakan rumahan di Bogor"
+    />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -63,6 +69,10 @@
       name="twitter:image"
       content="https://cateringnusantara.vercel.app/assets/images/banners/hero-banner-tumpeng.png"
     />
+    <meta
+      name="twitter:image:alt"
+      content="Tumpeng megah Catering Nusantara — katering masakan rumahan di Bogor"
+    />
 
     <!-- Local Business JSON-LD (geo omitted pending client confirmation) -->
     <script type="application/ld+json">
@@ -75,7 +85,7 @@
         "url": "https://cateringnusantara.vercel.app/",
         "telephone": "+6287870306031",
         "email": "Waroengpecelayam99@gmail.com",
-        "image": "https://cateringnusantara.vercel.app/assets/ui/logo.png",
+        "image": "https://cateringnusantara.vercel.app/assets/images/banners/hero-banner-tumpeng.png",
         "priceRange": "Rp18.000 - Rp250.000",
         "servesCuisine": "Indonesian",
         "foundingDate": "2024",
@@ -116,6 +126,20 @@
     <!-- P9 perf: prerender the two heaviest catalog routes on likely intent —
          next navigation paints near-instantly. `moderate` waits for a hover/
          focus-class signal, so idle browsing pays no bandwidth cost. -->
+    <script type="speculationrules">
+      {
+        "prerender": [
+          {
+            "where": { "href_matches": ["/paket", "/galeri"] },
+            "eagerness": "moderate"
+          }
+        ]
+      }
+    </script>
+
+    <!-- Route prerender: /paket + /galeri chunks paint near-instantly on
+         likely intent. `moderate` waits for a hover/focus-class signal, so
+         idle browsing pays no bandwidth cost. -->
     <script type="speculationrules">
       {
         "prerender": [

@@ -35,7 +35,8 @@ export const PaketKategoriOptions: PaketKategoriOption[] = [
     label: "Nasi Box",
     description:
       "Praktis dan higienis untuk konsumsi harian, rapat, atau acara kantor.",
-    image: "/assets/images/categories/nasi-box.png",
+    image:
+      "/assets/images/products/paket-nasi-box-hemat/paket-nasi-box-hemat-1.png",
     icon: Package01Icon,
     badgeColor: "text-amber-600 bg-amber-500/10 border-amber-500/20",
   },
@@ -44,7 +45,8 @@ export const PaketKategoriOptions: PaketKategoriOption[] = [
     label: "Prasmanan",
     description:
       "Sajian lengkap & mewah prasmanan untuk pernikahan, gathering, dan pesta besar.",
-    image: "/assets/images/categories/prasmanan.png",
+    image:
+      "/assets/images/products/paket-prasmanan-korporat/paket-prasmanan-korporat-2.png",
     icon: Restaurant01Icon,
     badgeColor: "text-emerald-600 bg-emerald-500/10 border-emerald-500/20",
   },
@@ -53,7 +55,8 @@ export const PaketKategoriOptions: PaketKategoriOption[] = [
     label: "Snack Box",
     description:
       "Aneka kue basah dan jajanan pasar premium untuk coffee break & seminar.",
-    image: "/assets/images/categories/snack.png",
+    image:
+      "/assets/images/products/paket-snack-box-arisan/paket-snack-box-arisan-1.png",
     icon: CakeIcon,
     badgeColor: "text-orange-600 bg-orange-500/10 border-orange-500/20",
   },
@@ -62,7 +65,7 @@ export const PaketKategoriOptions: PaketKategoriOption[] = [
     label: "Tumpeng",
     description:
       "Tumpeng megah khas Nusantara untuk perayaan syukuran & momen sakral.",
-    image: "/assets/images/categories/tumpeng.png",
+    image: "/assets/images/products/paket-tumpeng-mini/tumpeng-mini-1.jpg",
     icon: CrownIcon,
     badgeColor: "text-yellow-600 bg-yellow-500/10 border-yellow-500/20",
   },

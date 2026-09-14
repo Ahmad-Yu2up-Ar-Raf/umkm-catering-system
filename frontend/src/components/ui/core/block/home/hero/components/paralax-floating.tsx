@@ -8,7 +8,7 @@ import {
   useLayoutEffect,
   useRef,
 } from "react"
-import { useAnimationFrame } from "framer-motion"
+import { useAnimationFrame, useInView } from "framer-motion"
 import type { ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
@@ -58,6 +58,10 @@ const Floating = ({
   const mousePositionRef = useMousePositionRef(containerRef)
   const isMobile = useIsMobile()
   const reduced = useReducedMotion()
+  // Visibility gate: the per-frame parallax loop is skipped entirely while
+  // the hero is off-screen (no rAF tax during the rest of the page/route).
+  // `amount: 0` = any pixel visible keeps it alive; re-entry resumes.
+  const heroInView = useInView(containerRef, { amount: 0 })
 
   const registerElement = useCallback(
     (id: string, element: HTMLDivElement, depth: number) => {
@@ -75,10 +79,11 @@ const Floating = ({
     elementsMap.current.delete(id)
   }, [])
 
-  // Mouse/touch parallax — desktop only (no hover on touch devices). The ENTRY
-  // reveal is injected into the hero master timeline below.
+  // Mouse/touch parallax — desktop only (no hover on touch devices), and
+  // only while the hero is visible. The ENTRY reveal is injected into the
+  // hero master timeline below.
   useAnimationFrame(() => {
-    if (!containerRef.current || isMobile) return
+    if (!containerRef.current || isMobile || !heroInView) return
 
     elementsMap.current.forEach((data) => {
       // Center-normalized pointer [-1, 1] × depth × sensitivity → small px range.

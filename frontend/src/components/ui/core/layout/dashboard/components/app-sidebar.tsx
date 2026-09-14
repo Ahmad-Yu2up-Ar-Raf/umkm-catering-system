@@ -93,7 +93,7 @@ export function AppSidebar() {
               <TooltipContent side="right" align="center">
                 <span className="flex items-center gap-2">
                   Toggle Sidebar
-                  <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px]">
+                  <kbd className="rounded border text-primary border-border bg-muted px-1 font-mono text-[10px]">
                     Ctrl+B
                   </kbd>
                 </span>

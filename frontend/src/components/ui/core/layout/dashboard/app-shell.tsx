@@ -4,8 +4,11 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/sidebar"
 import { AppSidebar } from "./components/app-sidebar"
 import { Outlet } from "react-router"
+import { useSeo } from "@/hooks/use-seo"
 
 export function AppShell() {
+  // Admin surface: never indexable (robots.txt disallows /dashboard too).
+  useSeo({ title: "Dashboard", noindex: true })
   return (
     <div className="overflow-hidden">
       <SidebarProvider className="relative h-svh">

@@ -175,6 +175,8 @@ export function ParallaxMotionBackground({
         {/* P7 perf: only preloader-gated heroes (revealTrigger="mount") keep
             eager/high — every below-fold instance lazy-decodes so image work
             never competes with the hero reveal on route change. */}
+        {/* Only preloader-gated heroes decode eagerly — below-fold instances
+            lazy-decode so image work never shares the hero's frame burst. */}
         <img
           src={imageUrl}
           alt={alt}

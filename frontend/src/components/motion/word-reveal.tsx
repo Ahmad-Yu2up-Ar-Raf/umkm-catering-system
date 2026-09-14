@@ -41,10 +41,11 @@ type WordRevealProps = {
  * translateY(110%) → 0 with stagger. Accent words (`*word*`) get the
  * Merriweather italic accent treatment (design.md §10.1 #2).
  *
- * With `blur` set, the mask wrapper is dropped (blurred letters must not be
- * clipped) and each word animates `opacity 0→1, y 20→0, filter blur(--)→0`
- * with `power3.out` — the "word-by-word blur" grain. `clearProps: "filter"`
- * drops the filter after the tween to keep the layer GPU-light.
+  * With `blur` set, the mask wrapper is dropped (blurred letters must not be
+  * clipped): each word lifts (`opacity 0→1, y 20→0`, `power3.out` stagger)
+  * while ONE `filter: blur(--)→0` tween runs on the root across the whole
+  * sequence — a single paint layer instead of one per word. `clearProps`
+  * drops the filter after the tween to keep the layer GPU-light.
  *
  * `play` lets the caller hold the words hidden until after the preloader has
  * finished, so the reveal always happens on-screen — never behind the curtain.
@@ -70,50 +71,71 @@ export function WordReveal({
   useGSAP(
     () => {
       if (reduced || !rootRef.current) return
-      // P2 perf: blur cost scales ~radius² × layer count — on phones a 12px
-      // per-word blur is the GPU killer. Cap the radius on small viewports;
-      // desktop keeps the full grain. End states are identical (blur → 0).
+      // Container-level blur: ONE filter tween on the root instead of one per
+      // word. Words lift/fade individually (stagger preserved); the blur lifts
+      // across the whole sequence on the parent. N concurrent paint-chain
+      // filters → 1, which is what froze the hero mount on capable hardware.
+      // Mobile caps the radius (≤4px); desktop keeps the full grain.
       const mobile =
         typeof window !== "undefined" &&
         window.matchMedia("(max-width: 767px)").matches
       const radius = blur !== undefined && mobile ? Math.min(blur, 4) : blur
-      const targets = rootRef.current.querySelectorAll<HTMLElement>("[data-word]")
+      const root = rootRef.current
+      const targets = root.querySelectorAll<HTMLElement>("[data-word]")
       const hidden = radius
-        ? { opacity: 0, y: 24, filter: `blur(${radius}px)` }
+        ? { opacity: 0, y: 24 }
         : { yPercent: 110 }
       const reveal = radius
         ? {
             opacity: 1,
             y: 0,
-            filter: "blur(0px)",
             duration,
             delay,
             stagger,
             ease: "power3.out",
-            clearProps: "filter",
           }
         : { yPercent: 0, duration, ease: "power3.out", stagger, delay }
+
+      // The single blur layer: spans the full word sequence so every word
+      // visibly un-blurs as it arrives, then the filter is dropped.
+      const playRootBlur = (extra?: Record<string, unknown>) => {
+        if (!radius) return
+        gsap.fromTo(
+          root,
+          { filter: `blur(${radius}px)`, willChange: "filter" },
+          {
+            filter: "blur(0px)",
+            duration: delay + stagger * (targets.length - 1) + duration,
+            delay,
+            ease: "power3.out",
+            clearProps: "filter,willChange",
+            ...extra,
+          }
+        )
+      }
 
       if (trigger === "scroll") {
         // Below-the-fold reveal: pre-hide, then play once on scroll. The words
         // are already gated invisible so nothing flashes before the trigger.
         gsap.set(targets, hidden)
-        gsap.fromTo(targets, hidden, {
-          ...reveal,
-          scrollTrigger: {
-            trigger: rootRef.current,
-            start: scrollStart,
-            once: true,
-          },
-        })
+        if (radius) gsap.set(root, { filter: `blur(${radius}px)` })
+        const st = {
+          trigger: root,
+          start: scrollStart,
+          once: true,
+        }
+        gsap.fromTo(targets, hidden, { ...reveal, scrollTrigger: st })
+        playRootBlur({ scrollTrigger: st })
         return
       }
       if (!play) {
         // Pre-hide behind the preloader — revealed the instant `play` flips.
         gsap.set(targets, hidden)
+        if (radius) gsap.set(root, { filter: `blur(${radius}px)` })
         return
       }
       gsap.fromTo(targets, hidden, reveal)
+      playRootBlur()
     },
     {
       scope: rootRef,

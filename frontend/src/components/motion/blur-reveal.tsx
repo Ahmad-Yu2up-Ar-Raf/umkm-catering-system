@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef } from "react"
-import { motion } from "framer-motion"
+import { motion, type Variants } from "framer-motion"
 import type { ElementType, ReactNode } from "react"
 
 import { cn } from "@/lib/utils"
@@ -10,17 +10,22 @@ import { useIsMobile } from "@/hooks/use-mobile"
 /** Luxury ease — premium Apple-like cubic-bezier. */
 const LUXURY_EASE = [0.16, 1, 0.3, 1] as const
 
+// Module-scope motion wrappers (stable identity — never created in render).
+// Only `span` and `p` are used as container tags across the app; anything
+// else falls back to `span` (same inline layout, zero visual delta).
+const MotionSpan = motion.create("span")
+const MotionP = motion.create("p")
+
 /**
- * One word performs the blur-reveal and cleans up after itself:
- * `willChange` during the tween, `filter` removed on completion so the
- * browser never keeps a blur layer alive (performance rule).
+ * Single-element blur-fade (non-text children): ONE motion node, ONE blur
+ * layer, `willChange` + `filter` removed on completion so the browser never
+ * keeps a blur layer alive (performance rule).
  */
 function BlurWord({
   children,
   className,
   delay,
   duration,
-  stagger,
   blur,
   scale,
   onMount,
@@ -30,7 +35,6 @@ function BlurWord({
   className?: string
   delay: number
   duration: number
-  stagger: number
   blur: number
   /** Starting scale (default 1 = none). Pass < 1 for a subtle scale-up (CTA). */
   scale: number
@@ -58,7 +62,7 @@ function BlurWord({
       {...(onMount
         ? { animate: target }
         : { whileInView: target, viewport: { once: true, amount } })}
-      transition={{ duration, ease: LUXURY_EASE, delay: delay + stagger }}
+      transition={{ duration, ease: LUXURY_EASE, delay }}
       onAnimationComplete={() => {
         // Drop the filter (and will-change) so no blur layer is retained.
         ref.current?.style.removeProperty("filter")
@@ -92,12 +96,14 @@ type BlurRevealProps = {
 /**
  * Global word-by-word blur reveal — "the Tiska grain", high performance.
  *
- * - `children` as a string → split into words, each lifting + un-blurring
- *   sequentially (left → right).
- * - Non-text content → pass a single element as `children` for a blur-fade.
+ * - `children` as a string → words lift + fade individually (left → right,
+ *   `staggerChildren`) while a SINGLE `filter: blur()` tween runs on the
+ *   container. One blur layer per reveal instead of one per word: on a
+ *   12-word headline this collapses 12 concurrent paint-chain filters into 1,
+ *   which is what froze capable hardware during the hero mount storm.
+ * - Non-text content → single-element blur-fade (one layer, unchanged).
  *
- * Every animated word is `will-change: transform, filter, opacity` during the
- * tween and has its `filter` (and `will-change`) removed on completion.
+ * The container's `filter` (and `will-change`) is removed on completion.
  * `prefers-reduced-motion` is handled by the app-level `MotionConfig`.
  */
 export function BlurReveal({
@@ -114,36 +120,25 @@ export function BlurReveal({
   amount = 0.2,
 }: BlurRevealProps) {
   const words = typeof children === "string" ? children.split(" ") : null
-  // P2 perf: cap the blur radius ONCE per reveal (not per word) — ≤4px on
-  // phones where per-word blur layers tank the GPU; desktop keeps full grain.
+  // Cap the blur radius ONCE per reveal — ≤4px on phones where blur layers
+  // are most expensive; desktop keeps the full grain.
   const isMobile = useIsMobile()
   const radius = isMobile ? Math.min(blur, 4) : blur
+  const containerRef = useRef<HTMLElement | null>(null)
+  const MotionComp = Comp === "p" ? MotionP : MotionSpan
+  // Ref callback typed on `unknown` so it satisfies either wrapper's ref
+  // (span or p) without an `any` cast — it only stores for style cleanup.
+  const setContainerRef = (el: unknown) => {
+    containerRef.current = el as HTMLElement | null
+  }
 
-  return (
-    <Comp className={className}>
-      {words ? (
-        words.map((word, i) => (
-          <BlurWord
-            key={`${word}-${i}`}
-            className={wordClassName}
-            delay={delay}
-            duration={duration}
-            stagger={i * stagger}
-            blur={radius}
-            scale={scale}
-            onMount={onMount}
-            amount={amount}
-          >
-            {word}
-            {i < words.length - 1 ? "\u00A0" : ""}
-          </BlurWord>
-        ))
-      ) : (
+  if (!words) {
+    return (
+      <Comp className={className}>
         <BlurWord
           className={wordClassName}
           delay={delay}
           duration={duration}
-          stagger={0}
           blur={radius}
           scale={scale}
           onMount={onMount}
@@ -151,7 +146,59 @@ export function BlurReveal({
         >
           {children}
         </BlurWord>
-      )}
-    </Comp>
+      </Comp>
+    )
+  }
+
+  // The blur lifts across the whole word sequence so every word visibly
+  // un-blurs as it arrives (same read as the old per-word filters).
+  const sequence = delay + stagger * (words.length - 1) + duration
+  const container: Variants = {    hidden: { filter: `blur(${radius}px)` },
+    show: {
+      filter: "blur(0px)",
+      transition: { duration: sequence, ease: LUXURY_EASE, delay },
+    },
+  }
+  const word: Variants = {
+    hidden: { opacity: 0, y: 15, scale },
+    show: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration,
+        ease: LUXURY_EASE,
+        delay: delay + i * stagger,
+      },
+    }),
+  }
+
+  return (
+    <MotionComp
+      ref={setContainerRef}
+      className={cn(className, "will-change-[filter]")}
+      variants={container}
+      initial="hidden"
+      {...(onMount
+        ? { animate: "show" }
+        : { whileInView: "show", viewport: { once: true, amount } })}
+      onAnimationComplete={() => {
+        const el = containerRef.current
+        el?.style.removeProperty("filter")
+        el?.style.removeProperty("will-change")
+      }}
+    >
+      {words.map((wordText, i) => (
+        <motion.span
+          key={`${wordText}-${i}`}
+          className={cn("inline-block", wordClassName)}
+          variants={word}
+          custom={i}
+        >
+          {wordText}
+          {i < words.length - 1 ? "\u00A0" : ""}
+        </motion.span>
+      ))}
+    </MotionComp>
   )
 }

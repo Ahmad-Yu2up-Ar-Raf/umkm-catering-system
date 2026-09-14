@@ -1,16 +1,19 @@
 import HomePage from "@/pages/home-page"
 
 import { createBrowserRouter } from "react-router"
-import DashboardPage from "@/pages/admin/dashboard-page"
 import { AuthenticatedGuard, GuestGuard } from "@/router/guards"
 import { LayoutWrapper } from "@/components/provider/layout-wrapper"
 
 import LoginBlock from "@/components/ui/core/block/auth/login-block"
 import { AppShell } from "@/components/ui/core/layout/dashboard/app-shell"
-import MasterPaketPage from "@/pages/admin/master-paket-page"
-import MasterGaleriPage from "@/pages/admin/master-galeri-page"
-import MasterPesananPage from "@/pages/admin/master-pesanan-page"
-import TestimoniPage from "@/pages/admin/testimoni-page"
+import {
+  AdminSuspense,
+  DashboardPage,
+  MasterGaleriPage,
+  MasterPaketPage,
+  MasterPesananPage,
+  TestimoniPage,
+} from "@/router/admin-pages"
 import {
   PublicGaleriCategoryPage,
   PublicGaleryPage,
@@ -73,23 +76,43 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <DashboardPage />,
+            element: (
+              <AdminSuspense>
+                <DashboardPage />
+              </AdminSuspense>
+            ),
           },
           {
             path: "paket",
-            element: <MasterPaketPage />,
+            element: (
+              <AdminSuspense>
+                <MasterPaketPage />
+              </AdminSuspense>
+            ),
           },
           {
             path: "galeri",
-            element: <MasterGaleriPage />,
+            element: (
+              <AdminSuspense>
+                <MasterGaleriPage />
+              </AdminSuspense>
+            ),
           },
           {
             path: "pesanan",
-            element: <MasterPesananPage />,
+            element: (
+              <AdminSuspense>
+                <MasterPesananPage />
+              </AdminSuspense>
+            ),
           },
           {
             path: "testimoni",
-            element: <TestimoniPage />,
+            element: (
+              <AdminSuspense>
+                <TestimoniPage />
+              </AdminSuspense>
+            ),
           },
         ],
       },

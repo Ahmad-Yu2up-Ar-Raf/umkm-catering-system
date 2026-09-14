@@ -1,7 +1,8 @@
 import { useEffect } from "react"
 
-/** Placeholder domain — swap at go-live (docs/seo/README.md). */
-const BASE_URL = "https://cateringnusantara.vercel.app"
+/** Canonical origin — override per-env via VITE_SITE_URL (see .env.example). */
+const BASE_URL =
+  import.meta.env.VITE_SITE_URL ?? "https://cateringnusantara.vercel.app"
 
 const SITE_NAME = "Catering Nusantara"
 
@@ -16,6 +17,8 @@ export interface SeoOptions {
   path?: string
   /** Share image (absolute URL or site-relative) — og:image + twitter:image. */
   image?: string
+  /** Auth/admin surfaces: emits `noindex, nofollow` instead of `index, follow`. */
+  noindex?: boolean
 }
 
 /**
@@ -28,11 +31,18 @@ export function applySeo({
   description,
   path = "/",
   image,
+  noindex = false,
 }: SeoOptions) {
   const fullTitle = `${title}${TITLE_SEPARATOR}${SITE_NAME}`
   const url = `${BASE_URL}${path}`
 
   document.title = fullTitle
+  ensureMeta(
+    'meta[name="robots"]',
+    "name",
+    "robots",
+    noindex ? "noindex, nofollow" : "index, follow"
+  )
 
   if (description) {
     ensureMeta('meta[name="description"]', "name", "description", description)
@@ -68,11 +78,11 @@ export function applySeo({
  * from the previous route first, so the head always reflects the CURRENT page.
  */
 export function useSeo(options: SeoOptions) {
-  const { title, description, path, image } = options
+  const { title, description, path, image, noindex } = options
 
   useEffect(() => {
-    applySeo({ title, description, path, image })
-  }, [title, description, path, image])
+    applySeo({ title, description, path, image, noindex })
+  }, [title, description, path, image, noindex])
 }
 
 function ensureMeta(

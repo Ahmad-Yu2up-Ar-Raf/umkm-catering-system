@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { gsap, useGSAP } from "@/components/motion/gsap"
@@ -35,6 +35,27 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
   const eyebrowLineRRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
   const [heroTl, setHeroTl] = useState<gsap.core.Timeline | null>(null)
+  // Decor gate: floating cards, marquee bands, and scroll cue mount only
+  // once the main thread is idle AFTER the preloader lifts. The H1/CTA
+  // reveal plays immediately; the ~8MB of decorative imagery + extra
+  // triggers join one idle beat later instead of sharing the same frame
+  // burst that froze the first paint.
+  const [decorReady, setDecorReady] = useState(false)
+  useEffect(() => {
+    if (!preloaderDone || decorReady) return
+    const w = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(() => setDecorReady(true), {
+        timeout: 700,
+      })
+      return () => w.cancelIdleCallback?.(id)
+    }
+    const id = w.setTimeout(() => setDecorReady(true), 350)
+    return () => w.clearTimeout(id)
+  }, [preloaderDone, decorReady])
 
   useGSAP(
     () => {
@@ -68,7 +89,8 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
   return (
     <section ref={sectionRef} id="hero" className="size-full">
       <main className="relative m-auto mb-0.5 flex min-h-svh w-full flex-col items-center justify-center overflow-hidden">
-        <Floating sensitivity={-0.5} timeline={heroTl} className="h-full">
+        {decorReady && (
+          <Floating sensitivity={-0.5} timeline={heroTl} className="h-full">
           <FloatingElement depth={1} className="top-[0%] left-[3%]">
             <div
               className="relative h-36 w-30 -rotate-12 overflow-hidden rounded-xl object-cover shadow-2xl transition-transform duration-200 hover:scale-105 sm:h-36 sm:w-48 md:h-44 md:w-56 lg:h-67 lg:w-55"
@@ -136,7 +158,8 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
               />
             </div>
           </FloatingElement>
-        </Floating>
+          </Floating>
+        )}
         {/* Reusable motion backdrop — preloader-gated zoom-out reveal +
             smooth scroll parallax + warm cream scrims (same grammar as
             #kontak, so the two full-bleed sections feel like one system). */}
@@ -268,10 +291,11 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
         </div>
 
         {/* Scroll cue — bottom-center pill with a bobbing dot; fades out as the
-            user scrolls, reappears on return to the top. */}
-        {preloaderDone && <ScrollIndicator />}
+            user scrolls, reappears on return to the top. Idle-deferred with
+            the rest of the decor so it never joins the first-paint burst. */}
+        {decorReady && <ScrollIndicator />}
       </main>
-      <Marque preloaderDone={preloaderDone} />
+      {decorReady && <Marque preloaderDone={preloaderDone} />}
     </section>
   )
 }
@@ -348,10 +372,14 @@ export function Marque({ preloaderDone }: { preloaderDone: boolean }) {
       ref={sectionRef}
       className="relative mb-20 w-full content-center md:mb-26"
     >
+      {/* Raster diet: bands were 240dvw wide — every scrub tick repainted a
+          surface 2.4× the viewport (with a 2.3MB JPEG tiled across it).
+          160dvw still overflows the rotated frame edge-to-edge with room for
+          the ±10% drift, at ~1/3 less raster per repaint. */}
       <div className="absolute top-0 -right-1 w-[120dvw] -rotate-7 overflow-hidden md:-rotate-3">
         <div
           ref={row1Ref}
-          className="h-12 w-[240dvw] bg-repeat-x md:h-16 lg:h-20"
+          className="h-12 w-[160dvw] bg-repeat-x md:h-16 lg:h-20"
           style={{
             backgroundImage: "url('/assets/images/patern/songket2.jpg')",
             backgroundRepeat: "repeat-x",
@@ -364,7 +392,7 @@ export function Marque({ preloaderDone }: { preloaderDone: boolean }) {
       <div className="absolute top-0 -right-1 w-[120dvw] rotate-7 overflow-hidden md:rotate-3">
         <div
           ref={row2Ref}
-          className="h-12 w-[240dvw] bg-repeat-x md:h-16 lg:h-20"
+          className="h-12 w-[160dvw] bg-repeat-x md:h-16 lg:h-20"
           style={{
             backgroundImage: "url('/assets/images/patern/songket.jpg')",
             backgroundRepeat: "repeat-x",

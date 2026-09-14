@@ -166,6 +166,16 @@ const OriginButton = React.forwardRef<HTMLButtonElement, OriginButtonProps>(
 
     // Effect: Magnet Tracker
     React.useEffect(() => {
+      // Magnet needs a hover-capable pointer: on touch devices there is no
+      // cursor to track, so skip the global mousemove listener entirely
+      // (each mounted button was adding one + a getBoundingClientRect per
+      // mouse event — pure main-thread tax on mobile).
+      if (
+        typeof window !== "undefined" &&
+        window.matchMedia("(hover: none)").matches
+      ) {
+        return
+      }
       const calculateDistance = (e: MouseEvent) => {
         if (buttonRef.current) {
           const rect = buttonRef.current.getBoundingClientRect()

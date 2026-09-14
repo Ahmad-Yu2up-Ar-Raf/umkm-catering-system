@@ -208,3 +208,48 @@ Desktop hero stutter = (2) + (5): blur words + eager hero decode + marquee scrub
 ---
 
 *End of report — next step is P0 baseline traces, then P1–P4 in one refactor PR (curtain + blur + refresh), P5–P9 in a second (splitting + Framer + images + prerender).*
+
+---
+
+## Appendix A — Phase 2 root-cause fix (2026-09-13, ASUS TUF freeze)
+
+P1–P9 reduced paint cost but freezes persisted on capable hardware, proving
+the bottleneck was a **synchronous mount storm**, not just expensive paint:
+`public/assets` totals **108 MB**; the hero alone mounts a 3.2 MB eager
+banner + 4× ~1.5 MB floating PNGs + a 2.2 MB marquee JPEG in the same frame
+window as the preloader lift, ~200+ per-word motion nodes page-wide, and
+perpetual rAF/mousemove taxes. Multi-second stalls on a gaming laptop are a
+main-thread block signature — decode + mount + measure colliding at once.
+
+Structural fixes (visual language unchanged — same eases, staggers, end states):
+
+- **Container-level blur** (`motion/blur-reveal.tsx`, `motion/word-reveal.tsx`):
+  ONE `filter: blur()` tween on the reveal root (spanning the word sequence)
+  instead of one per word; words keep individual opacity/y staggers. N blur
+  layers → 1 per reveal. Mobile radius cap (≤4px) retained.
+- **Idle-deferred hero decor** (`block/home/hero/hero-block.tsx`): `Floating`
+  (4 PNGs), `Marque`, `ScrollIndicator` mount via `requestIdleCallback`
+  (700 ms timeout, 350 ms fallback) after `preloaderDone`; H1/CTA reveal
+  immediately. Burst split across idle beats.
+- **rAF gating** (`paralax-floating.tsx`): parallax loop skips frames while the
+  hero is off-screen (`useInView amount: 0`) and on touch devices (existing).
+- **Pointer-tax throttle** (`hooks/use-mouse-position-ref.ts`): container rect
+  cached, refreshed ≤1×/frame + on scroll/resize — never inside pointer
+  handlers. (`cta-button.tsx` magnet listener skipped on `hover: none`.)
+- **Raster diet** (`hero-block.tsx` marquee): bands `240dvw` → `160dvw`
+  (same relative drift, ~1/3 less repaint per scrub tick).
+- **Image tiers** (`parallax-motion-background.tsx`): `eager/high` only for
+  `revealTrigger="mount"` heroes; all other instances `lazy` + `async`.
+- **Prerender** (`index.html`): speculation-rules `moderate` for
+  `/paket`, `/galeri`.
+
+Surviving P1–P9 work found in-tree and kept: preloader trim, blur caps,
+`cv-auto` containment, marquee ≥768px gate, user-owned route splitting
+(`router/admin-pages`, `Public*` pages). Fully-reverted items intentionally
+NOT re-applied: central `refreshRoute` (home two-frame gate is correct as-is;
+per-host +100 ms timers are 100–300 ms, not the freeze), `mode="wait"`→`sync`
+crossfades (visible overlap change — deferred pending user approval).
+
+Verified: `tsc --noEmit` clean, per-file eslint clean on all 8 touched
+files, full lint unchanged at 46 pre-existing errors, `vite build` green
+(index chunk 413 KB gzip 145 KB, down from ~1 MB via route splitting).

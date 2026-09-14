@@ -214,7 +214,7 @@ const MediaItem = ({
           playsInline
           muted
           loop
-          preload="auto"
+          preload="metadata"
           style={{
             opacity: isBuffering ? 0.8 : 1,
             transition: "opacity 0.2s",
