@@ -2,6 +2,7 @@ import { HTTPError } from "ky"
 import { useQuery } from "@tanstack/react-query"
 
 import { api } from "@/api/client"
+import { findOfflinePaket, shouldFallback, warnOffline } from "@/api/offline-fallback"
 import type { Paket } from "../../paket/types/paket-types"
 import type { PaketDetailResponse } from "../types/detail-types"
 
@@ -24,9 +25,19 @@ export const FetchPaketDetail = (id: string) => {
   const query = useQuery({
     queryKey: ["paket", "detail", id],
     enabled: valid,
+    retry: false,
     queryFn: async (): Promise<Paket> => {
-      const res = await api.get(`paket/${id}`).json<PaketDetailResponse>()
-      return res.data
+      try {
+        const res = await api.get(`paket/${id}`).json<PaketDetailResponse>()
+        return res.data
+      } catch (error) {
+        // ponytail: unknown id → rethrow so isNotFound (not DetailError)
+        // renders; known id → serve the offline snapshot.
+        const fallback = findOfflinePaket(id)
+        if (!fallback || !shouldFallback(error)) throw error
+        warnOffline(`FetchPaketDetail(${id})`, error)
+        return fallback
+      }
     },
   })
 

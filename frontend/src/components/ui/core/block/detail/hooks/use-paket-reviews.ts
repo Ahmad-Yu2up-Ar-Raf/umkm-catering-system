@@ -3,6 +3,7 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tansta
 import { toast } from "sonner"
 import { useAppForm } from "@/hooks/use-form"
 import { api } from "@/api/client"
+import { shouldFallback, warnOffline } from "@/api/offline-fallback"
 import { reviewSchema, type ReviewFormValues } from "../validations/review-schema"
 
 export interface PaketReview {
@@ -30,19 +31,28 @@ const reviewsKey = (paketId: number) => ["paket", "reviews", paketId] as const
 /**
  * Public reviews for one package (`GET /testimoni/paket/{id}` — no auth).
  * Server returns strictly `visibility = public`, newest first.
+ *
+ * Offline contract: `null` = backend unreachable (caller hides the section
+ * entirely — no skeleton, no empty shell); `[]` = live but no reviews yet.
  */
 export function usePaketReviews(paketId: number) {
   return useQuery({
     queryKey: reviewsKey(paketId),
-    queryFn: async (): Promise<PaketReview[]> => {
-      const res = await api
-        .get(`testimoni/paket/${paketId}`)
-        .json<PaketReviewsResponse>()
-      return res.data
+    queryFn: async (): Promise<PaketReview[] | null> => {
+      try {
+        const res = await api
+          .get(`testimoni/paket/${paketId}`, { timeout: 8000 })
+          .json<PaketReviewsResponse>()
+        return res.data
+      } catch (error) {
+        if (!shouldFallback(error)) throw error
+        warnOffline(`usePaketReviews(${paketId})`, error)
+        return null
+      }
     },
     placeholderData: keepPreviousData,
     staleTime: 60_000,
-    retry: 1,
+    retry: false,
   })
 }
 

@@ -14,14 +14,20 @@ import { GalleryCategoryNav } from "./gallery-category-nav"
 export function GalleryFilterBar({
   activeSlug,
   onSelect,
+  visibleSlugs,
 }: {
   activeSlug: string
   onSelect: (slug: string) => void
+  visibleSlugs?: string[]
 }) {
   return (
     <div className="sticky top-0 z-40 py-2.5 border-b border-border bg-background/90 backdrop-blur-sm">
       <div className="mx-auto justify-between flex w-full max-w-5xl flex-nowrap items-center gap-4 md:px-6">
-        <GalleryCategoryNav activeSlug={activeSlug} onSelect={onSelect} />
+        <GalleryCategoryNav
+          activeSlug={activeSlug}
+          onSelect={onSelect}
+          visibleSlugs={visibleSlugs}
+        />
       </div>
     </div>
   )

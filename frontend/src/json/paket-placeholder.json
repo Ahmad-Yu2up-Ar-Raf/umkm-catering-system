@@ -1,0 +1,317 @@
+{
+  "status": true,
+  "message": "Data retrieved successfully",
+  "data": [
+    {
+      "id": 15,
+      "nama_paket": "Paket Tumpeng Mini",
+      "kategori_paket": "Tumpeng",
+      "kategori_acara": "Ulang Tahun",
+      "menu_utama": ["Ayam Suwir", "Telur Balado", "Tempe Kering"],
+      "menu_tambahan": ["Kerupuk", "Acar"],
+      "fasilitas_termasuk": ["Nasi kuning", "Sambal goreng ati"],
+      "catatan_alergen": "Tanpa pengawet, dimasak hari yang sama",
+      "jenis_kemasan": "Tampah + daun pisang",
+      "min_order": 10,
+      "harga_per_porsi": "25000.00",
+      "kapasitas_produksi": 20,
+      "deskripsi": "Tumpeng ukuran mini untuk perayaan kecil di rumah/kantor, tampilan tetap menarik. Harga Rp250.000 per paket (10 porsi).",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1788617872/catering-nusantara/products/kuvj6o3mw6pz3g6498qh.png",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036082/catering-nusantara/products/paket-tumpeng-mini/ia6k5lzqofxg4biqmtbq.png",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1788617867/catering-nusantara/products/y6yvda21o783qllbea0x.png",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1788617867/catering-nusantara/products/hug55weoeqwhk6uaqvrv.png"
+      ],
+      "pesanan_count": 34,
+      "testimoni_count": 1,
+      "rating_avg": 5,
+      "is_best_seller": true,
+      "created_at": "2026-08-18T06:54:44.000000Z",
+      "updated_at": "2026-09-05T14:17:53.000000Z"
+    },
+    {
+      "id": 14,
+      "nama_paket": "Paket Tumpeng",
+      "kategori_paket": "Tumpeng",
+      "kategori_acara": "Umum",
+      "menu_utama": [
+        "Nasi Kuning",
+        "Ayam Goreng",
+        "Urap Sayur",
+        "Tempe Kering",
+        "Telur Balado"
+      ],
+      "menu_tambahan": ["Kerupuk", "Acar", "Sambal"],
+      "fasilitas_termasuk": ["Tampah + daun pisang", "Hiasan lengkap"],
+      "catatan_alergen": null,
+      "jenis_kemasan": "Tampah + daun pisang",
+      "min_order": 15,
+      "harga_per_porsi": "45000.00",
+      "kapasitas_produksi": 50,
+      "deskripsi": "Tumpeng ukuran besar untuk syukuran dan hajatan, tampil meriah dengan lauk lengkap. Harga Rp675.000 per paket (15 porsi).",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1788616527/tumpeng-1.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036043/catering-nusantara/products/paket-tumpeng/cpgztvz61ioe98axdakd.jpg"
+      ],
+      "pesanan_count": 10,
+      "testimoni_count": 2,
+      "rating_avg": 4.5,
+      "is_best_seller": true,
+      "created_at": "2026-08-18T06:54:05.000000Z",
+      "updated_at": "2026-09-02T15:13:17.000000Z"
+    },
+    {
+      "id": 13,
+      "nama_paket": "Paket Snack Box Arisan",
+      "kategori_paket": "Snack",
+      "kategori_acara": "Arisan",
+      "menu_utama": ["Kue Basah"],
+      "menu_tambahan": ["Risoles", "Lumpia", "Kue Lapis", "Pastel"],
+      "fasilitas_termasuk": ["Air mineral botol kecil"],
+      "catatan_alergen": "Bahan segar, digoreng mendadak (bukan stok beku)",
+      "jenis_kemasan": "Box mika/kardus kecil",
+      "min_order": 15,
+      "harga_per_porsi": "18000.00",
+      "kapasitas_produksi": 200,
+      "deskripsi": "Cocok untuk acara santai seperti arisan atau pengajian, isi 4 jenis kue basah",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1788616702/paket-snack-box-arisan-1.png",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036034/catering-nusantara/products/paket-snack-box-arisan/awdwkkwstphpfnh4hkbs.png"
+      ],
+      "pesanan_count": 2,
+      "testimoni_count": 1,
+      "rating_avg": 5,
+      "is_best_seller": true,
+      "created_at": "2026-08-18T06:53:56.000000Z",
+      "updated_at": "2026-09-03T09:56:35.000000Z"
+    },
+    {
+      "id": 12,
+      "nama_paket": "Paket Silver Ayam Lada Hitam",
+      "kategori_paket": "Nasi Box",
+      "kategori_acara": "Kantor",
+      "menu_utama": [
+        "Nasi Putih",
+        "Ayam Lada Hitam",
+        "Sayur Buncis",
+        "Telur Dadar"
+      ],
+      "menu_tambahan": ["Kerupuk"],
+      "fasilitas_termasuk": [
+        "Nasi putih",
+        "Sendok & garpu",
+        "Kemasan box food grade"
+      ],
+      "catatan_alergen": null,
+      "jenis_kemasan": "Box karton food grade",
+      "min_order": 10,
+      "harga_per_porsi": "18000.00",
+      "kapasitas_produksi": 300,
+      "deskripsi": "Ayam lada hitam yang gurih sederhana, tetap terasa premium",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036000/catering-nusantara/products/paket-silver-ayam-lada-hitam/va4rhk6nvzswmxh1ziet.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036000/catering-nusantara/products/paket-silver-ayam-lada-hitam/va4rhk6nvzswmxh1ziet.jpg",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036005/catering-nusantara/products/paket-silver-ayam-lada-hitam/xme0u5n7rs4aroifxcmi.jpg",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036010/catering-nusantara/products/paket-silver-ayam-lada-hitam/lx2aw0ew2ciwnbmrzcqc.jpg"
+      ],
+      "pesanan_count": 3,
+      "testimoni_count": 2,
+      "rating_avg": 4,
+      "is_best_seller": false,
+      "created_at": "2026-08-18T06:53:31.000000Z",
+      "updated_at": "2026-08-18T06:53:31.000000Z"
+    },
+    {
+      "id": 11,
+      "nama_paket": "Paket Silver Ayam Bakar",
+      "kategori_paket": "Nasi Box",
+      "kategori_acara": "Umum",
+      "menu_utama": ["Nasi Putih", "Ayam Bakar", "Sambal Kecap", "Lalapan"],
+      "menu_tambahan": ["Kerupuk"],
+      "fasilitas_termasuk": [
+        "Nasi putih",
+        "Sendok & garpu",
+        "Kemasan box food grade"
+      ],
+      "catatan_alergen": null,
+      "jenis_kemasan": "Box karton food grade",
+      "min_order": 10,
+      "harga_per_porsi": "17000.00",
+      "kapasitas_produksi": 300,
+      "deskripsi": "Ayam bakar bumbu rumahan, harian istimewa dengan harga terjangkau",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787035986/catering-nusantara/products/paket-silver-ayam-bakar/xf0xioyodapvoea9yisj.png",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035986/catering-nusantara/products/paket-silver-ayam-bakar/xf0xioyodapvoea9yisj.png",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035993/catering-nusantara/products/paket-silver-ayam-bakar/ucqlukp1pjimtulnhoj0.jpg"
+      ],
+      "pesanan_count": 8,
+      "testimoni_count": 1,
+      "rating_avg": 3,
+      "is_best_seller": false,
+      "created_at": "2026-08-18T06:53:15.000000Z",
+      "updated_at": "2026-08-18T06:53:15.000000Z"
+    },
+    {
+      "id": 10,
+      "nama_paket": "Paket Premium Chicken Salted Egg",
+      "kategori_paket": "Nasi Box",
+      "kategori_acara": "Kantor",
+      "menu_utama": [
+        "Nasi Putih",
+        "Chicken Salted Egg",
+        "Sayur Cah Brokoli",
+        "Telur Rebus"
+      ],
+      "menu_tambahan": ["Kerupuk", "Acar"],
+      "fasilitas_termasuk": [
+        "Nasi putih",
+        "Sendok & garpu",
+        "Kemasan eksklusif premium"
+      ],
+      "catatan_alergen": null,
+      "jenis_kemasan": "Box premium food grade",
+      "min_order": 10,
+      "harga_per_porsi": "35000.00",
+      "kapasitas_produksi": 250,
+      "deskripsi": "Ayam goreng premium dengan saus telur asin, menu modern untuk acara korporat",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787035972/catering-nusantara/products/paket-premium-chicken-salted-egg/ow9ircvqsvll5zaih908.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035972/catering-nusantara/products/paket-premium-chicken-salted-egg/ow9ircvqsvll5zaih908.jpg",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035975/catering-nusantara/products/paket-premium-chicken-salted-egg/jjqlgviex1dlejvaacpf.jpg",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035978/catering-nusantara/products/paket-premium-chicken-salted-egg/jqapm3gfdbjanccwjcif.jpg"
+      ],
+      "pesanan_count": 3,
+      "testimoni_count": 2,
+      "rating_avg": 5,
+      "is_best_seller": false,
+      "created_at": "2026-08-18T06:52:59.000000Z",
+      "updated_at": "2026-08-18T06:52:59.000000Z"
+    },
+    {
+      "id": 9,
+      "nama_paket": "Paket Prasmanan Nikahan",
+      "kategori_paket": "Prasmanan",
+      "kategori_acara": "Pernikahan",
+      "menu_utama": ["Rendang", "Ayam Bakar", "Ikan Asam Manis", "Sayur Lodeh"],
+      "menu_tambahan": ["Puding", "Es Buah"],
+      "fasilitas_termasuk": ["Nasi putih", "Kerupuk", "Sambal", "Buah potong"],
+      "catatan_alergen": "Daging sapi & ayam pilihan, disesuaikan permintaan halal/alergen",
+      "jenis_kemasan": "Chafing dish + alat saji lengkap",
+      "min_order": 100,
+      "harga_per_porsi": "45000.00",
+      "kapasitas_produksi": 1000,
+      "deskripsi": "Paket lengkap untuk resepsi pernikahan, termasuk penataan meja prasmanan",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1788616756/paket-prasmanan-nikahan-1.png",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035957/catering-nusantara/products/paket-prasmanan-nikahan/nxowzylrrxyajcfd4bus.png",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035963/catering-nusantara/products/paket-prasmanan-nikahan/gmnfc5oib4z3zrhhnqrj.png"
+      ],
+      "pesanan_count": 41,
+      "testimoni_count": 1,
+      "rating_avg": 5,
+      "is_best_seller": true,
+      "created_at": "2026-08-18T06:52:45.000000Z",
+      "updated_at": "2026-09-02T15:11:59.000000Z"
+    },
+    {
+      "id": 8,
+      "nama_paket": "Paket Prasmanan Korporat",
+      "kategori_paket": "Prasmanan",
+      "kategori_acara": "Kantor",
+      "menu_utama": ["Chicken Cordon Bleu", "Beef Teriyaki", "Capcay"],
+      "menu_tambahan": ["Puding Coklat"],
+      "fasilitas_termasuk": ["Nasi putih/goreng", "Air mineral gelas"],
+      "catatan_alergen": "Menu fusion, bisa request vegetarian",
+      "jenis_kemasan": "Chafing dish + alat saji lengkap",
+      "min_order": 50,
+      "harga_per_porsi": "55000.00",
+      "kapasitas_produksi": 500,
+      "deskripsi": "Menu lebih modern untuk gathering/seminar perusahaan, tampilan lebih formal",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787035938/catering-nusantara/products/paket-prasmanan-korporat/ybxxzb0w9gyl0nbl6mnh.png",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035938/catering-nusantara/products/paket-prasmanan-korporat/ybxxzb0w9gyl0nbl6mnh.png",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035942/catering-nusantara/products/paket-prasmanan-korporat/fkujtczxa1o7xx9wce1k.png"
+      ],
+      "pesanan_count": 4,
+      "testimoni_count": 1,
+      "rating_avg": 4,
+      "is_best_seller": false,
+      "created_at": "2026-08-18T06:52:24.000000Z",
+      "updated_at": "2026-08-18T06:52:24.000000Z"
+    },
+    {
+      "id": 7,
+      "nama_paket": "Paket Nasi Pasundan Ayam Suwir Serundeng",
+      "kategori_paket": "Nasi Box",
+      "kategori_acara": "Umum",
+      "menu_utama": [
+        "Nasi Putih",
+        "Ayam Suwir Serundeng",
+        "Sambal Dadak",
+        "Lalapan"
+      ],
+      "menu_tambahan": ["Kerupuk", "Acar"],
+      "fasilitas_termasuk": [
+        "Nasi putih",
+        "Sendok & garpu",
+        "Kemasan box food grade"
+      ],
+      "catatan_alergen": null,
+      "jenis_kemasan": "Box karton food grade",
+      "min_order": 10,
+      "harga_per_porsi": "24000.00",
+      "kapasitas_produksi": 250,
+      "deskripsi": "Khas Sunda dengan ayam suwir serundeng dan sambal dadak segar yang menggugah selera",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787035924/catering-nusantara/products/paket-nasi-pasundan-ayam-suwir-serundeng/gvgjknhzjbdvlig46exs.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035924/catering-nusantara/products/paket-nasi-pasundan-ayam-suwir-serundeng/gvgjknhzjbdvlig46exs.jpg",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035928/catering-nusantara/products/paket-nasi-pasundan-ayam-suwir-serundeng/ufsyqtkmsqsiwclpwxui.jpg"
+      ],
+      "pesanan_count": 1,
+      "testimoni_count": 1,
+      "rating_avg": 5,
+      "is_best_seller": false,
+      "created_at": "2026-08-18T06:52:09.000000Z",
+      "updated_at": "2026-08-18T06:52:09.000000Z"
+    },
+    {
+      "id": 6,
+      "nama_paket": "Paket Nasi Box  Hemat",
+      "kategori_paket": "Nasi Box",
+      "kategori_acara": "Kantor",
+      "menu_utama": ["Ayam Goreng", "Tempe Orek", "Sayur Sop"],
+      "menu_tambahan": ["Kerupuk"],
+      "fasilitas_termasuk": ["Nasi putih", "Air mineral gelas"],
+      "catatan_alergen": "Ayam segar harian, tanpa MSG tambahan",
+      "jenis_kemasan": "Box kertas food grade",
+      "min_order": 20,
+      "harga_per_porsi": "22000.00",
+      "kapasitas_produksi": 300,
+      "deskripsi": "Menu harian ekonomis untuk kebutuhan kantor/rapat, praktis dan mengenyangkan",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1788616837/paket-nasi-box-hemat-1.png",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035909/catering-nusantara/products/paket-nasi-box-hemat/xstrhn66yjeyul6wunl0.png",
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787035916/catering-nusantara/products/paket-nasi-box-hemat/gipgc7uvwex6nrhmtquu.png"
+      ],
+      "pesanan_count": 32,
+      "testimoni_count": 1,
+      "rating_avg": 5,
+      "is_best_seller": true,
+      "created_at": "2026-08-18T06:51:58.000000Z",
+      "updated_at": "2026-09-02T15:12:47.000000Z"
+    }
+  ],
+  "meta": {
+    "filters": {
+      "sort_by": "created_at",
+      "sort_dir": "desc"
+    },
+    "pagination": {
+      "total": 15,
+      "currentPage": 1,
+      "perPage": 10,
+      "lastPage": 2,
+      "hasMore": true
+    }
+  }
+}

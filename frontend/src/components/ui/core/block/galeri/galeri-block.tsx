@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "react-router"
 
 import { MotionConfig, motion } from "framer-motion"
 
@@ -9,7 +10,7 @@ import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import { useImageModalStore } from "@/store/image-modal-store"
 import { useGaleriStore } from "@/store/galeri-store"
 
-import { AUTO_ADVANCE_MS } from "./galeri-data"
+import { AUTO_ADVANCE_MS, GALLERY_CATEGORIES } from "./galeri-data"
 import { GalleryHero } from "./components/gallery-hero"
 import { GalleryFeatured } from "./components/gallery-featured"
 import { GalleryCategorySection } from "./components/gallery-category-section"
@@ -68,6 +69,20 @@ export function GalleryBlock() {
     useGaleriStore.getState().setReady(previewsSettled)
   }, [previewsSettled])
 
+  // `?kategori=` deep-link (offline "Lihat Semua" CTAs land here): jump to
+  // the matching rail once settled. `Semua`/absent = top (default).
+  const [searchParams] = useSearchParams()
+  useEffect(() => {
+    if (!previewsSettled) return
+    const wanted = searchParams.get("kategori")
+    if (!wanted || wanted === "Semua") return
+    const slug = GALLERY_CATEGORIES.find(
+      (c) => c.slug === wanted || c.label === wanted || c.id === wanted
+    )?.slug
+    if (!slug) return
+    document.getElementById(`rail-${slug}`)?.scrollIntoView()
+  }, [previewsSettled, searchParams])
+
   // Featured auto-advance — continuous; paused while the global image modal
   // is open (never advances behind the viewer).
   useEffect(() => {
@@ -123,11 +138,15 @@ export function GalleryBlock() {
               {results.map((result, index) => {
                 const category = categories[index]
                 if (!category) return null
+                // ponytail: settled + zero items = drop the rail (no bare
+                // heading/CTA); the section itself double-guards this.
+                const items = result.data?.items ?? []
+                if (!result.isLoading && items.length === 0) return null
                 return (
                   <GalleryCategorySection
                     key={category.slug}
                     category={category}
-                    items={result.data?.items ?? []}
+                    items={items}
                     isLoading={result.isLoading}
                   />
                 )

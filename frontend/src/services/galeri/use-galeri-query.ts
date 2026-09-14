@@ -1,6 +1,12 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query"
 
 import { api } from "@/api/client"
+import {
+  filterOfflineGaleri,
+  OFFLINE_GALERI,
+  shouldFallback,
+  warnOffline,
+} from "@/api/offline-fallback"
 import type {
   GalleryItem,
   GalleryItemCategory,
@@ -65,6 +71,18 @@ function toGalleryItem(raw: GaleriApiItem): GalleryItem {
 }
 
 /**
+ * Remembers which category keys were served from the offline snapshot, so
+ * the category page can narrow its tab bar while the backend is down.
+ * Written in queryFn (event), read during render after settle — the query's
+ * own state change already triggers that render, so no subscription needed.
+ */
+const galeriFallbackServed = new Set<string>()
+
+export function didServeGaleriFallback(kategori: string): boolean {
+  return galeriFallbackServed.has(kategori)
+}
+
+/**
  * Gallery query — `useInfiniteQuery` over `GET /api/v1/galeri`.
  * - Category filtering is SERVER-SIDE (`?kategori_acara=`) and lives in the
  *   queryKey, so a filter change refetches that key automatically.
@@ -87,19 +105,41 @@ export function useGaleriQuery({
     enabled,
 
     queryFn: async ({ pageParam }): Promise<GaleriPage> => {
-      const res = await api
-        .get("galeri", {
-          searchParams: {
-            page: String(pageParam),
-            perPage: String(perPage),
-            ...(kategori ? { kategori_acara: kategori } : {}),
-          },
-        })
-        .json<GaleriListResponse>()
+      try {
+        const res = await api
+          .get("galeri", {
+            searchParams: {
+              page: String(pageParam),
+              perPage: String(perPage),
+              ...(kategori ? { kategori_acara: kategori } : {}),
+            },
+          })
+          .json<GaleriListResponse>()
 
-      return {
-        items: res.data.map(toGalleryItem),
-        pagination: res.meta.pagination,
+        galeriFallbackServed.delete(kategori)
+        return {
+          items: res.data.map(toGalleryItem),
+          pagination: res.meta.pagination,
+        }
+      } catch (error) {
+        if (!shouldFallback(error)) throw error
+        warnOffline("useGaleriQuery", error)
+        galeriFallbackServed.add(kategori)
+        // ponytail: empty array = honest empty state for categories with no
+        // snapshot coverage (snapshot is Perayaan-only), not an error.
+        const all = filterOfflineGaleri(kategori)
+        const page = Number(pageParam)
+        const slice = all.slice((page - 1) * perPage, page * perPage)
+        return {
+          items: slice.map(toGalleryItem),
+          pagination: {
+            total: all.length,
+            currentPage: page,
+            perPage,
+            lastPage: Math.max(1, Math.ceil(all.length / perPage)),
+            hasMore: page * perPage < all.length,
+          },
+        }
       }
     },
 
@@ -110,6 +150,8 @@ export function useGaleriQuery({
     },
 
     staleTime: 1000 * 60 * 5,
+    // ponytail: fallback is in queryFn's catch — no retry before it runs.
+    retry: false,
   })
 }
 
@@ -132,13 +174,20 @@ export function useGaleriPreviews() {
   const query = useQuery({
     queryKey: ["galeri", "storefront", "all"],
     staleTime: 1000 * 60 * 5,
+    retry: false,
     queryFn: async (): Promise<GalleryItem[]> => {
-      const res = await api
-        .get("galeri", {
-          searchParams: { page: "1", perPage: "500" },
-        })
-        .json<GaleriListResponse>()
-      return res.data.map(toGalleryItem)
+      try {
+        const res = await api
+          .get("galeri", {
+            searchParams: { page: "1", perPage: "500" },
+          })
+          .json<GaleriListResponse>()
+        return res.data.map(toGalleryItem)
+      } catch (error) {
+        if (!shouldFallback(error)) throw error
+        warnOffline("useGaleriPreviews", error)
+        return OFFLINE_GALERI.map(toGalleryItem)
+      }
     },
   })
 
@@ -195,14 +244,21 @@ export function useGaleriFeaturedQuery() {
   return useQuery({
     queryKey: ["galeri", "featured"],
     queryFn: async (): Promise<GalleryItem[]> => {
-      const res = await api
-        .get("galeri", {
-          searchParams: { perPage: "100", featured: "1" },
-        })
-        .json<GaleriListResponse>()
+      try {
+        const res = await api
+          .get("galeri", {
+            searchParams: { perPage: "100", featured: "1" },
+          })
+          .json<GaleriListResponse>()
 
-      return res.data.map(toGalleryItem)
+        return res.data.map(toGalleryItem)
+      } catch (error) {
+        if (!shouldFallback(error)) throw error
+        warnOffline("useGaleriFeaturedQuery", error)
+        return OFFLINE_GALERI.filter((g) => g.is_featured).map(toGalleryItem)
+      }
     },
     staleTime: 1000 * 60 * 5,
+    retry: false,
   })
 }

@@ -1,0 +1,188 @@
+{
+  "status": true,
+  "message": "Data retrieved successfully",
+  "data": [
+    {
+      "id": 206,
+      "nama_acara": "Lainnya #26",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Tampilan menggoda, rasa yang tidak mengecewakan.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036281/catering-nusantara/galeri/pernikahan/beu3704b8jufiy0nmo1b.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036281/catering-nusantara/galeri/pernikahan/beu3704b8jufiy0nmo1b.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036281/catering-nusantara/galeri/pernikahan/beu3704b8jufiy0nmo1b.jpg"
+      ],
+      "tanggal_acara": "1964-10-09T00:00:00.000000Z",
+      "lokasi": "Depok",
+      "jumlah_tamu": 290,
+      "is_featured": true,
+      "created_at": "2026-08-18T07:04:07.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 205,
+      "nama_acara": "Lainnya #25",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Prasmanan lengkap yang menyatukan semua dalam satu meja.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036309/catering-nusantara/galeri/tumpeng-syukuran/biz0mt2pnfr7sli92uti.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036309/catering-nusantara/galeri/tumpeng-syukuran/biz0mt2pnfr7sli92uti.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036309/catering-nusantara/galeri/tumpeng-syukuran/biz0mt2pnfr7sli92uti.jpg"
+      ],
+      "tanggal_acara": "1965-04-15T00:00:00.000000Z",
+      "lokasi": "Jakarta",
+      "jumlah_tamu": 58,
+      "is_featured": true,
+      "created_at": "2026-08-18T07:04:06.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 204,
+      "nama_acara": "Lainnya #24",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Resep andalan yang diracik dengan bahan segar setiap hari.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036249/catering-nusantara/galeri/perayaan/scuwq59f5c2he2njtvsb.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036249/catering-nusantara/galeri/perayaan/scuwq59f5c2he2njtvsb.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036249/catering-nusantara/galeri/perayaan/scuwq59f5c2he2njtvsb.jpg"
+      ],
+      "tanggal_acara": "1965-10-13T00:00:00.000000Z",
+      "lokasi": "Bogor",
+      "jumlah_tamu": 34,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:04:04.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 203,
+      "nama_acara": "Lainnya #23",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Porsi pas dan lauk pilihan untuk setiap tamu undangan.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036243/catering-nusantara/galeri/perayaan/d2tfzilncvcybtoyh5kk.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036243/catering-nusantara/galeri/perayaan/d2tfzilncvcybtoyh5kk.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036243/catering-nusantara/galeri/perayaan/d2tfzilncvcybtoyh5kk.jpg"
+      ],
+      "tanggal_acara": "1966-04-05T00:00:00.000000Z",
+      "lokasi": "Tangerang",
+      "jumlah_tamu": 114,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:04:03.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 202,
+      "nama_acara": "Lainnya #22",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Aneka hidangan Nusantara tersaji rapi dan penuh kehangatan.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036254/catering-nusantara/galeri/pernikahan/xmtdjnzkaend1jcthwy8.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036254/catering-nusantara/galeri/pernikahan/xmtdjnzkaend1jcthwy8.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036254/catering-nusantara/galeri/pernikahan/xmtdjnzkaend1jcthwy8.jpg"
+      ],
+      "tanggal_acara": "1966-09-19T00:00:00.000000Z",
+      "lokasi": "Bandung",
+      "jumlah_tamu": 297,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:04:01.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 201,
+      "nama_acara": "Lainnya #21",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Sajian hangat yang menggugah selera untuk momen istimewa.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036166/catering-nusantara/galeri/korporat/v4xmcp9rcujogrpqfcxe.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036166/catering-nusantara/galeri/korporat/v4xmcp9rcujogrpqfcxe.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036166/catering-nusantara/galeri/korporat/v4xmcp9rcujogrpqfcxe.jpg"
+      ],
+      "tanggal_acara": "1967-02-26T00:00:00.000000Z",
+      "lokasi": "Bekasi",
+      "jumlah_tamu": 60,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:04:00.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 200,
+      "nama_acara": "Lainnya #20",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Hidangan disiapkan dengan standar kebersihan tertinggi.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036105/catering-nusantara/galeri/di-balik-dapur/mpslbsairwaxd6ogryiu.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036105/catering-nusantara/galeri/di-balik-dapur/mpslbsairwaxd6ogryiu.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036105/catering-nusantara/galeri/di-balik-dapur/mpslbsairwaxd6ogryiu.jpg"
+      ],
+      "tanggal_acara": "1967-07-29T00:00:00.000000Z",
+      "lokasi": "Depok",
+      "jumlah_tamu": 93,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:03:58.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 199,
+      "nama_acara": "Lainnya #19",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Tampilan menggoda, rasa yang tidak mengecewakan.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036142/catering-nusantara/galeri/hampers/fsfrmmnlnpchgphv73nr.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036142/catering-nusantara/galeri/hampers/fsfrmmnlnpchgphv73nr.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036142/catering-nusantara/galeri/hampers/fsfrmmnlnpchgphv73nr.jpg"
+      ],
+      "tanggal_acara": "1967-12-22T00:00:00.000000Z",
+      "lokasi": "Jakarta",
+      "jumlah_tamu": 217,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:03:57.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 198,
+      "nama_acara": "Lainnya #18",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Prasmanan lengkap yang menyatukan semua dalam satu meja.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036229/catering-nusantara/galeri/perayaan/wgoqzzri8w3jitzuopaz.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036229/catering-nusantara/galeri/perayaan/wgoqzzri8w3jitzuopaz.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036229/catering-nusantara/galeri/perayaan/wgoqzzri8w3jitzuopaz.jpg"
+      ],
+      "tanggal_acara": "1968-05-09T00:00:00.000000Z",
+      "lokasi": "Bogor",
+      "jumlah_tamu": 31,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:03:55.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    },
+    {
+      "id": 197,
+      "nama_acara": "Lainnya #17",
+      "kategori_acara": "Perayaan",
+      "deskripsi_acara": "Resep andalan yang diracik dengan bahan segar setiap hari.",
+      "gambar_acara": "https://res.cloudinary.com/df94cviif/image/upload/v1787036101/catering-nusantara/galeri/di-balik-dapur/lc6gh10a1to54uctouwz.jpg",
+      "thumbnail": "https://res.cloudinary.com/df94cviif/image/upload/v1787036101/catering-nusantara/galeri/di-balik-dapur/lc6gh10a1to54uctouwz.jpg",
+      "images": [
+        "https://res.cloudinary.com/df94cviif/image/upload/v1787036101/catering-nusantara/galeri/di-balik-dapur/lc6gh10a1to54uctouwz.jpg"
+      ],
+      "tanggal_acara": "1968-09-18T00:00:00.000000Z",
+      "lokasi": "Tangerang",
+      "jumlah_tamu": 213,
+      "is_featured": false,
+      "created_at": "2026-08-18T07:03:53.000000Z",
+      "updated_at": "2026-09-14T08:01:28.000000Z"
+    }
+  ],
+  "meta": {
+    "filters": {
+      "featured": false
+    },
+    "pagination": {
+      "total": 206,
+      "currentPage": 1,
+      "perPage": 10,
+      "lastPage": 21,
+      "hasMore": true
+    }
+  }
+}

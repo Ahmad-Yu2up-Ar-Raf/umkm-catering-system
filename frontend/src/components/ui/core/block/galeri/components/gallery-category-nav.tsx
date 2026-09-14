@@ -35,17 +35,30 @@ const GLIDE_TWEEN = {
 export function GalleryCategoryNav({
   activeSlug,
   onSelect,
+  visibleSlugs,
 }: {
   activeSlug: string
   onSelect: (slug: string) => void
+  /**
+   * Optional allow-list (offline mode: snapshot-covered categories only).
+   * Undefined = all tabs. The active tab is always kept so the current
+   * page never loses its own pill.
+   */
+  visibleSlugs?: string[]
 }) {
   const reduced = useReducedMotion()
+
+  const tabs = visibleSlugs
+    ? GALLERY_CATEGORIES.filter(
+        (c) => c.slug === activeSlug || visibleSlugs.includes(c.slug)
+      )
+    : GALLERY_CATEGORIES
 
   return (
     <nav aria-label="Kategori galeri" className="w-full min-w-0">
       <Carousel opts={{ align: "start", dragFree: true }} className="w-full">
         <CarouselContent className="ml-2">
-          {GALLERY_CATEGORIES.map(({ slug, label, icon }) => {
+          {tabs.map(({ slug, label, icon }) => {
             const isActive = activeSlug === slug
             return (
               <CarouselItem key={slug || "__all__"} className="basis-auto pl-2">

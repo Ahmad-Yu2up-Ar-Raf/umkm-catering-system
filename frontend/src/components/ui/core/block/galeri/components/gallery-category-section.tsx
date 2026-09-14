@@ -67,8 +67,14 @@ export function GalleryCategorySection({
 }) {
   const headingId = `galeri-rail-${category.slug}`
 
+  // ponytail: settled + zero items = no section at all (no bare heading or
+  // dead CTA left in the DOM). The caller also skips these; this guards any
+  // other consumer of the section.
+  if (!isLoading && items.length === 0) return null
+
   return (
     <motion.section
+      id={`rail-${category.slug}`}
       aria-labelledby={headingId}
       initial="hidden"
       whileInView="show"
@@ -87,7 +93,13 @@ export function GalleryCategorySection({
         </h2>
 
         <Link
-          to={`/galeri/${category.slug}`}
+          // ponytail: an empty rail would deep-link into a broken filtered
+          // state — point it at the unfiltered storefront instead.
+          to={
+            items.length === 0
+              ? "/galeri?kategori=Semua"
+              : `/galeri/${category.slug}`
+          }
           className={cn(
             "group inline-flex items-center gap-1.5 text-[11px] tracking-[0.22em] text-primary uppercase",
             "transition-colors duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"

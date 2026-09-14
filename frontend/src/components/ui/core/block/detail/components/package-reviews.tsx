@@ -92,11 +92,19 @@ function CarouselSkeleton() {
  * Inline review carousel — sits between the Detail grid and Rekomendasi with
  * matching section rhythm (`mt-13 md:mt-20`, no bottom margin — Rekomendasi
  * carries its own top margin). Swipeable on mobile, arrow-stepped on desktop.
+ *
+ * Visibility: offline (`data === null` from the hook, fetch `isError`, or
+ * browser offline) hides the WHOLE section — no skeleton, no empty shell.
+ * The loading state keeps the section header (mirrors Rekomendasi) so the
+ * skeleton never appears as a headerless orphan mid-page.
  */
 export function PackageReviews({ paketId, vm }: { paketId: number; vm: DetailViewModel }) {
   const reduced = useReducedMotion()
   const [formOpen, setFormOpen] = useState(false)
   const { data, isLoading, isError } = usePaketReviews(paketId)
+
+  if (data === null || isError) return null
+  if (typeof navigator !== "undefined" && !navigator.onLine) return null
 
   const reviews = data ?? []
 
@@ -124,10 +132,6 @@ export function PackageReviews({ paketId, vm }: { paketId: number; vm: DetailVie
 
       {isLoading ? (
         <CarouselSkeleton />
-      ) : isError ? (
-        <p className="text-sm text-muted-foreground">
-          Ulasan tidak dapat dimuat saat ini.
-        </p>
       ) : reviews.length === 0 ? (
         <div className="flex flex-col items-start gap-4 rounded-2xl border border-dashed border-border p-6 sm:p-8">
           <p className="text-sm text-muted-foreground">

@@ -6,11 +6,15 @@ import { useNavigate } from "react-router"
 import { motion } from "framer-motion"
 
 import { useGaleriStore } from "@/store/galeri-store"
-import { useGaleriQuery } from "@/services/galeri/use-galeri-query"
+import {
+  didServeGaleriFallback,
+  useGaleriQuery,
+} from "@/services/galeri/use-galeri-query"
+import { OFFLINE_GALERI_KATEGORI } from "@/api/offline-fallback"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 
-import { getCategoryBySlug } from "./galeri-data"
+import { getCategoryBySlug, GALLERY_CATEGORIES } from "./galeri-data"
 import { GalleryGrid } from "./components/gallery-grid"
 import { GalleryFilterBar } from "./components/gallery-filter-bar"
 
@@ -44,6 +48,18 @@ export function GaleriCategoryBlock({ slug }: { slug: string }) {
     () => query.data?.pages.flatMap((page) => page.items) ?? [],
     [query.data]
   )
+
+  // ponytail: while the backend is down, tabs for categories with zero
+  // snapshot rows would deep-link into empty pages — narrow the bar to
+  // snapshot-covered slugs (+ the active tab, always kept). Online: all tabs.
+  const visibleSlugs = didServeGaleriFallback(kategori)
+    ? [
+        "semua",
+        ...GALLERY_CATEGORIES.filter(
+          (c) => c.id !== "" && OFFLINE_GALERI_KATEGORI.includes(c.id)
+        ).map((c) => c.slug),
+      ]
+    : undefined
 
   // Terminal state for the layout gate — identical semantics to PaketBlock.
   const catalogEnded = !query.isFetching && !query.hasNextPage
@@ -136,6 +152,7 @@ export function GaleriCategoryBlock({ slug }: { slug: string }) {
       <GalleryFilterBar
         activeSlug={category.slug}
         onSelect={(slugTo) => navigate(`/galeri/${slugTo}`)}
+        visibleSlugs={visibleSlugs}
       />
 
       <div className="container m-auto w-full pt-8 pb-24 md:pt-10 md:pb-32">

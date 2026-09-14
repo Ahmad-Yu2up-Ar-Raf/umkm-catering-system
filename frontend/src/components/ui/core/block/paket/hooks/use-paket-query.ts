@@ -1,5 +1,11 @@
 import { api } from "@/api/client"
 import {
+  filterOfflinePakets,
+  OFFLINE_PAKETS,
+  shouldFallback,
+  warnOffline,
+} from "@/api/offline-fallback"
+import {
   keepPreviousData,
   useInfiniteQuery,
   useQuery,
@@ -29,17 +35,46 @@ export function usePaketQuery({ kategori, search }: UsePaketQueryParams) {
   return useInfiniteQuery({
     queryKey: ["paket", kategori, search, PAKET_PER_PAGE],
 
-    queryFn: async ({ pageParam }) =>
-      api
-        .get("paket", {
-          searchParams: {
-            page: String(pageParam),
-            perPage: String(PAKET_PER_PAGE),
-            ...(kategori ? { kategori_paket: kategori } : {}),
-            ...(search ? { search } : {}),
+    queryFn: async ({ pageParam }) => {
+      try {
+        return await api
+          .get("paket", {
+            searchParams: {
+              page: String(pageParam),
+              perPage: String(PAKET_PER_PAGE),
+              ...(kategori ? { kategori_paket: kategori } : {}),
+              ...(search ? { search } : {}),
+            },
+          })
+          .json<PaketListResponse>()
+      } catch (error) {
+        if (!shouldFallback(error)) throw error
+        warnOffline("usePaketQuery", error)
+        // ponytail: client-side filter + slice; single fabricated page,
+        // hasMore:false so the sentinel retires and footer/CTA render.
+        const all = filterOfflinePakets(kategori, search)
+        const page = Number(pageParam)
+        const slice = all.slice(
+          (page - 1) * PAKET_PER_PAGE,
+          page * PAKET_PER_PAGE
+        )
+        return {
+          status: true,
+          message: "offline fallback",
+          data: slice,
+          meta: {
+            filters: { search },
+            pagination: {
+              total: all.length,
+              currentPage: page,
+              perPage: PAKET_PER_PAGE,
+              lastPage: Math.max(1, Math.ceil(all.length / PAKET_PER_PAGE)),
+              hasMore: page * PAKET_PER_PAGE < all.length,
+            },
           },
-        })
-        .json<PaketListResponse>(),
+        } satisfies PaketListResponse
+      }
+    },
 
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
@@ -49,6 +84,9 @@ export function usePaketQuery({ kategori, search }: UsePaketQueryParams) {
 
     staleTime: 5000,
     placeholderData: keepPreviousData,
+    // ponytail: offline fallback lives in queryFn's catch — retrying first
+    // would hold skeletons/sentinels for 30s x attempts before it runs.
+    retry: false,
   })
 }
 
@@ -65,16 +103,25 @@ export function useBestSellerPakets() {
   return useQuery({
     queryKey: ["paket", "home", "menu"],
     staleTime: 1000 * 60 * 5,
+    retry: false,
     queryFn: async () => {
-      const res = await api
-        .get("paket", {
-          searchParams: { page: "1", perPage: "500" },
-        })
-        .json<PaketListResponse>()
-      return res.data
-        .slice()
-        .sort((a, b) => b.pesanan_count - a.pesanan_count)
-        .slice(0, HOME_MENU_LIMIT)
+      try {
+        const res = await api
+          .get("paket", {
+            searchParams: { page: "1", perPage: "500" },
+          })
+          .json<PaketListResponse>()
+        return res.data
+          .slice()
+          .sort((a, b) => b.pesanan_count - a.pesanan_count)
+          .slice(0, HOME_MENU_LIMIT)
+      } catch (error) {
+        if (!shouldFallback(error)) throw error
+        warnOffline("useBestSellerPakets", error)
+        return OFFLINE_PAKETS.slice()
+          .sort((a, b) => b.pesanan_count - a.pesanan_count)
+          .slice(0, HOME_MENU_LIMIT)
+      }
     },
   })
 }
@@ -90,13 +137,20 @@ export function useSavedPaketsSource(enabled: boolean) {
     queryKey: ["paket", "saved-source"],
     enabled,
     staleTime: 1000 * 60 * 5,
+    retry: false,
     queryFn: async () => {
-      const res = await api
-        .get("paket", {
-          searchParams: { page: "1", perPage: "500" },
-        })
-        .json<PaketListResponse>()
-      return res.data
+      try {
+        const res = await api
+          .get("paket", {
+            searchParams: { page: "1", perPage: "500" },
+          })
+          .json<PaketListResponse>()
+        return res.data
+      } catch (error) {
+        if (!shouldFallback(error)) throw error
+        warnOffline("useSavedPaketsSource", error)
+        return OFFLINE_PAKETS
+      }
     },
   })
 }
