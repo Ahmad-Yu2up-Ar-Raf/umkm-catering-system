@@ -31,7 +31,7 @@ export function ReviewForm({
       className="flex flex-col gap-8"
     >
       <section>
-        <header className="mb-6 border-b pb-4">
+        <header className="mb-6 sr-only border-b pb-4">
           <h3 className="font-heading text-lg font-semibold">Informasi Wajib</h3>
           <p className="text-xs text-muted-foreground">
             Data utama ulasan Anda.

@@ -1,8 +1,16 @@
 import { setLogout, useAuthStore } from "@/store/auth-store"
 import ky from "ky"
 
-const BASE_API =
-  import.meta.env.VITE_API_URL ?? "http://172.16.0.116:8000/api/v1/"
+const RAW_BASE =
+  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api/v1/"
+
+// ponytail: `php artisan serve` is plain HTTP — an https:// localhost/LAN URL
+// sends TLS to a non-TLS socket ("Unsupported SSL request"). Downgrade only
+// loopback/LAN hosts; public hosts (production) always keep their scheme.
+const BASE_API = RAW_BASE.replace(
+  /^https:(?=\/\/(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|31)\.))/,
+  "http:",
+)
 
 export const api = ky.create({
   baseUrl: BASE_API,
