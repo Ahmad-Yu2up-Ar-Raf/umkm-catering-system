@@ -27,10 +27,13 @@ export function SectionCards({ dataCards }: componentsProps) {
       {dataCards.map((card, index) => (
         <Card
           key={index}
-          className={cn("@container/card py-5 bg-muted shadow-none", card.className)}
+          className={cn(
+            "@container/card bg-muted py-5 shadow-none",
+            card.className
+          )}
         >
           <CardContent className="flex items-center gap-3">
-            <div className="flex aspect-square size-12 items-center justify-center rounded-2xl  border border-border bg-background p-2.5 text-primary">
+            <div className="flex aspect-square size-12 items-center justify-center rounded-2xl border border-border bg-background p-2.5 text-primary">
               <HugeiconsIcon
                 icon={card.icon}
                 strokeWidth={2}
@@ -39,8 +42,12 @@ export function SectionCards({ dataCards }: componentsProps) {
             </div>
             <CardHeader className="w-full">
               <CardDescription>{card.title}</CardDescription>
-              <CardTitle className="text-xl font-semibold @[250px]/card:text-2xl">
-                {card.value}
+              <CardTitle className="text-xl space-x-2 font-medium @[250px]/card:text-2xl">
+                <span>{card.value}</span>
+
+                <span className="font-accent font-thin text-primary italic">
+                  {card.label}
+                </span>
               </CardTitle>
             </CardHeader>
           </CardContent>

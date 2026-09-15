@@ -7,8 +7,11 @@ use App\Http\Requests\Pesanan\PesananUpdateRequest;
 use App\Http\Resources\PesananResource;
 use App\Models\Paket;
 use App\Models\Pesanan;
+use App\Services\ExcelExportService;
 use App\Services\PesananService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PesananController extends Controller
 {
@@ -28,12 +31,8 @@ class PesananController extends Controller
      * `search` across nomor_struk/nama_pemesan/no_telepon, and whitelisted
      * `sort_by`/`sort_dir`.
      */
-    public function index(Request $request)
+    private function buildListQuery(Request $request): array
     {
-        // Defensive: clear stale prepared plan after DDL (Neon PgBouncer cached plan must not change result type)
-        try { \Illuminate\Support\Facades\DB::statement('DEALLOCATE ALL'); } catch (\Throwable $e) {}
-        try { \Illuminate\Support\Facades\DB::statement('DISCARD ALL'); } catch (\Throwable $e) {}
-
         $statuses = collect((array) $request->input('status_pesanan'))
             ->flatten()
             ->filter(fn ($value) => in_array($value, self::STATUSES, true))
@@ -68,9 +67,7 @@ class PesananController extends Controller
             });
         }
 
-        $paginate = $query
-            ->orderBy($sortBy, $sortDir)
-            ->paginate($request->integer('perPage', 15), ['*'], 'page', $request->integer('page', 1));
+        $query->orderBy($sortBy, $sortDir);
 
         $filters = array_filter([
             'status_pesanan' => $statuses->isNotEmpty() ? $statuses->all() : null,
@@ -78,11 +75,63 @@ class PesananController extends Controller
             'search' => $search !== '' ? $search : null,
         ], fn ($value) => ! is_null($value) && $value !== '');
 
+        return [$query, $filters];
+    }
+
+    public function index(Request $request)
+    {
+        // Defensive: clear stale prepared plan after DDL (Neon PgBouncer cached plan must not change result type)
+        try { \Illuminate\Support\Facades\DB::statement('DEALLOCATE ALL'); } catch (\Throwable $e) {}
+        try { \Illuminate\Support\Facades\DB::statement('DISCARD ALL'); } catch (\Throwable $e) {}
+
+        [$query, $filters] = $this->buildListQuery($request);
+
+        $paginate = $query->paginate($request->integer('perPage', 15), ['*'], 'page', $request->integer('page', 1));
+
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Pesanan $item) => new PesananResource($item)),
             'Data retrieved successfully',
             $filters
         ));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        [$query] = $this->buildListQuery($request);
+
+        // Indonesian UI headers matching dashboard table strings
+        $headers = ['No. Struk', 'Nama Pemesan', 'No. Telepon / WA', 'Paket', 'Jumlah Paket', 'Harga Satuan', 'Biaya Tambahan', 'Total Harga', 'Status Pesanan', 'Metode Pembayaran', 'Tanggal Acara', 'Alamat', 'Menu Tambahan', 'Detail Tambahan', 'Catatan', 'Dibuat'];
+
+        // Widths tuned so dates/prices never hit ###
+        $widths = [18, 22, 18, 24, 13, 14, 14, 16, 14, 16, 14, 28, 24, 24, 24, 18];
+
+        $rows = (function () use ($query) {
+            foreach ($query->cursor() as $p) {
+                yield [
+                    ExcelExportService::text($p->nomor_struk),
+                    ExcelExportService::text($p->nama_pemesan),
+                    ExcelExportService::text($p->no_telepon),
+                    ExcelExportService::text($p->paket?->nama_paket ?? $p->paket_id),
+                    $p->jumlah_paket ?? 'N/A',
+                    ExcelExportService::idr($p->harga_paket_satuan),
+                    ExcelExportService::idr($p->biaya_tambahan),
+                    ExcelExportService::idr($p->total_harga),
+                    ExcelExportService::statusLabel($p->status_pesanan),
+                    ExcelExportService::statusLabel($p->metode_pembayaran),
+                    ExcelExportService::date($p->tanggal_acara),
+                    ExcelExportService::text($p->alamat),
+                    ExcelExportService::orderedList($p->menu_tambahan),
+                    ExcelExportService::orderedList($p->detail_tambahan),
+                    ExcelExportService::text($p->catatan),
+                    ExcelExportService::datetime($p->created_at),
+                ];
+            }
+        })();
+
+        return ExcelExportService::stream(
+            ExcelExportService::filename('pesanan'), $headers, $rows, $widths,
+            'LAPORAN DATA PESANAN', ExcelExportService::subtitle()
+        );
     }
 
     /**

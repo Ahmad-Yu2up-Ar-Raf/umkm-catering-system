@@ -40,13 +40,16 @@ Route::prefix('v1')->group(function () {
         // resolves as its own route, never the resource's '{paket}' wildcard.
         Route::get('/paket/search', [PaketController::class, 'search'])
             ->name('admin.paket.search');
+        Route::get('/paket/export', [PaketController::class, 'export'])->name('admin.paket.export');
         Route::post('/paket/bulk-update', [PaketController::class, 'bulkUpdate'])->name('admin.paket.bulk-update');
         Route::post('/paket/bulk-delete', [PaketController::class, 'bulkDelete'])->name('admin.paket.bulk-delete');
         Route::apiResource('paket', PaketController::class)->names('admin.paket');
+        Route::get('/galeri/export', [AdminGaleriController::class, 'export'])->name('admin.galeri.export');
         Route::post('/galeri/bulk-update', [AdminGaleriController::class, 'bulkUpdate'])->name('admin.galeri.bulk-update');
         Route::post('/galeri/bulk-delete', [AdminGaleriController::class, 'bulkDelete'])->name('admin.galeri.bulk-delete');
         Route::apiResource('galeri', AdminGaleriController::class)->names('admin.galeri');
         // Testimoni bulk ops (bulk-update whitelists `visibility` only).
+        Route::get('/testimoni/export', [AdminTestimoniController::class, 'export'])->name('admin.testimoni.export');
         Route::post('/testimoni/bulk-update', [AdminTestimoniController::class, 'bulkUpdate'])->name('admin.testimoni.bulk-update');
         Route::post('/testimoni/bulk-delete', [AdminTestimoniController::class, 'bulkDelete'])->name('admin.testimoni.bulk-delete');
         Route::apiResource('testimoni', AdminTestimoniController::class)->names('admin.testimoni');
@@ -57,6 +60,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('/cloudinary', [CloudinaryController::class, 'destroy'])
             ->name('admin.cloudinary.destroy');
 
+        Route::get('/pesanan/export', [PesananController::class, 'export'])->name('pesanan.export');
         Route::get('/pesanan', [PesananController::class, 'index'])->name('pesanan.index');
         Route::post('/pesanan/bulk-update', [PesananController::class, 'bulkUpdate'])->name('pesanan.bulk-update');
         Route::post('/pesanan/bulk-delete', [PesananController::class, 'bulkDelete'])->name('pesanan.bulk-delete');

@@ -7,6 +7,8 @@ import {
   Image01Icon,
   HelpCircleIcon,
   ActivityIcon,
+  Store,
+  Home,
 } from "@hugeicons/core-free-icons"
 
 export type SidebarNavItem = {
@@ -59,6 +61,28 @@ export const navGroups: SidebarNavGroup[] = [
         title: "Master Testimoni",
         path: "/dashboard/testimoni",
         icon: Message01Icon,
+      },
+    ],
+  },
+]
+export const navExternal: SidebarNavGroup[] = [
+  {
+
+    items: [
+      {
+        title: "Lihat Beranda",
+        path: "/",
+        icon: Home,
+      },
+      {
+        title: "Lihat Paket",
+        path: "/paket",
+        icon: Store,
+      },
+      {
+        title: "Lihat Galeri",
+        path: "/galeri",
+        icon: Store,
       },
     ],
   },

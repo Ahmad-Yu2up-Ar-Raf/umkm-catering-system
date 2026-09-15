@@ -27,6 +27,8 @@ import { PaketTableActionBar } from "./components/paket-table-action-bar"
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { cn } from "@/lib/utils"
 import { useSidebar } from "@/components/ui/fragments/shadcn-ui/sidebar"
+import { useExportExcel } from "@/hooks/use-export-excel"
+import { api } from "@/api/client"
 
 /**
  * Master Paket — the admin MDM block.
@@ -70,6 +72,19 @@ function MasterPaketBlock() {
   const { mutate: bulkUpdate, isPending: isBulkUpdating } = usePaketBulkUpdateMutation()
   const { mutate: bulkDelete, isPending: isBulkDeleting } = usePaketBulkDeleteMutation()
   const isAnyBulkPending = isBulkUpdating || isBulkDeleting
+
+  const { isExporting, run: runExport } = useExportExcel({
+    filename: `paket-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    fetchBlob: (p) => {
+      const sp = new URLSearchParams()
+      for (const v of (p.kategori_paket as string[]) ?? []) sp.append("kategori_paket[]", v)
+      for (const v of (p.kategori_acara as string[]) ?? []) sp.append("kategori_acara[]", v)
+      if (p.search) sp.set("search", p.search as string)
+      if (p.sort_by) sp.set("sort_by", p.sort_by as string)
+      if (p.sort_dir) sp.set("sort_dir", p.sort_dir as string)
+      return api.get("admin/paket/export", { searchParams: sp, timeout: 120_000 }).blob()
+    },
+  })
 
   const handleFilterChange = <T,>(setter: (value: T) => void) => {
     return (value: T) => {
@@ -158,6 +173,16 @@ function MasterPaketBlock() {
         onClearFilters={clearAllFilters}
         hasActiveFilters={hasActiveFilters}
         onAdd={() => setCreateOpen(true)}
+        onExport={() =>
+          runExport({
+            kategori_paket: kategoriPaket,
+            kategori_acara: kategoriAcara,
+            search,
+            sort_by: sortBy,
+            sort_dir: sortDir,
+          })
+        }
+        isExporting={isExporting}
       />
 
       <div
