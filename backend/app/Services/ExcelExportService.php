@@ -34,7 +34,11 @@ class ExcelExportService
     ): StreamedResponse {
         return response()->streamDownload(function () use ($headers, $rows, $columnWidths, $title, $subtitle) {
             $options = new Options();
-            $options->DEFAULT_ROW_HEIGHT = 15.0;
+            // BUG-1 fix: no hardcoded DEFAULT_ROW_HEIGHT on data rows — height
+            // is computed per-row from max "\n" count so orderedList() never clips.
+            // Header/title heights remain explicit via Row::setHeight(); data rows
+            // get dynamic height below. Leaving DEFAULT_ROW_HEIGHT null lets
+            // Excel auto-fit wrapped text unless we set a custom height.
             if ($columnWidths !== null) {
                 foreach ($columnWidths as $idx => $w) {
                     $col = isset($columnWidths[0]) ? $idx + 1 : (int) $idx;
@@ -107,7 +111,17 @@ class ExcelExportService
                 ->setBorder($thinGray);
 
             foreach ($rows as $values) {
-                $writer->addRow(Row::fromValues($values, $dataStyle));
+                $row = Row::fromValues($values, $dataStyle);
+                // Dynamic height: 18pt per line, floor 20pt so single-line rows are padded
+                $maxLines = 1;
+                foreach ($values as $cellValue) {
+                    if (is_string($cellValue)) {
+                        $lines = substr_count($cellValue, "\n") + 1;
+                        if ($lines > $maxLines) $maxLines = $lines;
+                    }
+                }
+                $row->setHeight(max(20, $maxLines * 18));
+                $writer->addRow($row);
             }
 
             $writer->close();
@@ -167,8 +181,8 @@ class ExcelExportService
         return implode("\n", array_map(fn ($i, $v) => ($i + 1).'. '.$v, array_keys($items), $items));
     }
 
-    /** Clickable Excel link via HYPERLINK formula; "N/A" when missing. */
-    public static function hyperlink(mixed $value, string $label = 'Lihat Foto'): string
+    /** Clickable Excel link via HYPERLINK formula; "N/A" when missing. Label is the explicit preview text Excel shows. */
+    public static function hyperlink(mixed $value, string $label = '[ 📷 Lihat Foto Preview ]'): string
     {
         $s = trim((string) ($value ?? ''));
         if ($s === '') return 'N/A';
