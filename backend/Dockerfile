@@ -1,39 +1,48 @@
-# Menggunakan image PHP 8.3 dengan Apache
 FROM php:8.3-apache
 
-# Install dependencies sistem yang dibutuhkan Laravel & PostgreSQL
+# Install dependencies sistem
 RUN apt-get update && apt-get install -y \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    libpq-dev \
-    git \
-    curl
+    libpng-dev libonig-dev libxml2-dev zip unzip libpq-dev git curl
 
-# Install ekstensi PHP (termasuk pdo_pgsql untuk Neon DB)
+# Install PHP extensions untuk Laravel & Neon PostgreSQL
 RUN docker-php-ext-install pdo_pgsql mbstring exif pcntl bcmath gd
-
-# Aktifkan mod_rewrite Apache untuk routing Laravel
 RUN a2enmod rewrite
 
-# Ubah DocumentRoot Apache agar mengarah ke folder /public Laravel
+# --- ATURAN WAJIB HUGGING FACE: Ganti port Apache ke 7860 ---
+RUN sed -i 's/80/7860/g' /etc/apache2/ports.conf
+RUN sed -i 's/:80/:7860/g' /etc/apache2/sites-available/000-default.conf
+
+# Set DocumentRoot ke /public
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Salin seluruh kode backend ke dalam container
+# Copy semua file backend
 COPY . .
 
-# Install Composer
+# Install dependencies Laravel via Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Jalankan instalasi dependency Laravel (tanpa package dev)
 RUN composer install --no-dev --optimize-autoloader
 
-# Berikan izin akses (permissions) pada folder storage dan cache
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# --- ATURAN WAJIB HUGGING FACE: Permission untuk User 1000 ---
+# Berikan akses folder Apache & Laravel ke User ID 1000
+RUN chown -R 1000:1000 /var/www/html \
+    && chown -R 1000:1000 /var/log/apache2 \
+    && chown -R 1000:1000 /var/run/apache2 \
+    && chown -R 1000:1000 /var/lib/apache2 \
+    && chmod -R 777 /var/www/html/storage \
+    && chmod -R 777 /var/www/html/bootstrap/cache
+
+# Paksa Apache berjalan menggunakan User 1000
+ENV APACHE_RUN_USER=#1000
+ENV APACHE_RUN_GROUP=#1000
+ENV APACHE_PID_FILE=/var/run/apache2/apache2.pid
+ENV APACHE_RUN_DIR=/var/run/apache2
+ENV APACHE_LOCK_DIR=/var/lock/apache2
+ENV APACHE_LOG_DIR=/var/log/apache2
+
+USER 1000
+EXPOSE 7860
+CMD ["apache2-foreground"]
