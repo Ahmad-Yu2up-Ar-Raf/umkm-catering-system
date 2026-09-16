@@ -39,10 +39,6 @@ export function LatestOrders({ items }: { items: LatestPesanan[] }) {
   // Column visibility state
   const [hiddenCols, setHiddenCols] = useState<Record<string, boolean>>({})
 
-  const toggleColumn = (col: string) => {
-    setHiddenCols((prev) => ({ ...prev, [col]: !prev[col] }))
-  }
-
   return (
     <Card className="shadow-none">
       <CardHeader>

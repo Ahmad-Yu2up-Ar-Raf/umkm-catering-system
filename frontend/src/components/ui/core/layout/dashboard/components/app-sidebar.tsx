@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/fragments/shadcn-ui/tooltip"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
-  ExternalLink,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
   Store,
@@ -32,7 +31,6 @@ import {
   SidebarGroupContent,
   SidebarMenuItem,
 } from "@/components/ui/fragments/shadcn-ui/sidebar"
-import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
 
 export function AppSidebar() {
   const isMobile = useIsMobile()
