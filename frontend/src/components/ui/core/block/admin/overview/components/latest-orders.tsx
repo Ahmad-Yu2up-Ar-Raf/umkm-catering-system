@@ -23,8 +23,12 @@ import {
   getStatusPesananIcon,
   getStatusPesananLabel,
   getStatusPesananColor,
+  getMetodePembayaranIcon,
+  getMetodePembayaranLabel,
+  getMetodePembayaranColor,
 } from "@/components/ui/core/block/admin/pesanan/utils/pesanan-badge-utils"
 import type { LatestPesanan } from "../types/overview-type"
+import { useState } from "react"
 
 /**
  * Latest-orders strip — simplified read-only table (no sorting, no selection,
@@ -32,6 +36,13 @@ import type { LatestPesanan } from "../types/overview-type"
  * Cell styling mirrors pesanan-table.tsx.
  */
 export function LatestOrders({ items }: { items: LatestPesanan[] }) {
+  // Column visibility state
+  const [hiddenCols, setHiddenCols] = useState<Record<string, boolean>>({})
+
+  const toggleColumn = (col: string) => {
+    setHiddenCols((prev) => ({ ...prev, [col]: !prev[col] }))
+  }
+
   return (
     <Card className="shadow-none">
       <CardHeader>
@@ -40,80 +51,123 @@ export function LatestOrders({ items }: { items: LatestPesanan[] }) {
       </CardHeader>
       <CardContent className="overflow-x-auto p-0">
         <Table className="relative bg-transparent">
-          <caption className="sr-only">5 data pesanan terbaru</caption>
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="min-w-40 pl-6">Nomor Struk</TableHead>
+              <TableHead className="min-w-40">Nomor Struk</TableHead>
+
               <TableHead className="min-w-48">Pemesan</TableHead>
+
               <TableHead className="min-w-40">Paket</TableHead>
+
               <TableHead className="min-w-24">Jumlah</TableHead>
+
               <TableHead className="min-w-36">Total</TableHead>
+
+              <TableHead className="min-w-32">Tanggal Acara</TableHead>
               <TableHead className="min-w-28">Status</TableHead>
-              <TableHead className="min-w-32 pr-6">Tgl Acara</TableHead>
+              <TableHead className="min-w-28">Pembayaran</TableHead>
+
+              <TableHead className="min-w-32">Dibuat</TableHead>
+
+              <TableHead className="w-12 text-right">
+                <span className="sr-only">Aksi</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {items.length === 0 ? (
-              <TableRow className="border-border hover:bg-transparent">
-                <TableCell colSpan={7}>
-                  <p role="status" className="px-6 py-8 text-center text-sm text-muted-foreground">
-                    Belum ada pesanan.
-                  </p>
-                </TableCell>
-              </TableRow>
-            ) : (
-              items.map((pesanan) => (
+            {items.map((pesanan) => {
+              return (
                 <TableRow
                   key={pesanan.id}
-                  className="border-border transition-colors hover:bg-muted/40"
+                  className="group border-border transition-colors hover:bg-muted/40"
                 >
-                  <TableCell className="pl-6">
-                    <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
-                      {pesanan.nomor_struk}
-                    </code>
-                  </TableCell>
-                  <TableCell>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {pesanan.nama_pemesan}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {pesanan.no_telepon}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm font-medium text-foreground">
-                    {pesanan.paket?.nama_paket ?? "—"}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap tabular-nums">
-                    {pesanan.jumlah_paket} porsi
-                  </TableCell>
-                  <TableCell className="font-medium whitespace-nowrap tabular-nums">
-                    {formatRupiah(pesanan.total_harga)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      size="sm"
-                      icon={getStatusPesananIcon(pesanan.status_pesanan)}
-                      className={cn(
-                        "w-fit gap-1.5 shadow-none",
-                        getStatusPesananColor(pesanan.status_pesanan)
-                      )}
-                    >
-                      <span className="font-medium">
-                        {getStatusPesananLabel(pesanan.status_pesanan)}
-                      </span>
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="pr-6 text-xs whitespace-nowrap text-muted-foreground">
-                    {pesanan.tanggal_acara
-                      ? format(new Date(pesanan.tanggal_acara), "dd MMM yyyy")
-                      : "—"}
-                  </TableCell>
+                  {!hiddenCols.nomor_struk && (
+                    <TableCell>
+                      <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
+                        {pesanan.nomor_struk}
+                      </code>
+                    </TableCell>
+                  )}
+                  {!hiddenCols.nama_pemesan && (
+                    <TableCell>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {pesanan.nama_pemesan}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {pesanan.no_telepon}
+                        </p>
+                      </div>
+                    </TableCell>
+                  )}
+                  {!hiddenCols.paket && (
+                    <TableCell className="text-sm font-medium text-foreground">
+                      {pesanan.paket?.nama_paket ?? "—"}
+                    </TableCell>
+                  )}
+                  {!hiddenCols.jumlah_paket && (
+                    <TableCell className="whitespace-nowrap tabular-nums">
+                      {pesanan.jumlah_paket} porsi
+                    </TableCell>
+                  )}
+                  {!hiddenCols.total_harga && (
+                    <TableCell className="font-medium whitespace-nowrap tabular-nums">
+                      {formatRupiah(pesanan.total_harga)}
+                    </TableCell>
+                  )}
+                  {!hiddenCols.tanggal_acara && (
+                    <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                      {pesanan.tanggal_acara
+                        ? format(new Date(pesanan.tanggal_acara), "dd MMM yyyy")
+                        : "—"}
+                    </TableCell>
+                  )}
+                  {!hiddenCols.status_pesanan && (
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        size="sm"
+                        icon={getStatusPesananIcon(pesanan.status_pesanan)}
+                        className={cn(
+                          "w-fit gap-1.5 shadow-none",
+                          getStatusPesananColor(pesanan.status_pesanan)
+                        )}
+                      >
+                        <span className="font-medium">
+                          {getStatusPesananLabel(pesanan.status_pesanan)}
+                        </span>
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {!hiddenCols.metode_pembayaran && (
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        size="sm"
+                        icon={getMetodePembayaranIcon(
+                          pesanan.metode_pembayaran
+                        )}
+                        className={cn(
+                          "w-fit gap-1.5 shadow-none",
+                          getMetodePembayaranColor(pesanan.metode_pembayaran)
+                        )}
+                      >
+                        <span className="font-medium">
+                          {getMetodePembayaranLabel(pesanan.metode_pembayaran)}
+                        </span>
+                      </Badge>
+                    </TableCell>
+                  )}
+                  {!hiddenCols.created_at && (
+                    <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                      {pesanan.created_at
+                        ? format(new Date(pesanan.created_at), "dd MMM yyyy")
+                        : "—"}
+                    </TableCell>
+                  )}
                 </TableRow>
-              ))
-            )}
+              )
+            })}
           </TableBody>
         </Table>
       </CardContent>

@@ -1,9 +1,10 @@
 "use client"
 
 import { HugeiconsIcon } from "@hugeicons/react"
-import { PlusSignIcon } from "@hugeicons/core-free-icons"
+import { Download01Icon, PlusSignIcon } from "@hugeicons/core-free-icons"
 import { MultiSelectFilter } from "@/components/ui/fragments/custom-ui/multi-select-filter"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
+import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import {
   METODE_PEMBAYARAN_FILTER_OPTIONS,
   STATUS_FILTER_OPTIONS,
@@ -20,6 +21,8 @@ interface PesananToolbarProps {
   onClearFilters: () => void
   hasActiveFilters: boolean
   onAdd: () => void
+  onExport: () => void
+  isExporting: boolean
 }
 
 export function PesananToolbar({
@@ -32,6 +35,8 @@ export function PesananToolbar({
   onClearFilters,
   hasActiveFilters,
   onAdd,
+  onExport,
+  isExporting,
 }: PesananToolbarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -69,6 +74,14 @@ export function PesananToolbar({
             Bersihkan filter
           </Button>
         )}
+        <Button variant="outline" size="sm" onClick={onExport} disabled={isExporting}>
+          {isExporting ? (
+            <Spinner className="mr-2 size-4" />
+          ) : (
+            <HugeiconsIcon icon={Download01Icon} className="mr-2 size-4" />
+          )}
+          {isExporting ? "Mengekspor…" : "Export"}
+        </Button>
         <Button onClick={onAdd} size="sm">
           <HugeiconsIcon icon={PlusSignIcon} className="mr-2 size-4" />
           Tambah Pesanan

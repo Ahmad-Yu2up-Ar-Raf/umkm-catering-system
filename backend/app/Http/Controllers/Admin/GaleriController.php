@@ -9,17 +9,16 @@ use App\Http\Requests\Admin\Galeri\GaleriUpdateRequest;
 use App\Http\Resources\GaleriResource;
 use App\Jobs\PurgeCloudinaryAssets;
 use App\Models\Galeri;
+use App\Services\ExcelExportService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class GaleriController extends Controller
 {
-    /**
-     * Display a paginated listing of the resource (admin).
-     */
-    public function index(Request $request)
+    private function buildListQuery(Request $request): array
     {
         $search = $request->input('search');
         $kategori = $this->normalizeEnumFilter(
@@ -28,8 +27,6 @@ class GaleriController extends Controller
         );
         $sortBy = $request->input('sort_by', 'created_at');
         $sortDir = $request->input('sort_dir', 'desc');
-        $page = $request->integer('page', 1);
-        $perPage = $request->integer('perPage', 10);
 
         $query = Galeri::query();
 
@@ -56,7 +53,7 @@ class GaleriController extends Controller
         $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
         $sortDir = in_array(strtolower($sortDir), ['asc', 'desc']) ? $sortDir : 'desc';
 
-        $paginate = $query->orderBy($sortBy, $sortDir)->paginate($perPage, ['*'], 'page', $page);
+        $query->orderBy($sortBy, $sortDir);
 
         $filters = array_filter([
             'search' => $search,
@@ -65,11 +62,55 @@ class GaleriController extends Controller
             'sort_dir' => $sortDir,
         ], fn ($value) => ! is_null($value) && $value !== '' && $value !== []);
 
+        return [$query, $filters];
+    }
+
+    /**
+     * Display a paginated listing of the resource (admin).
+     */
+    public function index(Request $request)
+    {
+        [$query, $filters] = $this->buildListQuery($request);
+
+        $page = $request->integer('page', 1);
+        $perPage = $request->integer('perPage', 10);
+
+        $paginate = $query->paginate($perPage, ['*'], 'page', $page);
+
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Galeri $item) => new GaleriResource($item)),
             'Data retrieved successfully',
             $filters
         ));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        [$query] = $this->buildListQuery($request);
+
+        $headers = ['Nama Acara', 'Kategori Acara', 'Deskripsi', 'Foto Acara', 'Tanggal Acara', 'Lokasi', 'Jumlah Tamu', 'Unggulan', 'Dibuat'];
+        $widths = [24, 16, 32, 40, 14, 18, 13, 11, 18];
+
+        $rows = (function () use ($query) {
+            foreach ($query->cursor() as $g) {
+                yield [
+                    ExcelExportService::text($g->nama_acara),
+                    ExcelExportService::text($g->kategori_acara instanceof \BackedEnum ? $g->kategori_acara->value : $g->kategori_acara),
+                    ExcelExportService::text($g->deskripsi_acara),
+                    ExcelExportService::hyperlink($g->gambar_acara),
+                    ExcelExportService::date($g->tanggal_acara),
+                    ExcelExportService::text($g->lokasi),
+                    ExcelExportService::text($g->jumlah_tamu !== null ? $g->jumlah_tamu.' tamu' : null),
+                    ExcelExportService::boolLabel($g->is_featured),
+                    ExcelExportService::datetime($g->created_at),
+                ];
+            }
+        })();
+
+        return ExcelExportService::stream(
+            ExcelExportService::filename('galeri'), $headers, $rows, $widths,
+            'LAPORAN DATA GALERI', ExcelExportService::subtitle()
+        );
     }
 
     /**

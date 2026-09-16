@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { playDownload, playError } from "@/lib/audio-feedback"
 import { pesananService } from "@/services/pesanan-service"
+import { useExportExcel } from "@/hooks/use-export-excel"
 import { InvoicePesananDocument } from "@/components/pdf/invoice-pesanan-document"
 import {
   buildInvoiceRenderOptions,
@@ -87,6 +88,18 @@ function MasterPesananBlock() {
   const { mutate: bulkUpdate, isPending: isBulkUpdating } = usePesananBulkUpdateMutation()
   const { mutate: bulkDelete, isPending: isBulkDeleting } = usePesananBulkDeleteMutation()
   const isAnyBulkPending = isBulkUpdating || isBulkDeleting
+
+  const { isExporting, run: runExport } = useExportExcel({
+    filename: `pesanan-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    fetchBlob: (p) =>
+      pesananService.exportBlob({
+        statuses: (p.status_pesanan as StatusPesanan[]) ?? [],
+        metodePembayaran: (p.metode_pembayaran as MetodePembayaran[]) ?? [],
+        search: (p.search as string) ?? "",
+        sortBy: (p.sort_by as PesananSortColumn) ?? sortBy,
+        sortDir: (p.sort_dir as "asc" | "desc") ?? sortDir,
+      }),
+  })
 
   const handleFilterChange = <T,>(setter: (value: T) => void) => {
     return (value: T) => {
@@ -298,6 +311,16 @@ function MasterPesananBlock() {
         onClearFilters={clearAllFilters}
         hasActiveFilters={hasActiveFilters}
         onAdd={() => setCreateOpen(true)}
+        onExport={() =>
+          runExport({
+            status_pesanan: statuses,
+            metode_pembayaran: metodePembayaran,
+            search,
+            sort_by: sortBy,
+            sort_dir: sortDir,
+          })
+        }
+        isExporting={isExporting}
       />
 
       <div

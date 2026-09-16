@@ -9,20 +9,18 @@ use App\Http\Requests\Paket\PaketUpdateRequest;
 use App\Http\Resources\PaketResource;
 use App\Jobs\PurgeCloudinaryAssets;
 use App\Models\Paket;
+use App\Services\ExcelExportService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaketController extends Controller
 {
-    /**
-     * Display a paginated listing of the resource (public).
-     */
-    public function index(Request $request)
+    private function buildListQuery(Request $request): array
     {
         $search = $request->input('search');
 
-        // Multi-select OR legacy single-string filter values, whitelist-
-        // validated against the enum cases (SQLi-safe: never interpolated).
         $kategoriPaket = $this->normalizeEnumFilter(
             $request->input('kategori_paket'),
             array_map(fn ($case) => $case->value, PaketKategoriEnum::cases())
@@ -34,13 +32,8 @@ class PaketController extends Controller
 
         $sortBy = $request->input('sort_by', 'created_at');
         $sortDir = $request->input('sort_dir', 'desc');
-        $page = $request->integer('page', 1);
-        $perPage = $request->integer('perPage', 10);
 
         $query = Paket::query()->with('images')->withCount('pesanan');
-
-        // Public-review aggregates for rating badges (cards + admin table).
-        // Constrained to approved (public) testimonials only.
         $query->withCount(['testimoni as testimoni_count' => fn ($q) => $q->where('visibility', 'public')]);
         $query->withAvg(['testimoni as rating_avg' => fn ($q) => $q->where('visibility', 'public')], 'rating');
 
@@ -59,12 +52,11 @@ class PaketController extends Controller
             $query->whereIn('kategori_acara', $kategoriAcara);
         }
 
-        // Validate allowed sort columns to prevent SQL injection
         $allowedSorts = ['nama_paket', 'harga_per_porsi', 'created_at', 'kategori_paket', 'min_order'];
         $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
         $sortDir = in_array(strtolower($sortDir), ['asc', 'desc']) ? $sortDir : 'desc';
 
-        $paginate = $query->orderBy($sortBy, $sortDir)->paginate($perPage, ['*'], 'page', $page);
+        $query->orderBy($sortBy, $sortDir);
 
         $filters = array_filter([
             'search' => $search,
@@ -74,11 +66,73 @@ class PaketController extends Controller
             'sort_dir' => $sortDir,
         ], fn ($value) => ! is_null($value) && $value !== '' && $value !== []);
 
+        return [$query, $filters];
+    }
+
+    /**
+     * Display a paginated listing of the resource (public).
+     */
+    public function index(Request $request)
+    {
+        [$query, $filters] = $this->buildListQuery($request);
+
+        $page = $request->integer('page', 1);
+        $perPage = $request->integer('perPage', 10);
+
+        $paginate = $query->paginate($perPage, ['*'], 'page', $page);
+
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Paket $item) => new PaketResource($item)),
             'Data retrieved successfully',
             $filters
         ));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        [$query] = $this->buildListQuery($request);
+
+        $headers = ['Nama Paket', 'Kategori Paket', 'Kategori Acara', 'Harga / Porsi', 'Min. Order', 'Kapasitas', 'Gambar Thumbnail', 'Galeri Foto', 'Menu Utama', 'Menu Tambahan', 'Fasilitas', 'Deskripsi', 'Best Seller', 'Terjual', 'Dibuat'];
+        $widths = [24, 14, 14, 14, 12, 12, 32, 40, 28, 28, 28, 32, 11, 10, 18];
+
+        $rows = (function () use ($query) {
+            foreach ($query->cursor() as $p) {
+                yield [
+                    ExcelExportService::text($p->nama_paket),
+                    ExcelExportService::text($p->kategori_paket instanceof \BackedEnum ? $p->kategori_paket->value : $p->kategori_paket),
+                    ExcelExportService::text($p->kategori_acara instanceof \BackedEnum ? $p->kategori_acara->value : $p->kategori_acara),
+                    ExcelExportService::idr($p->harga_per_porsi),
+                    ExcelExportService::text($p->min_order),
+                    ExcelExportService::text($p->kapasitas_produksi),
+                    ExcelExportService::hyperlink($p->thumbnail),
+                    self::galleryCell($p->images->pluck('image_url')->all()),
+                    ExcelExportService::orderedList($p->menu_utama),
+                    ExcelExportService::orderedList($p->menu_tambahan),
+                    ExcelExportService::orderedList($p->fasilitas_termasuk),
+                    ExcelExportService::text($p->deskripsi),
+                    ExcelExportService::boolLabel($p->is_best_seller),
+                    ExcelExportService::text($p->pesanan_count ?? 0),
+                    ExcelExportService::datetime($p->created_at),
+                ];
+            }
+        })();
+
+        return ExcelExportService::stream(
+            ExcelExportService::filename('paket'), $headers, $rows, $widths,
+            'LAPORAN DATA PAKET', ExcelExportService::subtitle()
+        );
+    }
+
+    /**
+     * Single image → clickable HYPERLINK; multiple → numbered URL list;
+     * empty → "N/A". One cell holds one formula, so multi-URL stays text.
+     */
+    private static function galleryCell(array $urls): string
+    {
+        $urls = array_values(array_filter(array_map(fn ($u) => trim((string) $u), $urls), fn ($u) => $u !== ''));
+        if (count($urls) === 0) return 'N/A';
+        if (count($urls) === 1) return ExcelExportService::hyperlink($urls[0]);
+        return ExcelExportService::orderedList($urls);
     }
 
     /**

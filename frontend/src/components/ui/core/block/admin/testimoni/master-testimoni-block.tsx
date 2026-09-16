@@ -22,6 +22,8 @@ import { TestimoniDeleteDialog } from "./components/testimoni-delete-dialog"
 import { TestimoniTableActionBar } from "./components/testimoni-table-action-bar"
 import { DeleteDialog } from "@/components/ui/fragments/custom-ui/dialog/delete-dialog"
 import { cn } from "@/lib/utils"
+import { useExportExcel } from "@/hooks/use-export-excel"
+import { api } from "@/api/client"
 
 /**
  * Master Testimoni — the admin MDM block.
@@ -64,6 +66,18 @@ function MasterTestimoniBlock() {
   const { mutate: bulkUpdate, isPending: isBulkUpdating } =
     useTestimoniBulkUpdateMutation()
   const isAnyBulkPending = isBulkUpdating || isBulkDeleting
+
+  const { isExporting, run: runExport } = useExportExcel({
+    filename: `testimoni-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    fetchBlob: (p) => {
+      const sp = new URLSearchParams()
+      for (const v of (p.visibility as string[]) ?? []) sp.append("visibility[]", v)
+      if (p.search) sp.set("search", p.search as string)
+      if (p.sort_by) sp.set("sort_by", p.sort_by as string)
+      if (p.sort_dir) sp.set("sort_dir", p.sort_dir as string)
+      return api.get("admin/testimoni/export", { searchParams: sp, timeout: 120_000 }).blob()
+    },
+  })
 
   const handleFilterChange = <T,>(setter: (value: T) => void) => {
     return (value: T) => {
@@ -141,6 +155,15 @@ function MasterTestimoniBlock() {
         onClearFilters={clearAllFilters}
         hasActiveFilters={hasActiveFilters}
         onAdd={() => setCreateOpen(true)}
+        onExport={() =>
+          runExport({
+            visibility,
+            search,
+            sort_by: sortBy,
+            sort_dir: sortDir,
+          })
+        }
+        isExporting={isExporting}
       />
 
       <div

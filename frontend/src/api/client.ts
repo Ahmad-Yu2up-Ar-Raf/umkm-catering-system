@@ -2,7 +2,7 @@ import { setLogout, useAuthStore } from "@/store/auth-store"
 import ky from "ky"
 
 const RAW_BASE =
-  import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000/api/v1/"
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1/"
 
 // ponytail: `php artisan serve` is plain HTTP — an https:// localhost/LAN URL
 // sends TLS to a non-TLS socket ("Unsupported SSL request"). Downgrade only

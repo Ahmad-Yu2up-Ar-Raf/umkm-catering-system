@@ -42,7 +42,7 @@
   --chart-5: oklch(0.7264 0.0581 66.6967);
 
   /* Sidebar Colors */
-  --sidebar: oklch(0.9582 0.0152 90.2357);
+  --sidebar: rgb(240, 236, 224);
   --sidebar-foreground: oklch(0.376 0.0225 64.3434);
   --sidebar-primary: oklch(0.618 0.0778 65.5444);
   --sidebar-primary-foreground: oklch(1 0 0);

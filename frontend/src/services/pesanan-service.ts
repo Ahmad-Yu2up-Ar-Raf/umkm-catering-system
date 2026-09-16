@@ -32,6 +32,16 @@ function buildSearchParams(params: PesananListQueryParams): URLSearchParams {
   return sp
 }
 
+function buildExportParams(params: Omit<PesananListQueryParams, "page" | "perPage">): URLSearchParams {
+  const sp = new URLSearchParams()
+  for (const status of params.statuses ?? []) sp.append("status_pesanan[]", status)
+  for (const m of params.metodePembayaran ?? []) sp.append("metode_pembayaran[]", m)
+  if (params.search) sp.set("search", params.search)
+  if (params.sortBy) sp.set("sort_by", params.sortBy)
+  if (params.sortDir) sp.set("sort_dir", params.sortDir)
+  return sp
+}
+
 export const pesananService = {
   async list(params: PesananListQueryParams): Promise<PesananListResponse> {
     return api.get(BASE, { searchParams: buildSearchParams(params) }).json<PesananListResponse>()
@@ -64,6 +74,10 @@ export const pesananService = {
 
   async bulkDelete(payload: { ids: number[] }): Promise<{ status: boolean; message: string }> {
     return api.post(`${BASE}/bulk-delete`, { json: payload }).json<{ status: boolean; message: string }>()
+  },
+
+  async exportBlob(params: Omit<PesananListQueryParams, "page" | "perPage">): Promise<Blob> {
+    return api.get(`${BASE}/export`, { searchParams: buildExportParams(params), timeout: 120_000 }).blob()
   },
 
   /** Lightweight lookup for the POS paket combobox (GET admin/paket/search). */

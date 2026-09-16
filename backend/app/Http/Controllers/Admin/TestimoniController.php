@@ -8,22 +8,19 @@ use App\Http\Requests\Admin\Testimoni\StoreTestimoniRequest;
 use App\Http\Requests\Admin\Testimoni\UpdateTestimoniRequest;
 use App\Http\Resources\TestimoniResource;
 use App\Models\Testimoni;
+use App\Services\ExcelExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TestimoniController extends Controller
 {
-    /**
-     * Display a paginated listing of the resource (admin).
-     */
-    public function index(Request $request)
+    private function buildListQuery(Request $request): array
     {
         $search = $request->input('search');
         $visibility = $this->normalizeVisibilityFilter($request->input('visibility'));
         $sortBy = $request->input('sort_by', 'created_at');
         $sortDir = $request->input('sort_dir', 'desc');
-        $page = $request->integer('page', 1);
-        $perPage = $request->integer('perPage', 10);
 
         $query = Testimoni::query()->with('paket:id,nama_paket,thumbnail,harga_per_porsi');
 
@@ -39,7 +36,7 @@ class TestimoniController extends Controller
         $sortBy = in_array($sortBy, $allowedSorts) ? $sortBy : 'created_at';
         $sortDir = in_array(strtolower($sortDir), ['asc', 'desc']) ? $sortDir : 'desc';
 
-        $paginate = $query->orderBy($sortBy, $sortDir)->paginate($perPage, ['*'], 'page', $page);
+        $query->orderBy($sortBy, $sortDir);
 
         $filters = array_filter([
             'search' => $search,
@@ -48,11 +45,55 @@ class TestimoniController extends Controller
             'sort_dir' => $sortDir,
         ], fn ($value) => ! is_null($value) && $value !== '' && $value !== []);
 
+        return [$query, $filters];
+    }
+
+    /**
+     * Display a paginated listing of the resource (admin).
+     */
+    public function index(Request $request)
+    {
+        [$query, $filters] = $this->buildListQuery($request);
+
+        $page = $request->integer('page', 1);
+        $perPage = $request->integer('perPage', 10);
+
+        $paginate = $query->paginate($perPage, ['*'], 'page', $page);
+
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Testimoni $item) => new TestimoniResource($item)),
             'Data retrieved successfully',
             $filters
         ));
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        [$query] = $this->buildListQuery($request);
+
+        $headers = ['Nama Pelanggan', 'Detail Pesanan', 'Acara', 'Lokasi', 'Paket', 'Rating', 'Visibilitas', 'Tanggal Acara', 'Dibuat'];
+        $widths = [20, 32, 18, 18, 20, 10, 12, 14, 18];
+
+        $rows = (function () use ($query) {
+            foreach ($query->cursor() as $t) {
+                yield [
+                    ExcelExportService::text($t->nama),
+                    ExcelExportService::text($t->pesanan),
+                    ExcelExportService::text($t->acara),
+                    ExcelExportService::text($t->lokasi),
+                    ExcelExportService::text($t->paket?->nama_paket),
+                    ExcelExportService::text($t->rating !== null ? $t->rating.'/5' : null),
+                    ExcelExportService::statusLabel($t->visibility),
+                    ExcelExportService::date($t->tanggal_acara),
+                    ExcelExportService::datetime($t->created_at),
+                ];
+            }
+        })();
+
+        return ExcelExportService::stream(
+            ExcelExportService::filename('testimoni'), $headers, $rows, $widths,
+            'LAPORAN DATA TESTIMONI', ExcelExportService::subtitle()
+        );
     }
 
     /**

@@ -1,13 +1,6 @@
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenuButton,
-  useSidebar,
-} from "@/components/ui/fragments/shadcn-ui/sidebar"
+import {} from "@/components/ui/fragments/shadcn-ui/sidebar"
 import { NavGroup } from "./nav-group"
-import { navGroups } from "../app-shared"
+import { navGroups, navExternal } from "../app-shared"
 import { LogOut } from "./log-out"
 import { Link } from "react-router"
 import { cn } from "@/lib/utils"
@@ -19,8 +12,27 @@ import {
   TooltipTrigger,
 } from "@/components/ui/fragments/shadcn-ui/tooltip"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { PanelLeftCloseIcon, PanelLeftOpenIcon } from "@hugeicons/core-free-icons"
+import {
+  ExternalLink,
+  PanelLeftCloseIcon,
+  PanelLeftOpenIcon,
+  Store,
+} from "@hugeicons/core-free-icons"
 import Logo from "@/components/svg/app-logo-svg"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  useSidebar,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarGroupContent,
+  SidebarMenuItem,
+} from "@/components/ui/fragments/shadcn-ui/sidebar"
+import { Separator } from "@/components/ui/fragments/shadcn-ui/separator"
 
 export function AppSidebar() {
   const isMobile = useIsMobile()
@@ -43,7 +55,9 @@ export function AppSidebar() {
           <SidebarMenuButton asChild>
             <Link
               to={"/dashboard"}
-              className={cn(!sidebarOpen && !isMobile && "group-hover:opacity-0")}
+              className={cn(
+                !sidebarOpen && !isMobile && "group-hover:opacity-0"
+              )}
             >
               <div
                 className={cn(
@@ -54,14 +68,14 @@ export function AppSidebar() {
               >
                 <Logo
                   className={cn(
-                    "size-full mr-1 fill-current text-white transition-all duration-300",
+                    "mr-1 size-full fill-current text-white transition-all duration-300",
                     sidebarOpen ? "scale-[2]" : "scale-[1.8]"
                   )}
                 />
               </div>
               {(sidebarOpen || isMobile) && (
                 <div className="ml-3 grid flex-1 text-left text-xl">
-                  <span className=" truncate font-accent text-lg leading-tight font-bold tracking-widest text-accent-foreground italic">
+                  <span className="truncate font-accent text-lg leading-tight font-bold tracking-widest text-accent-foreground italic">
                     Nusantara
                   </span>
                 </div>
@@ -80,7 +94,7 @@ export function AppSidebar() {
                   className={cn(
                     "shrink-0 transition-opacity",
                     // Hover-revealed (Sidebar root carries `group` on desktop).
-                    "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+                    "h opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
                     !sidebarOpen && "absolute inset-0 m-auto"
                   )}
                 >
@@ -93,7 +107,7 @@ export function AppSidebar() {
               <TooltipContent side="right" align="center">
                 <span className="flex items-center gap-2">
                   Toggle Sidebar
-                  <kbd className="rounded border text-primary border-border bg-muted px-1 font-mono text-[10px]">
+                  <kbd className="rounded border border-border bg-muted px-1 font-mono text-[10px] text-primary">
                     Ctrl+B
                   </kbd>
                 </span>
@@ -102,10 +116,33 @@ export function AppSidebar() {
           )}
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         {navGroups.map((group, index) => (
           <NavGroup key={`sidebar-group-${index}`} {...group} />
         ))}
+        <SidebarGroup className="mt-auto pt-4">
+          <SidebarGroupLabel className=" ">Akses Cepat</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navExternal.map((item, i) => (
+                <SidebarMenuItem key={i}>
+                  <SidebarMenuButton tooltip={item.label} asChild>
+                    <Link to={"/paket"} className="gap-4">
+                      <HugeiconsIcon
+                        strokeWidth={2}
+
+                        icon={Store}
+                      />
+
+                      <span className="text-sm">Lihat Paket</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <LogOut />

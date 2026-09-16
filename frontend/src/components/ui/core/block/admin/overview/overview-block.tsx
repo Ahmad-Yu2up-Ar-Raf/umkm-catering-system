@@ -32,13 +32,18 @@ function OverviewBlock() {
           <header className="flex w-full flex-col border-b px-0 pb-7 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
               <h1 className="w-fit font-heading text-2xl text-neutral-900 lg:text-3xl dark:text-neutral-100">
-                <span>Selamat</span> <span className="font-accent italic text-primary"> Datang</span>
+                <span>Selamat</span>{" "}
+                <span className="font-accent text-primary italic"> Datang</span>
               </h1>
-              <p className="w-fit text-sm text-neutral-500 lg:text-base">Berikut rangkuman keseluruhan data</p>
+              <p className="w-fit text-sm text-neutral-500 lg:text-base">
+                Berikut rangkuman keseluruhan data
+              </p>
             </div>
             <CalendarDateRangePicker />
           </header>
-          <div className="flex w-full justify-center py-20 text-muted-foreground">Gagal memuat data overview.</div>
+          <div className="flex w-full justify-center py-20 text-muted-foreground">
+            Gagal memuat data overview.
+          </div>
         </div>
       </section>
     )
@@ -46,6 +51,12 @@ function OverviewBlock() {
 
   const dataCards: DataCard[] = reports
     ? [
+        {
+          title: "Total Pendapatan",
+          description: "Di luar pesanan batal",
+          value: formatRupiah(reports.totalPendapatan),
+          icon: Wallet02Icon,
+        },
         {
           title: "Total Paket",
           description: "Jumlah paket aktif",
@@ -59,13 +70,6 @@ function OverviewBlock() {
           value: reports.totalPesanan,
           icon: ShoppingBag02Icon,
           label: "Pesanan",
-        },
-        {
-          title: "Total Pendapatan",
-          description: "Di luar pesanan batal",
-          value: formatRupiah(reports.totalPendapatan),
-          icon: Wallet02Icon,
-          label: "Pendapatan",
         },
         {
           title: "Galeri Acara",
@@ -85,9 +89,12 @@ function OverviewBlock() {
         <header className="flex w-full flex-col border-b px-0 pb-7 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
             <h1 className="w-fit font-heading text-2xl text-neutral-900 lg:text-3xl dark:text-neutral-100">
-              <span>Selamat</span> <span className="font-accent italic text-primary"> Datang</span>
+              <span>Selamat</span>{" "}
+              <span className="font-accent text-primary italic"> Datang</span>
             </h1>
-            <p className="w-fit text-sm text-neutral-500 lg:text-base">Berikut rangkuman keseluruhan data</p>
+            <p className="w-fit text-sm text-neutral-500 lg:text-base">
+              Berikut rangkuman keseluruhan data
+            </p>
           </div>
           <CalendarDateRangePicker />
         </header>
@@ -95,7 +102,13 @@ function OverviewBlock() {
         {isLoading ? (
           <OverviewSkeleton />
         ) : (
-          <div className={isRefetching ? "pointer-events-none opacity-50 transition-opacity duration-200" : "transition-opacity duration-200"}>
+          <div
+            className={
+              isRefetching
+                ? "pointer-events-none opacity-50 transition-opacity duration-200"
+                : "transition-opacity duration-200"
+            }
+          >
             {/* Row 1: KPI Cards */}
             <div className="flex flex-col gap-4 md:gap-6">
               <SectionCards dataCards={dataCards} />
