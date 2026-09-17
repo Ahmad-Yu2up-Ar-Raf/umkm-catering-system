@@ -1,3 +1,13 @@
+---
+title: Catering Nusantara API
+emoji: 🍲
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 <!-- Context Anchor & Monorepo Topology -->
 > **Scope:** Backend App Overview · **Monorepo Root:** `../`
 >
