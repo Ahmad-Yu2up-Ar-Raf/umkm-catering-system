@@ -84,83 +84,73 @@ export function LatestOrders({ items }: { items: LatestPesanan[] }) {
                       </code>
                     </TableCell>
                   )}
-                  {!hiddenCols.nama_pemesan && (
-                    <TableCell>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-foreground">
-                          {pesanan.nama_pemesan}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {pesanan.no_telepon}
-                        </p>
-                      </div>
-                    </TableCell>
-                  )}
-                  {!hiddenCols.paket && (
-                    <TableCell className="text-sm font-medium text-foreground">
-                      {pesanan.paket?.nama_paket ?? "—"}
-                    </TableCell>
-                  )}
-                  {!hiddenCols.jumlah_paket && (
-                    <TableCell className="whitespace-nowrap tabular-nums">
-                      {pesanan.jumlah_paket} porsi
-                    </TableCell>
-                  )}
-                  {!hiddenCols.total_harga && (
-                    <TableCell className="font-medium whitespace-nowrap tabular-nums">
-                      {formatRupiah(pesanan.total_harga)}
-                    </TableCell>
-                  )}
-                  {!hiddenCols.tanggal_acara && (
-                    <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                      {pesanan.tanggal_acara
-                        ? format(new Date(pesanan.tanggal_acara), "dd MMM yyyy")
-                        : "—"}
-                    </TableCell>
-                  )}
-                  {!hiddenCols.status_pesanan && (
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        size="sm"
-                        icon={getStatusPesananIcon(pesanan.status_pesanan)}
-                        className={cn(
-                          "w-fit gap-1.5 shadow-none",
-                          getStatusPesananColor(pesanan.status_pesanan)
-                        )}
-                      >
-                        <span className="font-medium">
-                          {getStatusPesananLabel(pesanan.status_pesanan)}
-                        </span>
-                      </Badge>
-                    </TableCell>
-                  )}
-                  {!hiddenCols.metode_pembayaran && (
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        size="sm"
-                        icon={getMetodePembayaranIcon(
-                          pesanan.metode_pembayaran
-                        )}
-                        className={cn(
-                          "w-fit gap-1.5 shadow-none",
-                          getMetodePembayaranColor(pesanan.metode_pembayaran)
-                        )}
-                      >
-                        <span className="font-medium">
-                          {getMetodePembayaranLabel(pesanan.metode_pembayaran)}
-                        </span>
-                      </Badge>
-                    </TableCell>
-                  )}
-                  {!hiddenCols.created_at && (
-                    <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                      {pesanan.created_at
-                        ? format(new Date(pesanan.created_at), "dd MMM yyyy")
-                        : "—"}
-                    </TableCell>
-                  )}
+
+                  <TableCell>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {pesanan.nama_pemesan}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {pesanan.no_telepon}
+                      </p>
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="text-sm font-medium text-foreground">
+                    {pesanan.paket?.nama_paket ?? "—"}
+                  </TableCell>
+
+                  <TableCell className="whitespace-nowrap tabular-nums">
+                    {pesanan.jumlah_paket} porsi
+                  </TableCell>
+
+                  <TableCell className="font-medium whitespace-nowrap tabular-nums">
+                    {formatRupiah(pesanan.total_harga)}
+                  </TableCell>
+
+                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                    {pesanan.tanggal_acara
+                      ? format(new Date(pesanan.tanggal_acara), "dd MMM yyyy")
+                      : "—"}
+                  </TableCell>
+
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      icon={getStatusPesananIcon(pesanan.status_pesanan)}
+                      className={cn(
+                        "w-fit gap-1.5 shadow-none",
+                        getStatusPesananColor(pesanan.status_pesanan)
+                      )}
+                    >
+                      <span className="font-medium">
+                        {getStatusPesananLabel(pesanan.status_pesanan)}
+                      </span>
+                    </Badge>
+                  </TableCell>
+
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      size="sm"
+                      icon={getMetodePembayaranIcon(pesanan.metode_pembayaran)}
+                      className={cn(
+                        "w-fit gap-1.5 shadow-none",
+                        getMetodePembayaranColor(pesanan.metode_pembayaran)
+                      )}
+                    >
+                      <span className="font-medium">
+                        {getMetodePembayaranLabel(pesanan.metode_pembayaran)}
+                      </span>
+                    </Badge>
+                  </TableCell>
+
+                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
+                    {pesanan.created_at
+                      ? format(new Date(pesanan.created_at), "dd MMM yyyy")
+                      : "—"}
+                  </TableCell>
                 </TableRow>
               )
             })}
