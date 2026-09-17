@@ -36,9 +36,6 @@ import { useState } from "react"
  * Cell styling mirrors pesanan-table.tsx.
  */
 export function LatestOrders({ items }: { items: LatestPesanan[] }) {
-  // Column visibility state
-  const [hiddenCols, setHiddenCols] = useState<Record<string, boolean>>({})
-
   return (
     <Card className="shadow-none">
       <CardHeader>
@@ -77,13 +74,11 @@ export function LatestOrders({ items }: { items: LatestPesanan[] }) {
                   key={pesanan.id}
                   className="group border-border transition-colors hover:bg-muted/40"
                 >
-                  {!hiddenCols.nomor_struk && (
-                    <TableCell>
-                      <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
-                        {pesanan.nomor_struk}
-                      </code>
-                    </TableCell>
-                  )}
+                  <TableCell>
+                    <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
+                      {pesanan.nomor_struk}
+                    </code>
+                  </TableCell>
 
                   <TableCell>
                     <div className="min-w-0">
