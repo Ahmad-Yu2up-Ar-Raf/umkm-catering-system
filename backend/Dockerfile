@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install -y \
     && a2enmod rewrite \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Atur Port 7860 khusus Hugging Face (Fail-safe)
-RUN echo "Listen 7860" > /etc/apache2/ports.conf \
-    && sed -i 's/*:80/*:7860/g' /etc/apache2/sites-available/*.conf
+# Konfigurasi Port 7860 khusus Hugging Face (Regex aman)
+RUN sed -i 's/Listen 80/Listen 7860/' /etc/apache2/ports.conf \
+    && sed -i 's/:80>/:7860>/' /etc/apache2/sites-available/000-default.conf
 
 # Set DocumentRoot ke /public
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
