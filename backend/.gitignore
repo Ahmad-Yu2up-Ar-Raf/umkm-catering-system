@@ -27,3 +27,6 @@ Homestead.yaml
 Thumbs.db
 # AI Agent Skills Directory
 /.agents/
+**/caddy
+frankenphp
+frankenphp-worker.php
