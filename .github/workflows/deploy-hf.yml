@@ -1,0 +1,41 @@
+name: Deploy Backend Catering to Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**' # Berjalan otomatis jika ada perubahan di folder backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_USERNAME: AyusufAR
+          SPACE_NAME: liveup
+        run: |
+          git config --global user.email "yusufzolldyck@gmail.com"
+          git config --global user.name "Ahmad-Yu2up-Ar-Raf"
+
+          # 1. Clone repository Hugging Face Space
+          git clone https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$SPACE_NAME hf-space
+
+          # 2. Hapus seluruh isi lama di Space (kecuali folder .git)
+          cd hf-space
+          find . -maxdepth 1 -mindepth 1 ! -name '.git' -exec rm -rf {} +
+          cd ..
+
+          # 3. Salin seluruh isi folder backend ke hf-space
+          cp -a backend/. hf-space/
+
+          # 4. Commit dan Push ke Hugging Face
+          cd hf-space
+          git add .
+          git commit -m "Overwrite space with UMKM Catering Backend" || echo "No changes to commit"
+          git push origin main
