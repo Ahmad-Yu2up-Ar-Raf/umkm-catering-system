@@ -69,29 +69,14 @@ export const navGroups: SidebarNavGroup[] = [
 
 export const navExternal: SidebarNavItem[] = [
   {
-    title: "Halaman Utama",
-    path: "/",
-    icon: Home,
-  },
-  {
-    title: "Galeri",
+    title: "Lihat Galeri",
     path: "/galeri",
     icon: Image01Icon,
   },
   {
-    title: "Paket",
+    title: "Lihat Paket",
     path: "/paket",
     icon: Store,
-  },
-  {
-    title: "Testimoni",
-    path: "/#testimoni",
-    icon: Message01Icon,
-  },
-  {
-    title: "Profil",
-    path: "/#profil",
-    icon: UserIcon,
   },
 ]
 

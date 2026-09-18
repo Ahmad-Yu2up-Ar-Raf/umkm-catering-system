@@ -13,17 +13,6 @@ class GaleriSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Records per category (7 categories × 30 = 210 gallery entries) so the
-     * paginated API + infinite scroll have real volume to page over.
-     */
-    public const RECORDS_PER_CATEGORY = 30;
-
-    /** Staging cap per category folder (the shared image pool). */
-    public const MAX_IMAGES_PER_CATEGORY = 10;
-
-    private const MIN_IMAGES_PER_CATEGORY = 2;
-
     /** Cloudinary folder namespace owned by this project's gallery. */
     private const CLOUDINARY_PREFIX = 'catering-nusantara/galeri';
 
@@ -58,34 +47,11 @@ class GaleriSeeder extends Seeder
     private const LOCALES = ['Bogor', 'Jakarta', 'Depok', 'Bekasi', 'Bandung', 'Tangerang'];
 
     /**
-     * Remote HD fallback pool (sourced via image-explorer:
-     * `node search.js --query="indonesian catering buffet|wedding catering reception|nasi tumpeng indonesian"`).
-     * Used when the local staging dir is absent so `migrate:fresh --seed`
-     * never throws on a wiped checkout. Unsplash/Pexels CDN URLs are stable
-     * delivery URLs (no upload needed).
-     */
-    private const REMOTE_IMAGE_POOL = [
-        'https://images.unsplash.com/photo-1555244162-803834f70033?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1539755530862-00f623c00f52?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1600219069516-cbb3dd32fde0?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1658218615127-40b7068bbae5?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1576842546422-60562b9242ae?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1677921755291-c39158477b8e?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1569058242252-623df46b5025?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1666239308347-4292ea2ff777?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.unsplash.com/photo-1583338917496-7ea264c374ce?w=1920&q=80&fm=jpg&fit=crop',
-        'https://images.pexels.com/photos/36766881/pexels-photo-36766881.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
-        'https://images.pexels.com/photos/306059/pexels-photo-306059.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
-        'https://images.pexels.com/photos/36956925/pexels-photo-36956925.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
-        'https://images.pexels.com/photos/36890105/pexels-photo-36890105.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
-    ];
-
-    /**
-     * Seed the gallery (mirrors PaketSeeder): purge the Cloudinary
-     * `catering-nusantara/galeri/` namespace, DELETE existing rows, upload
-     * each category folder (2–10 images) to `galeri/{slug}`, then generate
-     * RECORDS_PER_CATEGORY per category from that category's OWN pool.
+     * Seed the gallery 1-to-1 (PaketSeeder upload discipline): purge the
+     * Cloudinary `catering-nusantara/galeri/` namespace, DELETE existing rows,
+     * then walk each category folder SEQUENTIALLY (01.jpg, 02.jpg, ...),
+     * upload each file to `galeri/{slug}`, and create exactly ONE row per
+     * uploaded URL with its `.attribution` sidecar credit. No URL is reused.
      * Idempotent: rows are wiped at the start of every run.
      */
     public function run(): void
@@ -99,52 +65,52 @@ class GaleriSeeder extends Seeder
         $this->purgeCloudinaryAssets();
         Galeri::query()->delete();
 
-        // Per-category pools (PaketSeeder discipline): each category folder
-        // uploads to galeri/{slug} and its records draw from its own pool.
-        $pools = [];
-        foreach (self::CATEGORIES as $category) {
-            $slug = $category['slug'];
-            $images = $this->imagePaths($root.DIRECTORY_SEPARATOR.$slug);
-            if ($images->count() < self::MIN_IMAGES_PER_CATEGORY) {
-                $this->command?->warn('  skip '.$slug.': needs at least '.self::MIN_IMAGES_PER_CATEGORY.' images, found '.$images->count());
-
-                continue;
-            }
-            $this->command?->info("  upload {$slug} ({$images->count()} image(s))...");
-            $urls = $images->map(fn (string $path): ?string => $this->uploadToCloudinary($path, $slug))->filter()->values()->all();
-            $pools[$slug] = count($urls) >= self::MIN_IMAGES_PER_CATEGORY ? $urls : self::REMOTE_IMAGE_POOL;
-        }
-
-        if (count($pools) === 0) {
-            throw new \RuntimeException('No gallery image pools available for seeding');
-        }
-
+        // 1-to-1 sequential seeding: each file uploads to galeri/{slug}
+        // and yields exactly ONE row. $usedUrls guards against any
+        // duplicate URL ever landing on two rows.
         $total = 0;
         $now = now();
+        $usedUrls = [];
         foreach (self::CATEGORIES as $index => $category) {
             $slug = $category['slug'];
             $label = $category['label'];
-            if (! isset($pools[$slug])) {
+            $folder = $root.DIRECTORY_SEPARATOR.$slug;
+            $images = $this->imagePaths($folder);
+            if ($images->isEmpty()) {
+                $this->command?->warn("  skip {$slug}: no images found");
+
                 continue;
             }
-            $pool = $pools[$slug];
-            for ($i = 1; $i <= self::RECORDS_PER_CATEGORY; $i++) {
-                $isFeatured = $i === 1;
+            $credits = $this->attributionSidecars($folder);
+            $this->command?->info("  upload {$slug} ({$images->count()} image(s))...");
+            $n = 0;
+            foreach ($images as $pos => $path) {
+                $url = $this->uploadToCloudinary($path, $slug);
+                if ($url === null || isset($usedUrls[$url])) {
+                    continue;
+                }
+                $usedUrls[$url] = true;
+                $n++;
+                $isFeatured = $n === 1;
+                $credit = $credits[$pos] ?? [];
                 $row = [
                     'nama_acara' => $isFeatured
                         ? $category['featured']
-                        : "{$label} #{$i}",
+                        : "{$label} #{$n}",
                     'kategori_acara' => $category['enum']?->value, // null = Lainnya
                     'deskripsi_acara' => $isFeatured
                         ? $category['featuredDesc']
-                        : self::DESCRIPTIONS[$i % count(self::DESCRIPTIONS)],
-                    'gambar_acara' => $pool[array_rand($pool)],
+                        : self::DESCRIPTIONS[$n % count(self::DESCRIPTIONS)],
+                    'gambar_acara' => $url,
+                    'photographer' => $credit['photographer'] ?? null,
+                    'attribution_url' => $credit['attributionUrl'] ?? null,
+                    'license' => $credit['license'] ?? null,
                     // Every event carries real display metadata — venue and
                     // guest count are NEVER null (Hampers / Di Balik Dapur
                     // included), so cards and the Featured band never show a
                     // bare "—" placeholder.
-                    'tanggal_acara' => $now->copy()->subDays($i * 7 + $index)->toDateString(),
-                    'lokasi' => self::LOCALES[($i + $index) % count(self::LOCALES)],
+                    'tanggal_acara' => $now->copy()->subDays($n * 7 + $index)->toDateString(),
+                    'lokasi' => self::LOCALES[($n + $index) % count(self::LOCALES)],
                     'jumlah_tamu' => random_int(20, 320),
                     'is_featured' => $isFeatured,
                 ];
@@ -152,10 +118,10 @@ class GaleriSeeder extends Seeder
                 Galeri::updateOrCreate(['nama_acara' => $row['nama_acara']], $row);
                 $total++;
             }
-            $this->command?->info("  seeded {$label} (".self::RECORDS_PER_CATEGORY.' event(s))');
+            $this->command?->info("  seeded {$label} ({$n} event(s), 1 row per asset)");
         }
 
-        $this->command?->info("  DONE — {$total} gallery rows");
+        $this->command?->info("  DONE — {$total} gallery rows, ".count($usedUrls).' unique assets');
     }
 
     private function purgeCloudinaryAssets(): void
@@ -183,11 +149,34 @@ class GaleriSeeder extends Seeder
     /** @return Collection<int, string> */
     private function imagePaths(string $folder): Collection
     {
+        // Every image file seeds exactly one row (1-to-1) — no cap, no reuse.
         return collect(glob($folder.'/*'))
             ->filter(fn (string $path): bool => is_file($path) && preg_match('/\.(jpe?g|png|webp)$/i', $path) === 1)
             ->sort()
-            ->values()
-            ->slice(0, self::MAX_IMAGES_PER_CATEGORY);
+            ->values();
+    }
+
+    /**
+     * Attribution sidecars restored from the historical commit:
+     * `{folder}/.attribution/*.attribution.json`, sorted by filename.
+     * Position $pos maps to the $pos-th image (extras ignored).
+     *
+     * @return array<int, array{photographer?: string, attributionUrl?: string, license?: string}>
+     */
+    private function attributionSidecars(string $folder): array
+    {
+        $files = collect(glob($folder.'/.attribution/*.attribution.json') ?: [])->sort()->values();
+        $out = [];
+        foreach ($files as $file) {
+            try {
+                $data = json_decode((string) file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
+                $out[] = is_array($data) ? $data : [];
+            } catch (\Throwable $e) {
+                $out[] = [];
+            }
+        }
+
+        return $out;
     }
 
     /** Upload one local image with retry/backoff and return its CANONICAL

@@ -46,7 +46,20 @@ class GenerateExportJob implements ShouldQueue
 
     public function handle(): void
     {
-        Cache::put($this->statusKey(), ['status' => 'processing'], 3600);
+        // Fail-safe: ANY throwable becomes a terminal `failed` status so the
+        // frontend never polls forever (covers build() throws, OOM-adjacent
+        // errors, and kills that bypass failed()).
+        try {
+            $this->run();
+        } catch (\Throwable $e) {
+            Cache::put($this->statusKey(), ['status' => 'failed', 'message' => $e->getMessage()], 3600);
+            throw $e;
+        }
+    }
+
+    private function run(): void
+    {
+        $this->heartbeat(0);
         set_time_limit(0);
 
         [$headers, $widths, $title, $query, $mapper] = $this->build();
@@ -88,7 +101,8 @@ class GenerateExportJob implements ShouldQueue
                 new BorderPart(Border::RIGHT, 'CBD5E1', Border::WIDTH_THIN, Border::STYLE_SOLID)
             ));
 
-        $query->chunk(500, function ($rows) use ($writer, $mapper, $dataStyle) {
+        $written = 0;
+        $query->chunk(250, function ($rows) use ($writer, $mapper, $dataStyle, &$written) {
             foreach ($rows as $model) {
                 $values = ($mapper)($model);
                 $row = Row::fromValues($values, $dataStyle);
@@ -100,7 +114,10 @@ class GenerateExportJob implements ShouldQueue
                 }
                 $row->setHeight(max(20, $maxLines * 18));
                 $writer->addRow($row);
+                $written++;
             }
+            // Heartbeat per chunk so show() can detect a dead worker.
+            $this->heartbeat($written);
         });
 
         $writer->close();
@@ -115,6 +132,15 @@ class GenerateExportJob implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         Cache::put($this->statusKey(), ['status' => 'failed', 'message' => $e->getMessage()], 3600);
+    }
+
+    private function heartbeat(int $rows): void
+    {
+        Cache::put($this->statusKey(), [
+            'status' => 'processing',
+            'rows' => $rows,
+            'heartbeat_at' => now()->toIso8601String(),
+        ], 3600);
     }
 
     public function statusKey(): string

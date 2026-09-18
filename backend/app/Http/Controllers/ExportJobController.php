@@ -24,7 +24,7 @@ class ExportJobController extends Controller
         abort_unless(in_array($module, self::MODULES, true), 422, 'Unknown export module');
 
         $token = (string) Str::uuid();
-        Cache::put("exports:{$token}", ['status' => 'pending'], 3600);
+        Cache::put("exports:{$token}", ['status' => 'pending', 'heartbeat_at' => now()->toIso8601String()], 3600);
 
         GenerateExportJob::dispatch($token, $module, $request->except(['module']));
 
@@ -44,6 +44,24 @@ class ExportJobController extends Controller
         $state = Cache::get("exports:{$token}");
         if (! $state) {
             return response()->json(['status' => false, 'message' => 'Export not found or expired', 'data' => null], 404);
+        }
+
+        // Dead-worker detection: heartbeat older than 120s means the job will
+        // never resolve — report stale so the frontend terminates polling.
+        // Applies to `pending` (worker never picked the job) and `processing`.
+        if (in_array($state['status'] ?? null, ['pending', 'processing'], true)) {
+            $beat = isset($state['heartbeat_at']) ? strtotime($state['heartbeat_at']) : false;
+            if ($beat === false || (time() - $beat) > 120) {
+                $state['stale'] = true;
+            }
+        }
+
+        // Ephemeral disk: file gone while row says ready (container restart).
+        // Flip to failed instead of letting download 404 after a ready poll.
+        if (($state['status'] ?? null) === 'ready'
+            && ! is_file(Storage::disk('local')->path("exports/{$token}.xlsx"))) {
+            $state = ['status' => 'failed', 'message' => 'Export file lost (server restarted) — silakan ulangi'];
+            Cache::put("exports:{$token}", $state, 3600);
         }
 
         return response()->json(['status' => true, 'message' => 'Export status', 'data' => $state]);

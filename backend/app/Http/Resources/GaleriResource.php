@@ -20,6 +20,9 @@ class GaleriResource extends JsonResource
             'kategori_acara' => $this->kategori_acara?->value ?? 'Lainnya',
             'deskripsi_acara' => $this->deskripsi_acara,
             'gambar_acara' => $this->gambar_acara,
+            'photographer' => $this->photographer,
+            'attribution_url' => $this->attribution_url,
+            'license' => $this->license,
             // Backward-compat for frontend still expecting thumbnail/images (now derived from gambar_acara)
             'thumbnail' => $this->gambar_acara,
             'images' => $this->gambar_acara ? [$this->gambar_acara] : [],
