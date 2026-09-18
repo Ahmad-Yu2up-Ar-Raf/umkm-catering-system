@@ -64,7 +64,7 @@ export function PesananToolbar({
         </div>
       </div>
 
-      {/* <div className="flex flex-col items-center gap-2 sm:ml-auto md:flex-row">
+      <div className="hidden flex-col items-center gap-2 sm:ml-auto md:flex md:flex-row">
         {hasActiveFilters && (
           <Button
             type="button"
@@ -95,7 +95,7 @@ export function PesananToolbar({
           <HugeiconsIcon icon={PlusSignIcon} className="mr-2 size-4" />
           Tambah Pesanan
         </Button>
-      </div> */}
+      </div>
     </div>
   )
 }

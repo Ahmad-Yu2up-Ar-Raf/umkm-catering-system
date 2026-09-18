@@ -22,10 +22,10 @@ interface DataTableSkeletonProps extends React.ComponentProps<"div"> {
 export function DataTableSkeleton({
   columnCount,
   rowCount = 10,
-  filterCount = 0,
+  filterCount: _filterCount = 0,
   cellWidths = ["auto"],
-  withViewOptions = true,
-  withPagination = true,
+  withViewOptions: _withViewOptions = true,
+  withPagination: _withPagination = true,
   shrinkZero = false,
   className,
   ...props
