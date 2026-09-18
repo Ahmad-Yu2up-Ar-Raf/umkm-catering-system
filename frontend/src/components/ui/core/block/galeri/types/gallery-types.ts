@@ -59,6 +59,12 @@ export interface GalleryItem {
   deskripsi_acara?: string
   /** Public asset path or Cloudinary URL (API: gambar_acara). */
   gambar_acara: string
+  /** Photo credit (API: photographer). Optional. */
+  photographer?: string
+  /** Source URL for the credit (API: attribution_url). Optional. */
+  attribution_url?: string
+  /** License label (API: license). Optional. */
+  license?: string
   /** Event meta strip. */
   meta: GalleryEventMeta
   /** Signature event for the hero (API: is_featured). */

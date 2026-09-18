@@ -8,8 +8,6 @@ import {
   HelpCircleIcon,
   ActivityIcon,
   Store,
-  Home,
-  UserIcon,
 } from "@hugeicons/core-free-icons"
 
 export type SidebarNavItem = {

@@ -23,9 +23,13 @@ class GaleriStoreRequest extends FormRequest
             'lokasi' => ['nullable', 'string', 'max:255'],
             'jumlah_tamu' => ['nullable', 'integer', 'min:0'],
             'is_featured' => ['nullable', 'boolean'],
-            'thumbnail' => ['required', 'string', 'max:2048'],
-            'images' => ['required', 'array', 'min:1', 'max:10'],
-            'images.*' => ['required', 'url', 'max:2048'],
+            'gambar_acara' => ['required_without:thumbnail', 'nullable', 'string', 'max:2048'],
+            'thumbnail' => ['required_without:gambar_acara', 'nullable', 'string', 'max:2048'],
+            'images' => ['sometimes', 'nullable', 'array', 'min:1', 'max:10'],
+            'images.*' => ['url', 'max:2048'],
+            'photographer' => ['nullable', 'string', 'max:255'],
+            'attribution_url' => ['nullable', 'url', 'max:2048'],
+            'license' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

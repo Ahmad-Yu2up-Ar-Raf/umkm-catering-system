@@ -118,7 +118,12 @@ class GaleriController extends Controller
      */
     public function store(GaleriStoreRequest $request)
     {
-        $galeri = Galeri::query()->create($request->validated());
+        $data = $request->validated();
+        // Backfill canonical NOT NULL column from legacy `thumbnail`/`images`.
+        $data['gambar_acara'] = $data['gambar_acara'] ?? $data['thumbnail'] ?? ($data['images'][0] ?? null);
+        unset($data['thumbnail'], $data['images']);
+
+        $galeri = Galeri::query()->create($data);
 
         return response()->json([
             'status' => true,
@@ -131,7 +136,13 @@ class GaleriController extends Controller
     {
         $oldImage = $galeri->gambar_acara;
 
-        $galeri->update($request->validated());
+        $data = $request->validated();
+        if (! isset($data['gambar_acara'])) {
+            $data['gambar_acara'] = $data['thumbnail'] ?? ($data['images'][0] ?? null);
+        }
+        unset($data['thumbnail'], $data['images']);
+
+        $galeri->update($data);
 
         if ($oldImage && $galeri->gambar_acara !== $oldImage) {
             try {

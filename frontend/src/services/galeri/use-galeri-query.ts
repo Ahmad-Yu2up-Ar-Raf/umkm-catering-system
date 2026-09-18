@@ -6,6 +6,7 @@ import {
   OFFLINE_GALERI,
   shouldFallback,
   warnOffline,
+  type GaleriFallbackItem,
 } from "@/api/offline-fallback"
 import type {
   GalleryItem,
@@ -57,13 +58,16 @@ const GALERI_PER_PAGE = 8
 const PREVIEW_PER_PAGE = 8
 
 /** Normalize `GaleriResource` → presentation `GalleryItem` (NULL → Lainnya). */
-function toGalleryItem(raw: GaleriApiItem): GalleryItem {
+function toGalleryItem(raw: GaleriApiItem | GaleriFallbackItem): GalleryItem {
   return {
     id: String(raw.id),
     category: (raw.kategori_acara ?? "Lainnya") as GalleryItemCategory,
     nama_acara: raw.nama_acara,
     deskripsi_acara: raw.deskripsi_acara ?? undefined,
     gambar_acara: raw.gambar_acara,
+    photographer: raw.photographer ?? undefined,
+    attribution_url: raw.attribution_url ?? undefined,
+    license: raw.license ?? undefined,
     meta: {
       tanggal: raw.tanggal_acara?.slice(0, 10) ?? undefined,
       venue: raw.lokasi ?? undefined,

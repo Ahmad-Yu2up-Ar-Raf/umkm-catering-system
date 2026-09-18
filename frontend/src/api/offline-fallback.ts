@@ -11,6 +11,9 @@ export interface GaleriFallbackItem {
   kategori_acara: string | null
   deskripsi_acara: string | null
   gambar_acara: string
+  photographer?: string | null
+  attribution_url?: string | null
+  license?: string | null
   tanggal_acara: string | null
   lokasi: string | null
   jumlah_tamu: number | null
