@@ -13,6 +13,7 @@ use App\Services\ExcelExportService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Border;
@@ -33,7 +34,7 @@ class GenerateExportJob implements ShouldQueue
     use Queueable;
 
     /** @var int max seconds the worker may spend on one export */
-    public $timeout = 600;
+    public $timeout = 900;
 
     /** @var int never retry a heavy export blindly — surface failure instead */
     public $tries = 1;
@@ -52,6 +53,12 @@ class GenerateExportJob implements ShouldQueue
         try {
             $this->run();
         } catch (\Throwable $e) {
+            Log::error('EXPORT JOB FAILED', [
+                'module' => $this->module,
+                'token' => $this->token,
+                'error' => $e->getMessage(),
+                'trace' => substr($e->getTraceAsString(), 0, 2000),
+            ]);
             Cache::put($this->statusKey(), ['status' => 'failed', 'message' => $e->getMessage()], 3600);
             throw $e;
         }
@@ -101,29 +108,40 @@ class GenerateExportJob implements ShouldQueue
                 new BorderPart(Border::RIGHT, 'CBD5E1', Border::WIDTH_THIN, Border::STYLE_SOLID)
             ));
 
+        // One cheap COUNT for progress + a hard cap (fail fast with a useful
+        // message instead of OOMing the worker on unbounded datasets).
+        $total = (clone $query)->count();
+        if ($total > 100000) {
+            throw new \RuntimeException("Dataset terlalu besar ({$total} baris) — persempit filter lalu ulangi");
+        }
+        $this->heartbeat(0, $total);
+
+        // cursor() streams without OFFSET pagination: constant memory and no
+        // linearly-slower deep pages on remote Postgres. Heartbeat every 100
+        // rows measures liveness, not chunk latency.
         $written = 0;
-        $query->chunk(250, function ($rows) use ($writer, $mapper, $dataStyle, &$written) {
-            foreach ($rows as $model) {
-                $values = ($mapper)($model);
-                $row = Row::fromValues($values, $dataStyle);
-                $maxLines = 1;
-                foreach ($values as $cell) {
-                    if (is_string($cell)) {
-                        $maxLines = max($maxLines, substr_count($cell, "\n") + 1);
-                    }
+        foreach ($query->cursor() as $model) {
+            $values = ($mapper)($model);
+            $row = Row::fromValues($values, $dataStyle);
+            $maxLines = 1;
+            foreach ($values as $cell) {
+                if (is_string($cell)) {
+                    $maxLines = max($maxLines, substr_count($cell, "\n") + 1);
                 }
-                $row->setHeight(max(20, $maxLines * 18));
-                $writer->addRow($row);
-                $written++;
             }
-            // Heartbeat per chunk so show() can detect a dead worker.
-            $this->heartbeat($written);
-        });
+            $row->setHeight(max(20, $maxLines * 18));
+            $writer->addRow($row);
+            $written++;
+            if ($written % 100 === 0) {
+                $this->heartbeat($written, $total);
+            }
+        }
 
         $writer->close();
 
         Cache::put($this->statusKey(), [
             'status' => 'ready',
+            'rows' => $written,
             'filename' => ExcelExportService::filename($this->module),
             'download_url' => "/api/v1/admin/exports/{$this->token}/download",
         ], 3600);
@@ -134,11 +152,12 @@ class GenerateExportJob implements ShouldQueue
         Cache::put($this->statusKey(), ['status' => 'failed', 'message' => $e->getMessage()], 3600);
     }
 
-    private function heartbeat(int $rows): void
+    private function heartbeat(int $rows, ?int $total = null): void
     {
         Cache::put($this->statusKey(), [
             'status' => 'processing',
             'rows' => $rows,
+            'total' => $total,
             'heartbeat_at' => now()->toIso8601String(),
         ], 3600);
     }

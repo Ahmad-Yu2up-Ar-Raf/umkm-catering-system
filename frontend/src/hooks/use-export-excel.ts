@@ -18,13 +18,17 @@ interface UseExportExcelOptions {
 
 /** Poll delays: exponential backoff 1s → 2s → 4s → 8s, capped at 10s. */
 const POLL_DELAYS = [1000, 2000, 4000, 8000, 10000]
-/** Absolute poll deadline: 5 min (under the 1h server cache TTL). */
-const POLL_DEADLINE_MS = 5 * 60_000
+/**
+ * Absolute poll deadline: 12 min. Must exceed the job budget ($timeout 900s)
+ * so a healthy-but-slow export is never killed client-side first.
+ */
+const POLL_DEADLINE_MS = 12 * 60_000
 
 async function pollExportBlob(
   module: AsyncExportModule,
   params: Record<string, string | string[]>,
-  signal: AbortSignal
+  signal: AbortSignal,
+  onProgress?: (rows?: number, total?: number) => void
 ): Promise<Blob> {
   const queued = await api
     .post(`admin/exports/${module}`, { json: params })
@@ -57,12 +61,16 @@ async function pollExportBlob(
     }
     if (res.status === 404) throw new Error("Export kedaluwarsa — silakan ulangi")
     if (res.status === 401) throw new Error("Sesi berakhir — silakan login kembali")
-    const state = (await res.json()) as { data: { status: string; message?: string; stale?: boolean } }
+    const state = (await res.json()) as {
+      data: { status: string; message?: string; stale?: boolean; rows?: number; total?: number }
+    }
     if (state.data.status === "ready") break
     if (state.data.status === "failed") throw new Error(state.data.message || "Export gagal di server")
     if (state.data.stale) throw new Error("Worker export berhenti — coba lagi")
+    if (typeof onProgress === "function") onProgress(state.data.rows, state.data.total)
   }
-  const blob = await api.get(`admin/exports/${token}/download`).blob()
+  // Large xlsx needs longer than the global 30s ky timeout; abortable via run's controller.
+  const blob = await api.get(`admin/exports/${token}/download`, { signal, timeout: 120_000 }).blob()
   return blob
 }
 
@@ -84,7 +92,13 @@ export function useExportExcel({ filename, fetchBlob, asyncModule }: UseExportEx
       abortRef.current = controller
       try {
         const blob = asyncModule
-          ? await pollExportBlob(asyncModule, params, controller.signal)
+          ? await pollExportBlob(asyncModule, params, controller.signal, (rows, total) => {
+              const label =
+                typeof rows === "number" && typeof total === "number" && total > 0
+                  ? `Menyiapkan file Excel… (${rows}/${total} baris)`
+                  : "Menyiapkan file Excel…"
+              toast.loading(label, { id })
+            })
           : await fetchBlob(params)
         if (!blob.size) throw new Error("empty blob")
         // Prefer server filename via blob type; fallback to requested name

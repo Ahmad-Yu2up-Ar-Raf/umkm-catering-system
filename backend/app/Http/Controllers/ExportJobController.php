@@ -46,12 +46,13 @@ class ExportJobController extends Controller
             return response()->json(['status' => false, 'message' => 'Export not found or expired', 'data' => null], 404);
         }
 
-        // Dead-worker detection: heartbeat older than 120s means the job will
-        // never resolve — report stale so the frontend terminates polling.
-        // Applies to `pending` (worker never picked the job) and `processing`.
+        // Dead-worker detection: heartbeats now fire every 100 rows (seconds),
+        // so 300s of silence genuinely means death — no false positives from
+        // one slow chunk. Applies to `pending` (never picked up) and
+        // `processing`. Report stale so the frontend terminates polling.
         if (in_array($state['status'] ?? null, ['pending', 'processing'], true)) {
             $beat = isset($state['heartbeat_at']) ? strtotime($state['heartbeat_at']) : false;
-            if ($beat === false || (time() - $beat) > 120) {
+            if ($beat === false || (time() - $beat) > 300) {
                 $state['stale'] = true;
             }
         }
