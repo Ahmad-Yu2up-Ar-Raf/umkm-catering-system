@@ -2,7 +2,11 @@
 
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Add01Icon, CancelCircleIcon, Download01Icon } from "@hugeicons/core-free-icons"
+import {
+  Add01Icon,
+  CancelCircleIcon,
+  Download01Icon,
+} from "@hugeicons/core-free-icons"
 import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import {
   PAKET_KATEGORI_OPTIONS,
@@ -81,8 +85,18 @@ export function PaketToolbar({
 
         <div className="flex items-center gap-3 xl:ml-auto xl:pl-3">
           <PaketViewToggle />
-          <Button variant="outline" size="sm" className="w-fit" onClick={onExport} disabled={isExporting}>
-            {isExporting ? <Spinner className="size-4" /> : <HugeiconsIcon icon={Download01Icon} className="size-4" />}
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-fit"
+            onClick={onExport}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Spinner className="size-4" />
+            ) : (
+              <HugeiconsIcon icon={Download01Icon} className="size-4" />
+            )}
             {isExporting ? "Mengekspor…" : "Export"}
           </Button>
           <Button className="w-fit" onClick={onAdd}>

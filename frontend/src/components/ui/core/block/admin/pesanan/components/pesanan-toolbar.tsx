@@ -74,7 +74,13 @@ export function PesananToolbar({
             Bersihkan filter
           </Button>
         )}
-        <Button variant="outline" size="sm" onClick={onExport} disabled={isExporting}>
+        <Button
+          type="button"
+          variant="ghost"
+          className=""
+          onClick={onExport}
+          disabled={isExporting}
+        >
           {isExporting ? (
             <Spinner className="mr-2 size-4" />
           ) : (
