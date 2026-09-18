@@ -86,7 +86,7 @@ class PesananController extends Controller
 
         [$query, $filters] = $this->buildListQuery($request);
 
-        $paginate = $query->paginate($request->integer('perPage', 15), ['*'], 'page', $request->integer('page', 1));
+        $paginate = $query->paginate(max(1, min($request->integer('perPage', 15), 100)), ['*'], 'page', max(1, $request->integer('page', 1)));
 
         return response()->json($this->respondWithPagination(
             $paginate->through(fn (Pesanan $item) => new PesananResource($item)),

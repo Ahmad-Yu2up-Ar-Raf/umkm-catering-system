@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\GaleriKategoriEnum;
 use App\Models\Galeri;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -26,9 +27,13 @@ class GaleriFactory extends Factory
     {
         return [
             'nama_acara' => fake()->words(3, true),
+            'kategori_acara' => fake()->randomElement(GaleriKategoriEnum::cases())->value,
             'deskripsi_acara' => fake()->paragraph(),
             'gambar_acara' => fake()->imageUrl(),
             'tanggal_acara' => fake()->date(),
+            'lokasi' => fake()->city(),
+            'jumlah_tamu' => fake()->numberBetween(20, 320),
+            'is_featured' => false,
         ];
     }
 }

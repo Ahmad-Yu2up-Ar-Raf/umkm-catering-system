@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { FieldGroup } from "@/components/ui/fragments/shadcn-ui/field"
 import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import type { loginReturnType } from "@/components/ui/core/block/auth/hooks/use-auth"
-import { Email, Key } from "@hugeicons/core-free-icons"
+import { Key, UserIcon } from "@hugeicons/core-free-icons"
 
 type componentProps = {
   form: loginReturnType
@@ -19,13 +19,13 @@ export default function LoginForm({ form, isLoading }: componentProps) {
       className="space-y-9"
     >
       <FieldGroup className="gap-8">
-        <form.AppField name="email">
+        <form.AppField name="username">
           {(field) => (
             <field.Input
-            label="Email"
-              LeftIcon={Email}
-              type="email"
-              placeholder="example@gmail.com"
+            label="Username"
+              LeftIcon={UserIcon}
+              type="text"
+              placeholder="admin"
             />
           )}
         </form.AppField>

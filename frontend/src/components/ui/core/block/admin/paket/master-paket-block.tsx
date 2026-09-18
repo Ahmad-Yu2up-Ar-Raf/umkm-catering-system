@@ -75,6 +75,7 @@ function MasterPaketBlock() {
 
   const { isExporting, run: runExport } = useExportExcel({
     filename: `paket-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    asyncModule: "paket",
     fetchBlob: (p) => {
       const sp = new URLSearchParams()
       for (const v of (p.kategori_paket as string[]) ?? []) sp.append("kategori_paket[]", v)

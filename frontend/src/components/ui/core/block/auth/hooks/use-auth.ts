@@ -19,7 +19,7 @@ export const useAuth = () => {
         onSubmit: loginSchema,
       },
       defaultValues: {
-        email: "",
+        username: "",
         password: "",
       },
       onSubmit: async ({ value: data }) => {

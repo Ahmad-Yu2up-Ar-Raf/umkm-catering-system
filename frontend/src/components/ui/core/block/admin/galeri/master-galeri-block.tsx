@@ -71,6 +71,7 @@ function MasterGaleriBlock() {
 
   const { isExporting, run: runExport } = useExportExcel({
     filename: `galeri-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    asyncModule: "galeri",
     fetchBlob: (p) => {
       const sp = new URLSearchParams()
       for (const v of (p.kategori_acara as string[]) ?? []) sp.append("kategori_acara[]", v)

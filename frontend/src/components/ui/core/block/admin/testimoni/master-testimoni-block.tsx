@@ -69,6 +69,7 @@ function MasterTestimoniBlock() {
 
   const { isExporting, run: runExport } = useExportExcel({
     filename: `testimoni-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    asyncModule: "testimoni",
     fetchBlob: (p) => {
       const sp = new URLSearchParams()
       for (const v of (p.visibility as string[]) ?? []) sp.append("visibility[]", v)

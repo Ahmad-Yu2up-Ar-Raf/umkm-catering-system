@@ -26,10 +26,10 @@ RUN php artisan route:cache && \
     php artisan view:cache
 
 # 8. Set Permission Storage
-RUN chmod -R 777 storage bootstrap/cache
+RUN chmod -R 777 storage bootstrap/cache && chmod +x start.sh
 
 # 9. Buka Port untuk Hugging Face
 EXPOSE 7860
 
-# 10. ENTRYPOINT: Jalankan Laravel Octane dengan server FrankenPHP
-ENTRYPOINT ["php", "artisan", "octane:start", "--server=frankenphp", "--host=0.0.0.0", "--port=7860"]
+# 10. ENTRYPOINT: Octane (HTTP) + queue worker (async exports) — see start.sh
+ENTRYPOINT ["./start.sh"]

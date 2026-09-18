@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\GaleriController as AdminGaleriController;
 use App\Http\Controllers\Admin\TestimoniController as AdminTestimoniController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\CloudinaryController;
+use App\Http\Controllers\ExportJobController;
 use App\Http\Controllers\GaleriController;
 use App\Http\Controllers\PaketController;
 use App\Http\Controllers\TestimoniController;
@@ -69,5 +70,11 @@ Route::prefix('v1')->group(function () {
         Route::put('/pesanan/{pesanan}', [PesananController::class, 'update'])->name('pesanan.update');
         Route::delete('/pesanan/{pesanan}', [PesananController::class, 'destroy'])->name('pesanan.destroy');
         Route::get('/pesanan/{pesanan}/struk', [PesananController::class, 'struk'])->name('pesanan.struk');
+
+        // Async exports (202 + poll) — chunked queue jobs for large datasets
+        // on constrained runtimes (Hugging Face single worker).
+        Route::post('/exports/{module}', [ExportJobController::class, 'store'])->name('exports.store');
+        Route::get('/exports/{token}', [ExportJobController::class, 'show'])->name('exports.show');
+        Route::get('/exports/{token}/download', [ExportJobController::class, 'download'])->name('exports.download');
     });
 });

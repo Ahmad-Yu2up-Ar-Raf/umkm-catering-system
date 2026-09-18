@@ -26,7 +26,7 @@ class TestimoniController extends Controller
             'status' => true,
             'message' => 'Data retrieved successfully',
             'data' => TestimoniResource::collection($items),
-        ]);
+        ])->header('Cache-Control', 'public, max-age=300, s-maxage=600');
     }
 
     /**
@@ -45,7 +45,7 @@ class TestimoniController extends Controller
             'status' => true,
             'message' => 'Data retrieved successfully',
             'data' => TestimoniResource::collection($items),
-        ]);
+        ])->header('Cache-Control', 'public, max-age=300, s-maxage=600');
     }
 
     /**

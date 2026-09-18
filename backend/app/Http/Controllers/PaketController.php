@@ -76,8 +76,8 @@ class PaketController extends Controller
     {
         [$query, $filters] = $this->buildListQuery($request);
 
-        $page = $request->integer('page', 1);
-        $perPage = $request->integer('perPage', 10);
+        $page = max(1, $request->integer('page', 1));
+        $perPage = max(1, min($request->integer('perPage', 10), 100));
 
         $paginate = $query->paginate($perPage, ['*'], 'page', $page);
 
@@ -85,7 +85,7 @@ class PaketController extends Controller
             $paginate->through(fn (Paket $item) => new PaketResource($item)),
             'Data retrieved successfully',
             $filters
-        ));
+        ))->header('Cache-Control', 'public, max-age=300, s-maxage=600');
     }
 
     public function export(Request $request): StreamedResponse
@@ -148,7 +148,7 @@ class PaketController extends Controller
             'status' => true,
             'message' => 'Data retrieved successfully',
             'data' => PaketResource::collection($paket),
-        ]);
+        ])->header('Cache-Control', 'public, max-age=300, s-maxage=600');
     }
 
     /**
@@ -191,7 +191,7 @@ class PaketController extends Controller
             'status' => true,
             'message' => 'Data retrieved successfully',
             'data' => new PaketResource($paket),
-        ]);
+        ])->header('Cache-Control', 'public, max-age=300, s-maxage=600');
     }
 
     /**

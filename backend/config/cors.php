@@ -20,9 +20,11 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        // Localhost & Local Network
+        // Localhost & Local Network (loopback + LAN — DHCP drift safe)
         env('FRONTEND_URL', 'http://localhost:5173'),
+        'http://127.0.0.1:5173',
         'http://192.168.1.4:5173',
+        'http://192.168.1.5:5173',
 
         // Domain Gratisan (Vercel)
         'https://catering-nusantara.vercel.app',

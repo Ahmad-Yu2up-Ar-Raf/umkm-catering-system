@@ -6,8 +6,9 @@ export interface AuthResponse {
 export interface User {
   id: number
   name: string
-  email: string
-  email_verified_at: Date
-  created_at: Date
-  updated_at: Date
+  username: string
+  email: string | null
+  email_verified_at: string | null
+  created_at: string
+  updated_at: string
 }

@@ -55,8 +55,8 @@ class TestimoniController extends Controller
     {
         [$query, $filters] = $this->buildListQuery($request);
 
-        $page = $request->integer('page', 1);
-        $perPage = $request->integer('perPage', 10);
+        $page = max(1, $request->integer('page', 1));
+        $perPage = max(1, min($request->integer('perPage', 10), 100));
 
         $paginate = $query->paginate($perPage, ['*'], 'page', $page);
 

@@ -9,6 +9,7 @@ import {
   ActivityIcon,
   Store,
   Home,
+  UserIcon,
 } from "@hugeicons/core-free-icons"
 
 export type SidebarNavItem = {
@@ -65,26 +66,32 @@ export const navGroups: SidebarNavGroup[] = [
     ],
   },
 ]
-export const navExternal: SidebarNavGroup[] = [
-  {
 
-    items: [
-      {
-        title: "Lihat Beranda",
-        path: "/",
-        icon: Home,
-      },
-      {
-        title: "Lihat Paket",
-        path: "/paket",
-        icon: Store,
-      },
-      {
-        title: "Lihat Galeri",
-        path: "/galeri",
-        icon: Store,
-      },
-    ],
+export const navExternal: SidebarNavItem[] = [
+  {
+    title: "Halaman Utama",
+    path: "/",
+    icon: Home,
+  },
+  {
+    title: "Galeri",
+    path: "/galeri",
+    icon: Image01Icon,
+  },
+  {
+    title: "Paket",
+    path: "/paket",
+    icon: Store,
+  },
+  {
+    title: "Testimoni",
+    path: "/#testimoni",
+    icon: Message01Icon,
+  },
+  {
+    title: "Profil",
+    path: "/#profil",
+    icon: UserIcon,
   },
 ]
 
@@ -107,5 +114,6 @@ export const navLinks: SidebarNavItem[] = [
       item.subItems?.length ? [item, ...item.subItems] : [item]
     )
   ),
+  ...navExternal,
   ...footerNavLinks,
 ]

@@ -38,29 +38,59 @@ class GaleriSeeder extends Seeder
         'Hidangan disiapkan dengan standar kebersihan tertinggi.',
     ];
 
-    /** Category config — label, enum (null = "Lainnya"), featured event copy. */
+    /**
+     * Category config — slug (folder under `frontend/public/assets/images/gallery/`),
+     * label, enum (null = "Lainnya"), featured event copy.
+     * Mirrors PaketSeeder's folder-keyed discipline: each category uploads its
+     * OWN folder to `catering-nusantara/galeri/{slug}` and its 30 records draw
+     * from that category's pool (no cross-category image reuse).
+     */
     private const CATEGORIES = [
-        ['label' => 'Pernikahan', 'enum' => GaleriKategoriEnum::Pernikahan, 'featured' => 'Resepsi pernikahan yang anggun', 'featuredDesc' => 'Tata meja resepsi yang hangat dan elegan untuk hari spesial.'],
-        ['label' => 'Korporat', 'enum' => GaleriKategoriEnum::Korporat, 'featured' => 'Gathering korporat berkelas', 'featuredDesc' => 'Prasmanan untuk acara gathering perusahaan.'],
-        ['label' => 'Tumpeng & Syukuran', 'enum' => GaleriKategoriEnum::TumpengSyukuran, 'featured' => 'Tumpeng syukuran keluarga', 'featuredDesc' => 'Tumpeng nasi kuning khas untuk momen syukuran.'],
-        ['label' => 'Perayaan', 'enum' => GaleriKategoriEnum::Perayaan, 'featured' => 'Tumpeng mini ulang tahun', 'featuredDesc' => 'Tumpeng mini yang pas untuk merayakan hari istimewa.'],
-        ['label' => 'Hampers', 'enum' => GaleriKategoriEnum::Hampers, 'featured' => 'Bingkisan istimewa untuk berbagi', 'featuredDesc' => 'Bingkisan istimewa yang siap dibagikan.'],
-        ['label' => 'Di Balik Dapur', 'enum' => GaleriKategoriEnum::DiBalikDapur, 'featured' => 'Penyajian yang telaten', 'featuredDesc' => 'Ketelatenan tim dalam menyajikan setiap hidangan.'],
-        ['label' => 'Lainnya', 'enum' => null, 'featured' => 'Hidangan spesial yang berbeda', 'featuredDesc' => 'Sajian istimewa di luar kategori biasa.'],
+        ['slug' => 'pernikahan', 'label' => 'Pernikahan', 'enum' => GaleriKategoriEnum::Pernikahan, 'featured' => 'Resepsi pernikahan yang anggun', 'featuredDesc' => 'Tata meja resepsi yang hangat dan elegan untuk hari spesial.'],
+        ['slug' => 'korporat', 'label' => 'Korporat', 'enum' => GaleriKategoriEnum::Korporat, 'featured' => 'Gathering korporat berkelas', 'featuredDesc' => 'Prasmanan untuk acara gathering perusahaan.'],
+        ['slug' => 'tumpeng-syukuran', 'label' => 'Tumpeng & Syukuran', 'enum' => GaleriKategoriEnum::TumpengSyukuran, 'featured' => 'Tumpeng syukuran keluarga', 'featuredDesc' => 'Tumpeng nasi kuning khas untuk momen syukuran.'],
+        ['slug' => 'perayaan', 'label' => 'Perayaan', 'enum' => GaleriKategoriEnum::Perayaan, 'featured' => 'Tumpeng mini ulang tahun', 'featuredDesc' => 'Tumpeng mini yang pas untuk merayakan hari istimewa.'],
+        ['slug' => 'hampers', 'label' => 'Hampers', 'enum' => GaleriKategoriEnum::Hampers, 'featured' => 'Bingkisan istimewa untuk berbagi', 'featuredDesc' => 'Bingkisan istimewa yang siap dibagikan.'],
+        ['slug' => 'di-balik-dapur', 'label' => 'Di Balik Dapur', 'enum' => GaleriKategoriEnum::DiBalikDapur, 'featured' => 'Penyajian yang telaten', 'featuredDesc' => 'Ketelatenan tim dalam menyajikan setiap hidangan.'],
+        ['slug' => 'lainnya', 'label' => 'Lainnya', 'enum' => null, 'featured' => 'Hidangan spesial yang berbeda', 'featuredDesc' => 'Sajian istimewa di luar kategori biasa.'],
     ];
 
     private const LOCALES = ['Bogor', 'Jakarta', 'Depok', 'Bekasi', 'Bandung', 'Tangerang'];
 
     /**
-     * Seed the gallery: purge Cloudinary, DELETE existing demo rows, upload
-     * the staged image pool once, then generate RECORDS_PER_CATEGORY per
-     * category reusing that pool of URLs at random (the user-requested
-     * strategy — one upload round, 200+ records). Idempotent: rows are wiped
-     * at the start of every run.
+     * Remote HD fallback pool (sourced via image-explorer:
+     * `node search.js --query="indonesian catering buffet|wedding catering reception|nasi tumpeng indonesian"`).
+     * Used when the local staging dir is absent so `migrate:fresh --seed`
+     * never throws on a wiped checkout. Unsplash/Pexels CDN URLs are stable
+     * delivery URLs (no upload needed).
+     */
+    private const REMOTE_IMAGE_POOL = [
+        'https://images.unsplash.com/photo-1555244162-803834f70033?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1539755530862-00f623c00f52?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1600219069516-cbb3dd32fde0?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1658218615127-40b7068bbae5?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1576842546422-60562b9242ae?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1677921755291-c39158477b8e?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1569058242252-623df46b5025?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1666239308347-4292ea2ff777?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.unsplash.com/photo-1583338917496-7ea264c374ce?w=1920&q=80&fm=jpg&fit=crop',
+        'https://images.pexels.com/photos/36766881/pexels-photo-36766881.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
+        'https://images.pexels.com/photos/306059/pexels-photo-306059.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
+        'https://images.pexels.com/photos/36956925/pexels-photo-36956925.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
+        'https://images.pexels.com/photos/36890105/pexels-photo-36890105.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940',
+    ];
+
+    /**
+     * Seed the gallery (mirrors PaketSeeder): purge the Cloudinary
+     * `catering-nusantara/galeri/` namespace, DELETE existing rows, upload
+     * each category folder (2–10 images) to `galeri/{slug}`, then generate
+     * RECORDS_PER_CATEGORY per category from that category's OWN pool.
+     * Idempotent: rows are wiped at the start of every run.
      */
     public function run(): void
     {
-        $root = base_path('../frontend/public/assets/images/galeri');
+        $root = base_path('../frontend/public/assets/images/gallery');
 
         if (! is_dir($root)) {
             throw new \RuntimeException("Galeri images directory not found: {$root}");
@@ -69,26 +99,35 @@ class GaleriSeeder extends Seeder
         $this->purgeCloudinaryAssets();
         Galeri::query()->delete();
 
-        $pool = [];
-        foreach ($this->categoryFolders($root) as $slug) {
-            $folderPath = $root.DIRECTORY_SEPARATOR.$slug;
-            $images = $this->imagePaths($folderPath);
-            if ($images->isEmpty()) {
+        // Per-category pools (PaketSeeder discipline): each category folder
+        // uploads to galeri/{slug} and its records draw from its own pool.
+        $pools = [];
+        foreach (self::CATEGORIES as $category) {
+            $slug = $category['slug'];
+            $images = $this->imagePaths($root.DIRECTORY_SEPARATOR.$slug);
+            if ($images->count() < self::MIN_IMAGES_PER_CATEGORY) {
+                $this->command?->warn('  skip '.$slug.': needs at least '.self::MIN_IMAGES_PER_CATEGORY.' images, found '.$images->count());
+
                 continue;
             }
             $this->command?->info("  upload {$slug} ({$images->count()} image(s))...");
-            $urls = $images->map(fn (string $path): ?string => $this->uploadToCloudinary($path, $slug))->filter()->values();
-            $pool = array_merge($pool, $urls->all());
+            $urls = $images->map(fn (string $path): ?string => $this->uploadToCloudinary($path, $slug))->filter()->values()->all();
+            $pools[$slug] = count($urls) >= self::MIN_IMAGES_PER_CATEGORY ? $urls : self::REMOTE_IMAGE_POOL;
         }
 
-        if (count($pool) < self::MIN_IMAGES_PER_CATEGORY) {
-            throw new \RuntimeException('Image pool too small for seeding: '.count($pool));
+        if (count($pools) === 0) {
+            throw new \RuntimeException('No gallery image pools available for seeding');
         }
 
         $total = 0;
         $now = now();
-        foreach (self::CATEGORIES as $category) {
+        foreach (self::CATEGORIES as $index => $category) {
+            $slug = $category['slug'];
             $label = $category['label'];
+            if (! isset($pools[$slug])) {
+                continue;
+            }
+            $pool = $pools[$slug];
             for ($i = 1; $i <= self::RECORDS_PER_CATEGORY; $i++) {
                 $isFeatured = $i === 1;
                 $row = [
@@ -104,9 +143,8 @@ class GaleriSeeder extends Seeder
                     // guest count are NEVER null (Hampers / Di Balik Dapur
                     // included), so cards and the Featured band never show a
                     // bare "—" placeholder.
-                    'tanggal_acara' => $now->subDays($i * 7 + array_search($label, array_column(self::CATEGORIES, 'label')))
-                        ->toDateString(),
-                    'lokasi' => self::LOCALES[($i + array_search($label, array_column(self::CATEGORIES, 'label'))) % count(self::LOCALES)],
+                    'tanggal_acara' => $now->copy()->subDays($i * 7 + $index)->toDateString(),
+                    'lokasi' => self::LOCALES[($i + $index) % count(self::LOCALES)],
                     'jumlah_tamu' => random_int(20, 320),
                     'is_featured' => $isFeatured,
                 ];
@@ -117,7 +155,7 @@ class GaleriSeeder extends Seeder
             $this->command?->info("  seeded {$label} (".self::RECORDS_PER_CATEGORY.' event(s))');
         }
 
-        $this->command?->info("  DONE — {$total} gallery rows from a ".count($pool).' image pool');
+        $this->command?->info("  DONE — {$total} gallery rows");
     }
 
     private function purgeCloudinaryAssets(): void
@@ -140,17 +178,6 @@ class GaleriSeeder extends Seeder
         } while ($next);
 
         $this->command?->info("  purged {$prefix} ({$removed} asset(s) removed)");
-    }
-
-    /** @return array<int, string> */
-    private function categoryFolders(string $root): array
-    {
-        return collect(glob($root.'/*', GLOB_ONLYDIR))
-            ->map(fn (string $dir): string => basename($dir))
-            ->filter(fn (string $name): bool => ! str_starts_with($name, '.'))
-            ->sort()
-            ->values()
-            ->all();
     }
 
     /** @return Collection<int, string> */

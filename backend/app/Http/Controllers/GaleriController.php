@@ -22,8 +22,8 @@ class GaleriController extends Controller
         $search = $request->input('search');
         $kategori = $request->input('kategori_acara');
         $featured = $request->boolean('featured');
-        $page = $request->integer('page', 1);
-        $perPage = $request->integer('perPage', 10);
+        $page = max(1, $request->integer('page', 1));
+        $perPage = max(1, min($request->integer('perPage', 10), 100));
 
         $query = Galeri::query();
 
@@ -65,7 +65,7 @@ class GaleriController extends Controller
             $paginate->through(fn (Galeri $item) => new GaleriResource($item)),
             'Data retrieved successfully',
             $filters
-        ));
+        ))->header('Cache-Control', 'public, max-age=300, s-maxage=600');
     }
 
     /**
@@ -77,7 +77,7 @@ class GaleriController extends Controller
             'status' => true,
             'message' => 'Data retrieved successfully',
             'data' => new GaleriResource($galeri),
-        ]);
+        ])->header('Cache-Control', 'public, max-age=300, s-maxage=600');
     }
 
     /**

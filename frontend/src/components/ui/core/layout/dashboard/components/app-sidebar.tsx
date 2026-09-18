@@ -1,4 +1,3 @@
-import {} from "@/components/ui/fragments/shadcn-ui/sidebar"
 import { NavGroup } from "./nav-group"
 import { navGroups, navExternal } from "../app-shared"
 import { LogOut } from "./log-out"
@@ -15,7 +14,6 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
-  Store,
 } from "@hugeicons/core-free-icons"
 import Logo from "@/components/svg/app-logo-svg"
 import {
@@ -60,7 +58,6 @@ export function AppSidebar() {
               <div
                 className={cn(
                   "flex aspect-square items-center justify-center rounded-md text-white",
-
                   "size-5"
                 )}
               >
@@ -120,20 +117,19 @@ export function AppSidebar() {
           <NavGroup key={`sidebar-group-${index}`} {...group} />
         ))}
         <SidebarGroup className="mt-auto pt-4">
-          <SidebarGroupLabel className=" ">Akses Cepat</SidebarGroupLabel>
+          <SidebarGroupLabel>Akses Cepat</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navExternal.map((item, i) => (
-                <SidebarMenuItem key={i}>
-                  <SidebarMenuButton tooltip={item.label} asChild>
-                    <Link to={"/paket"} className="gap-4">
+                <SidebarMenuItem key={`nav-external-${i}`}>
+                  <SidebarMenuButton tooltip={item.title} asChild>
+                    <Link to={item.path} className="gap-3">
                       <HugeiconsIcon
                         strokeWidth={2}
-
-                        icon={Store}
+                        icon={item.icon}
+                        className="size-4 shrink-0"
                       />
-
-                      <span className="text-sm">Lihat Paket</span>
+                      <span className="text-sm">{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

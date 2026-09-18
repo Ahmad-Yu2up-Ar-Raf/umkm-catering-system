@@ -30,3 +30,6 @@ Thumbs.db
 **/caddy
 frankenphp
 frankenphp-worker.php
+# OpenCode local helper dirs (skills live globally in ~/.opencode/skills)
+**/.opencode/
+**/.agents/

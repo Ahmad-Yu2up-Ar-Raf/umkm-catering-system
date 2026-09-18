@@ -91,6 +91,7 @@ function MasterPesananBlock() {
 
   const { isExporting, run: runExport } = useExportExcel({
     filename: `pesanan-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
+    asyncModule: "pesanan",
     fetchBlob: (p) =>
       pesananService.exportBlob({
         statuses: (p.status_pesanan as StatusPesanan[]) ?? [],
