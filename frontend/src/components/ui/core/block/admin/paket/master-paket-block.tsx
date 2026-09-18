@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { toast } from "sonner"
-import { SpoonAndForkIcon } from "@hugeicons/core-free-icons"
+import { Add01Icon, Download01Icon, SpoonAndForkIcon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
+import { FloatingActionMenu } from "@/components/ui/fragments/custom-ui/floating-action-menu"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useDebouncedValue } from "./hooks/use-debounced-value"
 import { usePaketList } from "./hooks/use-paket-query"
@@ -184,6 +185,29 @@ function MasterPaketBlock() {
           })
         }
         isExporting={isExporting}
+      />
+
+      <FloatingActionMenu
+        options={[
+          {
+            label: "Tambah Paket",
+            icon: Add01Icon,
+            onClick: () => setCreateOpen(true),
+          },
+          {
+            label: "Export",
+            icon: Download01Icon,
+            onClick: () =>
+              runExport({
+                kategori_paket: kategoriPaket,
+                kategori_acara: kategoriAcara,
+                search,
+                sort_by: sortBy,
+                sort_dir: sortDir,
+              }),
+            disabled: isExporting,
+          },
+        ]}
       />
 
       <div

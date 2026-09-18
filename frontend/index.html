@@ -3,7 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#B0713F" />
+    <meta name="theme-color" content="oklch(0.5628 0.0778 65.5444)" />
+
+    <meta
+      name="google-site-verification"
+      content="r6bf5ksKU6rPFT0JdawmfvQlim-ylSNcvLmrPZ3L9Ss"
+    />
 
     <!-- Favicon (files live in public/assets/logo/) -->
     <link
@@ -123,19 +128,7 @@
       }
     </script>
 
-    <!-- P9 perf: prerender the two heaviest catalog routes on likely intent —
-         next navigation paints near-instantly. `moderate` waits for a hover/
-         focus-class signal, so idle browsing pays no bandwidth cost. -->
-    <script type="speculationrules">
-      {
-        "prerender": [
-          {
-            "where": { "href_matches": ["/paket", "/galeri"] },
-            "eagerness": "moderate"
-          }
-        ]
-      }
-    </script>
+
 
     <!-- Route prerender: /paket + /galeri chunks paint near-instantly on
          likely intent. `moderate` waits for a hover/focus-class signal, so
@@ -157,7 +150,13 @@
        sand surface (matches `bg-muted` on the Preloader + oklch(0.9239 0.019 83.0636)
        in src/index.css) the instant the page loads — no white flash. Applied to
        `html` too so overscroll/body-height gaps inherit the same tone. -->
-  <body style="background-color: oklch(0.9582 0.0152 90.2357); margin: 0; overflow-x: hidden">
+  <body
+    style="
+      background-color: oklch(0.9582 0.0152 90.2357);
+      margin: 0;
+      overflow-x: hidden;
+    "
+  >
     <div id="root"></div>
   </body>
 </html>

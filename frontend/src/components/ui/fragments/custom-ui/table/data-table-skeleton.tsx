@@ -62,7 +62,7 @@ export function DataTableSkeleton({
                     key={j}
                     style={{
                       width: cozyCellWidths[j],
-                      minWidth: shrinkZero ? cozyCellWidths[j] : "auto",
+                      minWidth: shrinkZero ? cozyCellWidths[j] : "7.5rem",
                     }}
                   >
                     <Skeleton className="h-6 w-full" />
@@ -79,7 +79,7 @@ export function DataTableSkeleton({
                     key={j}
                     style={{
                       width: cozyCellWidths[j],
-                      minWidth: shrinkZero ? cozyCellWidths[j] : "auto",
+                      minWidth: shrinkZero ? cozyCellWidths[j] : "7.5rem",
                     }}
                   >
                     <Skeleton className="h-7 w-full" />
@@ -91,9 +91,9 @@ export function DataTableSkeleton({
         </Table>
       </div>
 
-      <div className="flex w-full items-center justify-between gap-4 overflow-auto p-3 sm:gap-8">
+      <div className="flex w-full flex-col items-center gap-3 p-3 sm:flex-row sm:justify-between sm:gap-8">
         <Skeleton className="h-5 w-40 shrink-0" />
-        <div className="flex items-center gap-4 sm:gap-6 lg:gap-8">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 lg:gap-8">
           <div className="flex items-center gap-2">
             <Skeleton className="h-5 w-16" />
             <Skeleton className="h-7 w-[4.3rem] rounded-full" />

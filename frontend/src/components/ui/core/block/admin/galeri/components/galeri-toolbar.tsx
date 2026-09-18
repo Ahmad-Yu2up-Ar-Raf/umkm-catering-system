@@ -45,7 +45,7 @@ export function GaleriToolbar({
           className="w-full xl:max-w-xs"
         />
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:flex">
+        <div className="grid md:w-fit w-full grid-cols-2 gap-2 md:flex">
           <MultiSelectFilter
             options={GALERI_KATEGORI_OPTIONS}
             value={kategoriAcara}
@@ -68,7 +68,7 @@ export function GaleriToolbar({
           )}
         </div>
 
-        <div className="flex items-center gap-3 xl:ml-auto xl:pl-3">
+        <div className="hidden items-center gap-3 md:flex xl:ml-auto xl:pl-3">
           <GaleriViewToggle />
           <Button
             type="button"
