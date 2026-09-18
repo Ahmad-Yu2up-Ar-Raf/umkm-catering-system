@@ -23,7 +23,12 @@ type componentsProps = {
 
 export function SectionCards({ dataCards }: componentsProps) {
   return (
-    <div className={cn("grid grid-cols-2 gap-4", `@5xl/main:grid-cols-4`)}>
+    <div
+      className={cn(
+        "grid grid-cols-1 gap-4 md:grid-cols-2",
+        `@5xl/main:grid-cols-4`
+      )}
+    >
       {dataCards.map((card, index) => (
         <Card
           key={index}
@@ -42,7 +47,7 @@ export function SectionCards({ dataCards }: componentsProps) {
             </div>
             <CardHeader className="w-full">
               <CardDescription>{card.title}</CardDescription>
-              <CardTitle className="text-xl space-x-2 font-medium @[250px]/card:text-2xl">
+              <CardTitle className="space-x-2 text-xl font-medium @[250px]/card:text-2xl">
                 <span>{card.value}</span>
 
                 <span className="font-accent font-thin text-primary italic">
