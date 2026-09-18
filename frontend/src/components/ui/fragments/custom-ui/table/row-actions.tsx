@@ -56,6 +56,8 @@ export function RowActions({
           variant="ghost"
           size="icon-sm"
           aria-label="Tindakan baris"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
           className="opacity-0 transition-opacity group-hover:opacity-100 hover:bg-secondary focus-visible:opacity-100"
         >
           <HugeiconsIcon icon={MoreHorizontalIcon} />

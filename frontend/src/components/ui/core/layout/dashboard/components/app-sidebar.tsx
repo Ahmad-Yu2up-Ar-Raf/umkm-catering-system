@@ -131,7 +131,7 @@ export function AppSidebar() {
               {navExternal.map((item, i) => (
                 <SidebarMenuItem key={`nav-external-${i}`}>
                   <SidebarMenuButton tooltip={item.title} asChild>
-                    <Link to={item.path} className="gap-3">
+                    <Link to={item.path} className="gap-4">
                       <HugeiconsIcon
                         strokeWidth={2}
                         icon={item.icon}

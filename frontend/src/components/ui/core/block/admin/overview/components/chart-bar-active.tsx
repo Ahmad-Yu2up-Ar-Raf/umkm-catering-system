@@ -73,9 +73,11 @@ export function ChartBarActive({
 
   return (
     <Card className={cn("flex w-full flex-col shadow-none", className)}>
-      <CardHeader className="gap-0.5 space-y-0 border-b py-1.5">
-        <CardTitle className="text-sm">{title}</CardTitle>
-        <CardDescription className="text-xs">{description}</CardDescription>
+      <CardHeader className="gap-1 space-y-0 border-b py-1">
+        <CardTitle className="text-sm md:text-base">{title}</CardTitle>
+        <CardDescription className="text-xs md:text-sm">
+          {description}
+        </CardDescription>
       </CardHeader>
       {chartData[0].count === 0 ? (
         <CardContent className="flex min-h-[250px] flex-1 items-center justify-center pb-0">
@@ -95,7 +97,7 @@ export function ChartBarActive({
               accessibilityLayer
               data={chartData}
               layout="vertical"
-              margin={{ left: 2, right: 2 }}
+              margin={{ left: -16, right: 2 }}
             >
               <CartesianGrid horizontal={true} />
               <XAxis type="number" tickLine={false} axisLine={false} hide />
@@ -108,7 +110,7 @@ export function ChartBarActive({
                 //   tickFormatter={(value: string) =>
                 //     value.length > 14 ? `${value.slice(0, 14)}…` : value
                 //   }
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 10 }}
               />
               <ChartTooltip
                 cursor={{ fill: "var(--muted)" }}

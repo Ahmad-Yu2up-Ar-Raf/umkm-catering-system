@@ -8,7 +8,7 @@
 @import "@fontsource/instrument-serif";
 @import "@fontsource/instrument-serif/400-italic.css";
 
-@custom-variant dark (&:is(.dark *));
+/* @custom-variant dark (&:is(.dark *)); */
 
 /* Ported from suasana-exploration-app/src/styles/styles.css
    Earth-tone OKLCH palette + structural vars (radius, shadows).
@@ -83,7 +83,7 @@
 }
 
 /* Konfigurasi Dark Mode (Disiapkan jika diperlukan di masa depan) */
-.dark {
+/* .dark {
   --background: oklch(0.2747 0.0139 57.6523);
   --foreground: oklch(0.9582 0.0152 90.2357);
   --card: oklch(0.3237 0.0155 59.0603);
@@ -141,7 +141,7 @@
     2px 3px 5px 0px oklch(0.3248 0.0147 63.48 / 12%),
     2px 8px 10px -1px oklch(0.3248 0.0147 63.48 / 12%);
   --shadow-2xl: 2px 3px 5px 0px oklch(0.3248 0.0147 63.48 / 0.3);
-}
+} */
 
 /* Injeksi Variabel ke Ekosistem Tailwind v4 */
 @theme inline {

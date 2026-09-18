@@ -140,7 +140,7 @@ export function FormRadioGroup(props: FormRadioGroupProps) {
                     !isInvalid &&
                     (option.activeRadioClass || defaultRadio),
                   isInvalid &&
-                    "data-checked:text-pink-500-foreground data-checked:bg-deborder-destructive dark:data-checked:bg-deborder-destructive [&_span[data-state=checked]]:text-deborder-destructive border-destructive text-destructive aria-invalid:aria-checked:border-destructive data-checked:border-destructive"
+                    "data-checked:text-pink-500-foreground data-checked:bg-deborder-destructive   [&_span[data-state=checked]]:text-deborder-destructive border-destructive text-destructive aria-invalid:aria-checked:border-destructive data-checked:border-destructive"
                 )}
               />
             </Label>

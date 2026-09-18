@@ -55,12 +55,12 @@ interface TestimoniTableProps {
  */
 function getRatingTierClasses(rating: number): string {
   if (rating <= 2) {
-    return "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400"
+    return "border-rose-500/30 bg-rose-500/10 text-rose-700  "
   }
   if (rating === 3) {
-    return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+    return "border-amber-500/30 bg-amber-500/10 text-amber-700 "
   }
-  return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+  return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 "
 }
 
 /**
@@ -78,7 +78,8 @@ export function TestimoniTable({
   onToggleAll,
 }: TestimoniTableProps) {
   const isAllSelected = items.length > 0 && selectedIds.length === items.length
-  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < items.length
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < items.length
   const { isPending: isDeleting, variables: deleteVariables } =
     useTestimoniDeleteMutation()
 
@@ -99,7 +100,7 @@ export function TestimoniTable({
             variant="ghost"
             size="sm"
             className={cn(
-              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:bg-muted/50",
+              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:hover:bg-secondary/30",
               isSorted && "font-semibold text-foreground"
             )}
           >
@@ -146,8 +147,12 @@ export function TestimoniTable({
         <TableRow className="border-border hover:bg-transparent">
           <TableHead className="w-12">
             <Checkbox
-              checked={isAllSelected ? true : isIndeterminate ? "indeterminate" : false}
-              onCheckedChange={(checked: boolean | "indeterminate") => onToggleAll?.(checked === true)}
+              checked={
+                isAllSelected ? true : isIndeterminate ? "indeterminate" : false
+              }
+              onCheckedChange={(checked: boolean | "indeterminate") =>
+                onToggleAll?.(checked === true)
+              }
               aria-label="Select all"
               className="mx-3 translate-y-0.5"
             />
@@ -197,14 +202,27 @@ export function TestimoniTable({
       </TableHeader>
       <TableBody>
         {items.map((testimoni) => {
-          const isThisDeleting = isDeleting && deleteVariables?.id === testimoni.id
+          const isThisDeleting =
+            isDeleting && deleteVariables?.id === testimoni.id
 
           return (
             <TableRow
               key={testimoni.id}
-              className="group border-border transition-colors hover:bg-muted/40"
+              role="button"
+              tabIndex={0}
+              onClick={() => onEdit(testimoni)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  onEdit(testimoni)
+                }
+              }}
+              className="group cursor-pointer border-border transition-colors hover:hover:bg-secondary/30"
             >
-              <TableCell>
+              <TableCell
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <Checkbox
                   checked={selectedIds.includes(testimoni.id)}
                   onCheckedChange={() => onToggle?.(testimoni.id)}
@@ -223,7 +241,7 @@ export function TestimoniTable({
                         />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="min-w-0 max-w-[200px]">
+                    <div className="max-w-[200px] min-w-0">
                       <p className="truncate text-sm font-medium text-foreground">
                         {testimoni.nama}
                       </p>
@@ -292,7 +310,11 @@ export function TestimoniTable({
                 </TableCell>
               )}
 
-              <TableCell className="sticky right-2 text-right">
+              <TableCell
+                className="sticky right-2 text-right"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <RowActions
                   onEdit={() => onEdit(testimoni)}
                   onDelete={() => onDelete(testimoni)}

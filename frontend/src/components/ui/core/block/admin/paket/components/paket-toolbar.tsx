@@ -87,19 +87,19 @@ export function PaketToolbar({
           <PaketViewToggle />
           <Button
             type="button"
-            variant="ghost"
-            className="w-fit"
+            variant="outline"
+            size={"lg"}
             onClick={onExport}
             disabled={isExporting}
           >
             {isExporting ? (
-              <Spinner className="size-4" />
+              <Spinner className="mr-2 size-4" />
             ) : (
-              <HugeiconsIcon icon={Download01Icon} className="size-4" />
+              <HugeiconsIcon icon={Download01Icon} className="mr-2 size-4" />
             )}
             {isExporting ? "Mengekspor…" : "Export"}
           </Button>
-          <Button className="w-fit" onClick={onAdd}>
+          <Button  size={"lg"} onClick={onAdd}>
             <HugeiconsIcon icon={Add01Icon} className="size-4" />
             Tambah Paket
           </Button>

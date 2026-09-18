@@ -37,7 +37,9 @@ export function DataTablePagination({
   unit = "data",
 }: DataTablePaginationProps) {
   const { total, currentPage, lastPage, perPage, hasMore } = pagination
-  const shown = visibleCount ?? Math.min(perPage, Math.max(total - (currentPage - 1) * perPage, 0))
+  const shown =
+    visibleCount ??
+    Math.min(perPage, Math.max(total - (currentPage - 1) * perPage, 0))
 
   const paginationRange = usePagination({
     currentPage,
@@ -48,11 +50,11 @@ export function DataTablePagination({
   return (
     <div className="flex flex-col items-center justify-between gap-3 px-2 py-3 sm:flex-row">
       <p className="text-xs text-muted-foreground">
-        Menampilkan <span className="font-medium text-foreground">{shown}</span> dari{" "}
-        <span className="font-medium text-foreground">{total}</span> {unit}
+        Menampilkan <span className="font-medium text-foreground">{shown}</span>{" "}
+        dari <span className="font-medium text-foreground">{total}</span> {unit}
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col items-center gap-2 md:flex-row">
         <div className="flex items-center gap-2 pe-2">
           <span className="text-xs text-muted-foreground">Per halaman</span>
           <Select
@@ -60,7 +62,10 @@ export function DataTablePagination({
             onValueChange={(value) => onPerPageChange(Number(value))}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-8 w-16 bg-transparent" aria-label="Jumlah per halaman">
+            <SelectTrigger
+              className="h-8 w-16 bg-transparent"
+              aria-label="Jumlah per halaman"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="z-[9999]">
@@ -72,57 +77,61 @@ export function DataTablePagination({
             </SelectContent>
           </Select>
         </div>
+        <div className=" flex items-center gap-2 ">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Halaman sebelumnya"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={isLoading || currentPage <= 1}
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} />
+          </Button>
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Halaman sebelumnya"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={isLoading || currentPage <= 1}
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} />
-        </Button>
+          <div className="flex items-center gap-1">
+            {paginationRange?.map((pageNumber, idx) => {
+              if (pageNumber === DOTS) {
+                return (
+                  <span
+                    key={`dots-${idx}`}
+                    className="px-1 text-xs text-muted-foreground"
+                  >
+                    &#8230;
+                  </span>
+                )
+              }
 
-        <div className="flex items-center gap-1">
-          {paginationRange?.map((pageNumber, idx) => {
-            if (pageNumber === DOTS) {
+              const page = pageNumber as number
+              const isActive = page === currentPage
+
               return (
-                <span key={`dots-${idx}`} className="px-1 text-xs text-muted-foreground">
-                  &#8230;
-                </span>
+                <Button
+                  key={page}
+                  type="button"
+                  variant={isActive ? "secondary" : "ghost"}
+                  size="icon-xs"
+                  onClick={() => onPageChange(page)}
+                  disabled={isLoading}
+                  className="h-7 w-7 text-xs tabular-nums"
+                >
+                  {page}
+                </Button>
               )
-            }
+            })}
+          </div>
 
-            const page = pageNumber as number
-            const isActive = page === currentPage
-
-            return (
-              <Button
-                key={page}
-                type="button"
-                variant={isActive ? "secondary" : "ghost"}
-                size="icon-xs"
-                onClick={() => onPageChange(page)}
-                disabled={isLoading}
-                className="h-7 w-7 text-xs tabular-nums"
-              >
-                {page}
-              </Button>
-            )
-          })}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Halaman berikutnya"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={isLoading || !hasMore || currentPage >= lastPage}
+          >
+            <HugeiconsIcon icon={ArrowRight01Icon} />
+          </Button>
         </div>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Halaman berikutnya"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={isLoading || !hasMore || currentPage >= lastPage}
-        >
-          <HugeiconsIcon icon={ArrowRight01Icon} />
-        </Button>
       </div>
     </div>
   )

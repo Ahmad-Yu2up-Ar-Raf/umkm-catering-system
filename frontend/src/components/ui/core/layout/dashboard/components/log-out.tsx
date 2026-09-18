@@ -18,7 +18,7 @@ export function LogOut() {
         <SidebarMenuButton
           tooltip="Log Out"
           onClick={handleLogout}
-          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="text-destructive gap-4 hover:bg-destructive/10 hover:text-destructive"
         >
           <HugeiconsIcon icon={Logout01Icon} strokeWidth={2} />
           <span>Log Out</span>

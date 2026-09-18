@@ -31,7 +31,7 @@ export function DetailGallery({
     return (
       <div
         className={cn(
-          "flex aspect-[4/3] md:aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl bg-muted/50   text-center r",
+          "r flex aspect-[4/3] w-full flex-col items-center justify-center gap-3 rounded-2xl text-center hover:bg-secondary/30 md:aspect-[4/3]",
           className
         )}
       >

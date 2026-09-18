@@ -308,7 +308,7 @@ Strengths: solid Embla wiring, thumbs sync + auto-scroll, dots/counter/progress,
 Issues for Catering gates:
 | # | Issue | Fix |
 |---|---|---|
-| 1 | Hardcoded `bg-gray-500`, `bg-black`, `dark:bg-white` | semantic tokens (`bg-muted`, `bg-foreground/30`, `bg-card/80`, `bg-primary`) |
+| 1 | Hardcoded `bg-gray-500`, `bg-black`,  semantic tokens (`bg-muted`, `bg-foreground/30`, `bg-card/80`, `bg-primary`) |
 | 2 | Desktop wrapper uses `direction:"rtl"` + vertical axis (confusing orientation, thumbs on wrong edge) | vertical axis, **no rtl**; thumbs rail left, main right |
 | 3 | Wrapper renders no prev/next | render `SliderPrevButton`/`SliderNextButton` (glass `size-11` pills like `GlobalImageModal`) — desktop only; mobile = swipe + dots |
 | 4 | No lightbox hook | main-image click + fullscreen button → `useImageModalStore.open(galleryScope, currentIndex)` (§12) |

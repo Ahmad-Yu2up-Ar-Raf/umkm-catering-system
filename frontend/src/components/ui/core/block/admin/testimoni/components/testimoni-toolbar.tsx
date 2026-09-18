@@ -1,7 +1,11 @@
 "use client"
 
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Add01Icon, CancelCircleIcon, Download01Icon } from "@hugeicons/core-free-icons"
+import {
+  Add01Icon,
+  CancelCircleIcon,
+  Download01Icon,
+} from "@hugeicons/core-free-icons"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
 import { Spinner } from "@/components/ui/fragments/shadcn-ui/spinner"
 import { MultiSelectFilter } from "@/components/ui/fragments/custom-ui/multi-select-filter"
@@ -64,11 +68,21 @@ export function TestimoniToolbar({
         </div>
 
         <div className="flex items-center gap-3 xl:ml-auto xl:pl-3">
-          <Button variant="outline" size="sm" className="w-fit" onClick={onExport} disabled={isExporting}>
-            {isExporting ? <Spinner className="size-4" /> : <HugeiconsIcon icon={Download01Icon} className="size-4" />}
+          <Button
+            type="button"
+            variant="outline"
+            size={"lg"}
+            onClick={onExport}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Spinner className="mr-2 size-4" />
+            ) : (
+              <HugeiconsIcon icon={Download01Icon} className="mr-2 size-4" />
+            )}
             {isExporting ? "Mengekspor…" : "Export"}
           </Button>
-          <Button className="w-fit" onClick={onAdd}>
+          <Button  size={"lg"} onClick={onAdd}>
             <HugeiconsIcon icon={Add01Icon} className="size-4" />
             Tambah Testimoni
           </Button>

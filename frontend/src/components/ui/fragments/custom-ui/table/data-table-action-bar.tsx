@@ -115,7 +115,7 @@ const DataTableActionBarAction = React.forwardRef<HTMLButtonElement, DataTableAc
         <TooltipTrigger asChild>{trigger}</TooltipTrigger>
         <TooltipContent
           sideOffset={6}
-          className="border bg-accent font-semibold text-foreground dark:bg-zinc-900 [&>span]:hidden"
+          className="border bg-accent font-semibold text-foreground   [&>span]:hidden"
         >
           <p>{tooltip}</p>
         </TooltipContent>
@@ -158,7 +158,7 @@ function DataTableActionBarSelection({
         </TooltipTrigger>
         <TooltipContent
           sideOffset={10}
-          className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground dark:bg-zinc-900 [&>span]:hidden"
+          className="flex items-center gap-2 border bg-accent px-2 py-1 font-semibold text-foreground   [&>span]:hidden"
         >
           <p>Clear selection</p>
           <kbd className="rounded border bg-background px-1.5 py-px font-mono text-[0.7rem] font-normal text-foreground shadow-xs select-none">

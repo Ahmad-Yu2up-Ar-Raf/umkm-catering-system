@@ -78,7 +78,7 @@ export function PaketCard({
   const cardContent = (
     <Card
       className={cn(
-        "group relative m-auto h-full w-full border-none bg-background p-0 shadow-none ring-0 outline-0 dark:bg-background",
+        "group relative m-auto h-full w-full border-none bg-background p-0 shadow-none ring-0 outline-0  ",
         isHorizontal
           ? "mb-4 gap-6 md:flex-row md:items-stretch md:gap-9"
           : "flex-col gap-3",
@@ -220,7 +220,7 @@ export function PaketCard({
             </span>
 
             {(paket.testimoni_count ?? 0) > 0 && paket.rating_avg != null && (
-              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium whitespace-nowrap text-amber-700 dark:text-amber-400">
+              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium whitespace-nowrap text-amber-700  ">
                 <HugeiconsIcon
                   icon={StarIcon}
                   className="size-3.5 fill-amber-400 text-amber-400"

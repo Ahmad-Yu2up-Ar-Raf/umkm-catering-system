@@ -73,7 +73,8 @@ export function PesananTable({
   onToggleAll,
 }: PesananTableProps) {
   const isAllSelected = items.length > 0 && selectedIds.length === items.length
-  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < items.length
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < items.length
   const { isPending: isDeleting, variables: deleteVariables } =
     usePesananDeleteMutation()
 
@@ -94,7 +95,7 @@ export function PesananTable({
             variant="ghost"
             size="sm"
             className={cn(
-              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:bg-muted/50",
+              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:hover:bg-secondary/30",
               isSorted && "font-semibold text-foreground"
             )}
           >
@@ -141,7 +142,9 @@ export function PesananTable({
         <TableRow className="border-border hover:bg-transparent">
           <TableHead className="">
             <Checkbox
-              checked={isAllSelected ? true : isIndeterminate ? "indeterminate" : false}
+              checked={
+                isAllSelected ? true : isIndeterminate ? "indeterminate" : false
+              }
               onCheckedChange={(checked) => onToggleAll?.(checked === true)}
               aria-label="Select all"
               className="mx-3 mr-4 translate-y-0.5"
@@ -200,9 +203,22 @@ export function PesananTable({
           return (
             <TableRow
               key={pesanan.id}
-              className="group border-border transition-colors hover:bg-muted/40"
+              role="button"
+              tabIndex={0}
+              onClick={() => onEdit(pesanan)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  onEdit(pesanan)
+                }
+              }}
+              className="group cursor-pointer border-border transition-colors hover:bg-secondary/30"
             >
-              <TableCell className="sticky right-0 font-medium">
+              <TableCell
+                className="sticky right-0 font-medium"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <Checkbox
                   checked={selectedIds.includes(pesanan.id)}
                   onCheckedChange={() => onToggle?.(pesanan.id)}
@@ -212,7 +228,7 @@ export function PesananTable({
               </TableCell>
               {!hiddenCols.nomor_struk && (
                 <TableCell>
-                  <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
+                  <code className="rounded px-1.5 py-0.5 font-mono text-xs text-foreground hover:bg-secondary/30">
                     {pesanan.nomor_struk}
                   </code>
                 </TableCell>
@@ -292,7 +308,11 @@ export function PesananTable({
                     : "—"}
                 </TableCell>
               )}
-              <TableCell className="sticky right-2 text-right">
+              <TableCell
+                className="sticky right-2 text-right"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <RowActions
                   onEdit={() => onEdit(pesanan)}
                   onDelete={() => onDelete(pesanan)}

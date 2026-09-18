@@ -28,7 +28,10 @@ import {
   getMetodePembayaranColor,
 } from "@/components/ui/core/block/admin/pesanan/utils/pesanan-badge-utils"
 import type { LatestPesanan } from "../types/overview-type"
- 
+import { Link } from "react-router"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { ArrowRight } from "@hugeicons/core-free-icons"
+import { buttonVariants } from "@/components/ui/fragments/shadcn-ui/button"
 
 /**
  * Latest-orders strip — simplified read-only table (no sorting, no selection,
@@ -38,11 +41,33 @@ import type { LatestPesanan } from "../types/overview-type"
 export function LatestOrders({ items }: { items: LatestPesanan[] }) {
   return (
     <Card className="shadow-none">
-      <CardHeader>
-        <CardTitle>Pesanan Terbaru</CardTitle>
-        <CardDescription>5 data pesanan terbaru</CardDescription>
+      <CardHeader className="flex items-center justify-between gap-2 space-y-0 border-b border-b-primary/10 px-6 py-1 sm:flex-row">
+        <div className="space-y-1">
+          <CardTitle className="text-sm md:text-base">
+            Pesanan Terbaru
+          </CardTitle>
+          <CardDescription className="text-xs md:text-sm">
+            5 data pesanan terbaru
+          </CardDescription>
+        </div>
+        <Link
+          // ponytail: an empty rail would deep-link into a broken filtered
+          // state — point it at the unfiltered storefront instead.
+          to={"/dashboard/pesanan"}
+          className={cn(
+            buttonVariants({ variant: "link", size: "lg" }),
+            "group hidden items-center gap-1.5 text-[11px] tracking-[0.22em] text-primary uppercase md:inline-flex",
+            "transition-colors duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          )}
+        >
+          Lihat Semua
+          <HugeiconsIcon
+            icon={ArrowRight}
+            className="size-3.5 transition-transform duration-300 group-hover:translate-x-1"
+          />
+        </Link>
       </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
+      <CardContent className="overflow-x-auto px-5">
         <Table className="relative bg-transparent">
           <TableHeader>
             <TableRow className="border-border hover:bg-transparent">
@@ -59,12 +84,6 @@ export function LatestOrders({ items }: { items: LatestPesanan[] }) {
               <TableHead className="min-w-32">Tanggal Acara</TableHead>
               <TableHead className="min-w-28">Status</TableHead>
               <TableHead className="min-w-28">Pembayaran</TableHead>
-
-              <TableHead className="min-w-32">Dibuat</TableHead>
-
-              <TableHead className="w-12 text-right">
-                <span className="sr-only">Aksi</span>
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -75,7 +94,7 @@ export function LatestOrders({ items }: { items: LatestPesanan[] }) {
                   className="group border-border transition-colors hover:bg-muted/40"
                 >
                   <TableCell>
-                    <code className="rounded bg-muted/50 px-1.5 py-0.5 font-mono text-xs text-foreground">
+                    <code className="rounded px-1.5 py-0.5 font-mono text-xs text-foreground hover:bg-secondary/30">
                       {pesanan.nomor_struk}
                     </code>
                   </TableCell>
@@ -139,12 +158,6 @@ export function LatestOrders({ items }: { items: LatestPesanan[] }) {
                         {getMetodePembayaranLabel(pesanan.metode_pembayaran)}
                       </span>
                     </Badge>
-                  </TableCell>
-
-                  <TableCell className="text-xs whitespace-nowrap text-muted-foreground">
-                    {pesanan.created_at
-                      ? format(new Date(pesanan.created_at), "dd MMM yyyy")
-                      : "—"}
                   </TableCell>
                 </TableRow>
               )

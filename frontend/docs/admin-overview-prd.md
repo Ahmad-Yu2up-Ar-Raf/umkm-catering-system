@@ -37,7 +37,7 @@ overview/
     └── overview-type.ts            # OverviewResponse { reports: Reports } + nested CountsByDate, TopDokter, status counts
 ```
 
-**Styling approach:** Tailwind + `shadcn/ui` (`Card`, `ChartContainer`, `Select`), `recharts` for charts, `Hugeicons` for icons, `cn()` for conditional classes, `@container` queries for responsive grids (`@5xl/main:grid-cols-4`, `@container/card`). Dark mode via `dark:` variants (`text-neutral-900 dark:text-neutral-100`). No inline `style` except CSS variables `var(--chart-1)`.
+**Styling approach:** Tailwind + `shadcn/ui` (`Card`, `ChartContainer`, `Select`), `recharts` for charts, `Hugeicons` for icons, `cn()` for conditional classes, `@container` queries for responsive grids (`@5xl/main:grid-cols-4`, `@container/card`). Dark mode via  . No inline `style` except CSS variables `var(--chart-1)`.
 
 **State management:** Single `FetchOverview()` TanStack Query hook. `overview-block.tsx` is the only state owner — no Zustand. `useMonitorClock()` for live clock is outside the query and never blocks rendering. Loading = centered `Spinner`; error = `text-muted-foreground` with message.
 
@@ -145,7 +145,7 @@ $countsByDate = $allDates->map(fn($date) => ['date'=>$date, 'pesanan'=>$pesananC
 
 ### 4.5 Live Clock Header (Already Done)
 
-`useMonitorClock()` returning `{ jam, tanggal }` in `overview-block.tsx` `header` is preserved. Dark mode classes `text-neutral-900 dark:text-neutral-100`, `text-primary`, `text-muted-foreground` stay. This is the only non-query UI in the block and is working.
+`useMonitorClock()` returning `{ jam, tanggal }` in `overview-block.tsx` `header` is preserved. Dark mode classes `text-neutral-900 `, `text-primary`, `text-muted-foreground` stay. This is the only non-query UI in the block and is working.
 
 ### 4.6 Explicit Non-Goals for the Overview (UMKM Scope Discipline)
 

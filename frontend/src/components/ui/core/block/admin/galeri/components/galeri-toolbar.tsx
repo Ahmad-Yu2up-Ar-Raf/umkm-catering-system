@@ -70,21 +70,21 @@ export function GaleriToolbar({
 
         <div className="flex items-center gap-3 xl:ml-auto xl:pl-3">
           <GaleriViewToggle />
-         <Button
-          type="button"
-          variant="ghost"
-            className="w-fit"
+          <Button
+            type="button"
+            variant="outline"
+            size={"lg"}
             onClick={onExport}
             disabled={isExporting}
           >
             {isExporting ? (
-              <Spinner className="size-4" />
+              <Spinner className="mr-2 size-4" />
             ) : (
-              <HugeiconsIcon icon={Download01Icon} className="size-4" />
+              <HugeiconsIcon icon={Download01Icon} className="mr-2 size-4" />
             )}
             {isExporting ? "Mengekspor…" : "Export"}
           </Button>
-          <Button className="w-fit" onClick={onAdd}>
+          <Button  size={"lg"} onClick={onAdd}>
             <HugeiconsIcon icon={Add01Icon} className="size-4" />
             Tambah Galeri
           </Button>

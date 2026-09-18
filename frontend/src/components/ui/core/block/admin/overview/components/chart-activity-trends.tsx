@@ -109,8 +109,8 @@ export function ChartActivityTrends({
       <Card className={cn("grid pt-0", className)}>
         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-7.5 sm:flex-row">
           <div className="grid flex-1 gap-1">
-            <CardTitle className="line-clamp-1">{title}</CardTitle>
-            <CardDescription className="line-clamp-1">
+            <CardTitle className="line-clamp-1 text-sm  ">{title}</CardTitle>
+            <CardDescription className="line-clamp-1  text-xs ">
               {description}
             </CardDescription>
           </div>
@@ -131,20 +131,20 @@ export function ChartActivityTrends({
 
   return (
     <Card className={cn("grid pt-0 shadow-none", className)}>
-      <CardHeader className="flex items-center justify-between gap-2 space-y-0 border-b px-6 py-7 sm:flex-row">
+      <CardHeader className="flex flex-col justify-between gap-5 space-y-0 border-b px-6 py-7 sm:flex-row md:flex-row md:items-center md:gap-2">
         <div className="grid flex-1 gap-1">
-          <CardTitle className="line-clamp-1">{title}</CardTitle>
-          <CardDescription className="line-clamp-1">
+          <CardTitle className="text-sm md:text-base">{title}</CardTitle>
+          <CardDescription className="text-xs md:text-sm">
             {description}
           </CardDescription>
         </div>
 
-        <CardAction className="flex items-center gap-7">
+        <CardAction className="flex flex-col items-center gap-7 md:flex-row">
           {/* Summary Stats */}
-          <div className="items-center sr-only gap-4 text-sm md:flex">
+          <div className="items-center gap-4 text-xs md:flex md:text-sm">
             <div className="flex items-center gap-1.5">
               <div
-                className="h-2.5 w-2.5 rounded-full"
+                className="size-1.5 rounded-full md:size-2.5"
                 style={{ backgroundColor: "var(--chart-1)" }}
               />
               <span className="text-muted-foreground">Pesanan:</span>
@@ -152,7 +152,7 @@ export function ChartActivityTrends({
             </div>
             <div className="flex items-center gap-1.5">
               <div
-                className="h-2.5 w-2.5 rounded-full"
+                className="size-1.5 rounded-full md:size-2.5"
                 style={{ backgroundColor: "var(--chart-2)" }}
               />
               <span className="text-muted-foreground">Pendapatan:</span>
@@ -169,7 +169,8 @@ export function ChartActivityTrends({
           {/* Time Range Selector */}
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger
-              className="sm:ml-auto text-xs"
+              size="sm"
+              className="w-full text-xs sm:ml-auto"
               aria-label="Pilih rentang waktu"
             >
               {/* 3. MODIFIKASI: Mengubah placeholder default jadi Semua Waktu */}

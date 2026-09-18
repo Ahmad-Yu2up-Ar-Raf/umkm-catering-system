@@ -1,4 +1,5 @@
 <!-- Context Anchor & Monorepo Topology -->
+
 > **Scope:** Frontend Design Spec (single design source of truth) · **Monorepo Root:** `../../`
 >
 > [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [Backend API Specs](../../backend/docs/api-collection.md) · [Frontend Architecture](../docs/architecture.md)
@@ -16,7 +17,7 @@ The brand is called "Catering Nusantara" and sells the taste of "home cooking". 
 - **Local, not generic** — visual elements reference Nusantara culture: woven bamboo textures, banana leaves, subtle batik motifs as background accents — not corporate geometric patterns.
 - **Homey, not stiff** — avoid the cold corporate-catering feel; rounded corners, natural photos (never stock), warm typography.
 
-Agreed visual reference: **suasana.vercel.app** — calm, aesthetic, in harmony with nature. Take its *calmness* (OKLCH-based color palette, smooth transitions) without copying its layout exactly.
+Agreed visual reference: **suasana.vercel.app** — calm, aesthetic, in harmony with nature. Take its _calmness_ (OKLCH-based color palette, smooth transitions) without copying its layout exactly.
 
 ## 2. Palette (ported from Suasana — OKLCH)
 
@@ -24,41 +25,41 @@ Ported from `suasana-exploration-app/src/styles/styles.css`. All values are CSS 
 
 ### Light mode
 
-| Token | Value |
-|---|---|
-| `--background` | `oklch(0.9582 0.0152 90.2357)` — warm cream |
-| `--foreground` | `oklch(0.376 0.0225 64.3434)` — warm dark brown |
-| `--card` / `--popover` | `oklch(0.9914 0.0098 87.4695)` — near-white cream |
-| `--primary` | `oklch(0.5628 0.0778 65.5444)` — earthy amber/brown |
-| `--secondary` | `oklch(0.8846 0.0302 85.5655)` — soft warm sand |
-| `--muted` | `oklch(0.9239 0.019 83.0636)` |
-| `--accent` | `oklch(0.8348 0.0426 88.8064)` |
-| `--destructive` | `oklch(0.5471 0.1438 32.9149)` — warm red |
-| `--border` / `--input` | `oklch(0.8606 0.0321 84.5881)` |
-| `--ring` | `oklch(0.618 0.0778 65.5444)` |
+| Token                  | Value                                               |
+| ---------------------- | --------------------------------------------------- |
+| `--background`         | `oklch(0.9582 0.0152 90.2357)` — warm cream         |
+| `--foreground`         | `oklch(0.376 0.0225 64.3434)` — warm dark brown     |
+| `--card` / `--popover` | `oklch(0.9914 0.0098 87.4695)` — near-white cream   |
+| `--primary`            | `oklch(0.5628 0.0778 65.5444)` — earthy amber/brown |
+| `--secondary`          | `oklch(0.8846 0.0302 85.5655)` — soft warm sand     |
+| `--muted`              | `oklch(0.9239 0.019 83.0636)`                       |
+| `--accent`             | `oklch(0.8348 0.0426 88.8064)`                      |
+| `--destructive`        | `oklch(0.5471 0.1438 32.9149)` — warm red           |
+| `--border` / `--input` | `oklch(0.8606 0.0321 84.5881)`                      |
+| `--ring`               | `oklch(0.618 0.0778 65.5444)`                       |
 
 ### Dark mode
 
-| Token | Value |
-|---|---|
-| `--background` | `oklch(0.2747 0.0139 57.6523)` |
-| `--foreground` | `oklch(0.9239 0.019 83.0636)` |
+| Token                  | Value                          |
+| ---------------------- | ------------------------------ |
+| `--background`         | `oklch(0.2747 0.0139 57.6523)` |
+| `--foreground`         | `oklch(0.9239 0.019 83.0636)`  |
 | `--card` / `--popover` | `oklch(0.3237 0.0155 59.0603)` |
-| `--primary` | `oklch(0.7264 0.0581 66.6967)` |
-| `--secondary` | `oklch(0.3795 0.0181 57.128)` |
-| `--muted` | `oklch(0.2939 0.0125 62.1298)` |
-| `--accent` | `oklch(0.4186 0.0281 56.3404)` |
-| `--border` / `--input` | `oklch(0.3795 0.0181 57.128)` |
+| `--primary`            | `oklch(0.7264 0.0581 66.6967)` |
+| `--secondary`          | `oklch(0.3795 0.0181 57.128)`  |
+| `--muted`              | `oklch(0.2939 0.0125 62.1298)` |
+| `--accent`             | `oklch(0.4186 0.0281 56.3404)` |
+| `--border` / `--input` | `oklch(0.3795 0.0181 57.128)`  |
 
 Full token set also includes `--chart-1..5`, `--sidebar-*`, and `--color-header` (see `src/index.css`).
 
 ## 3. Typography (project defaults — NOT ported)
 
-| Role | Font | Usage |
-|---|---|---|
-| Heading / Display | **Fraunces Variable** (`--font-heading`) | Page titles, package names, taglines |
-| Body / UI | **Space Grotesk Variable** (`--font-sans`) | Descriptions, prices, admin/POS UI |
-| Accent word (italic) | **Instrument Serif** (`--font-accent`) | The single italic accent word per headline (Tiska paradigm, §10) |
+| Role                 | Font                                       | Usage                                                            |
+| -------------------- | ------------------------------------------ | ---------------------------------------------------------------- |
+| Heading / Display    | **Fraunces Variable** (`--font-heading`)   | Page titles, package names, taglines                             |
+| Body / UI            | **Space Grotesk Variable** (`--font-sans`) | Descriptions, prices, admin/POS UI                               |
+| Accent word (italic) | **Instrument Serif** (`--font-accent`)     | The single italic accent word per headline (Tiska paradigm, §10) |
 
 Loaded via Fontsource in `src/index.css`. Headings (`h1`–`h6`) force `--font-heading` in the base layer. These fonts are a deliberate project choice — never swap them.
 
@@ -86,26 +87,26 @@ Used as **subtle accents**, not dominant elements — so the UI stays clean like
 
 ### 6.1 Component Stylings Reference
 
-| Component | Token usage |
-|---|---|
-| Buttons | `bg-primary text-primary-foreground` primary; `secondary`/`muted`/`outline`/`destructive` variants via `cva`; focus ring via `ring` token |
-| Cards | `bg-card text-card-foreground border-border rounded-lg shadow-sm` — **no card-in-card nesting** |
-| Inputs / Selects | `border-input` hairlines; `focus-visible:ring-ring/50`; labels always visible (never placeholder-only) |
-| Tables (admin) | `border-border` hairlines; `text-muted-foreground` secondary cells; header row `bg-muted/50` |
-| Dialogs / Sheets (admin) | rounded, `shadow-xl`; motion via Framer `AnimatePresence` (code-split) |
-| Toasts | `sonner` |
+| Component                | Token usage                                                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Buttons                  | `bg-primary text-primary-foreground` primary; `secondary`/`muted`/`outline`/`destructive` variants via `cva`; focus ring via `ring` token |
+| Cards                    | `bg-card text-card-foreground border-border rounded-lg shadow-sm` — **no card-in-card nesting**                                           |
+| Inputs / Selects         | `border-input` hairlines; `focus-visible:ring-ring/50`; labels always visible (never placeholder-only)                                    |
+| Tables (admin)           | `border-border` hairlines; `text-muted-foreground` secondary cells; header row `hover:bg-secondary/30`                                    |
+| Dialogs / Sheets (admin) | rounded, `shadow-xl`; motion via Framer `AnimatePresence` (code-split)                                                                    |
+| Toasts                   | `sonner`                                                                                                                                  |
 
 ## 7. Do's and Don'ts
 
-| Do | Don't |
-|---|---|
-| Semantic tokens everywhere (`bg-background`, `text-primary`, …) | Hardcoded hex/OKLCH/font names in components |
-| Fraunces headings + Space Grotesk body | Inter/Arial/system-font substitution |
-| Warm cream + earthy amber/brown family | Cold blue/grey dominance, purple-to-blue gradients, glassmorphism everywhere |
-| One signature detail per surface | Decoration for its own sake; card-in-card; emojis as icons (use HugeIcons) |
-| Nusantara texture (bamboo/batik) at ~5–10% opacity | Busy texture that hurts text contrast |
+| Do                                                                             | Don't                                                                         |
+| ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Semantic tokens everywhere (`bg-background`, `text-primary`, …)                | Hardcoded hex/OKLCH/font names in components                                  |
+| Fraunces headings + Space Grotesk body                                         | Inter/Arial/system-font substitution                                          |
+| Warm cream + earthy amber/brown family                                         | Cold blue/grey dominance, purple-to-blue gradients, glassmorphism everywhere  |
+| One signature detail per surface                                               | Decoration for its own sake; card-in-card; emojis as icons (use HugeIcons)    |
+| Nusantara texture (bamboo/batik) at ~5–10% opacity                             | Busy texture that hurts text contrast                                         |
 | Motion: one moment per viewport, 150–300ms, `prefers-reduced-motion` respected | Bounce/elastic easing; infinite-loop micro-animations; animating width/height |
-| Natural photography (client assets in `frontend/public/assets/`) | Generic stock photos |
+| Natural photography (client assets in `frontend/public/assets/`)               | Generic stock photos                                                          |
 
 ## 8. Responsive Behavior
 
@@ -128,7 +129,7 @@ Used as **subtle accents**, not dominant elements — so the UI stays clean like
 ### 10.1 The Benchmark's Motion Grammar
 
 1. **Masked word-reveal headlines.** Each word is `<span class="inline-block overflow-hidden">` wrapping an inner `<span style="transform: translateY(110%)">`, then tweened to `translateY(0)` with stagger. Signature scroll/entry reveal — every hero/about headline uses it.
-2. **Editorial italic serif accent.** One word in the headline is `font-accent italic` in a warm gold tone (e.g. "Celebrate *Love* with the finest *flavours*"). Single emphasized word per line — never more.
+2. **Editorial italic serif accent.** One word in the headline is `font-accent italic` in a warm gold tone (e.g. "Celebrate _Love_ with the finest _flavours_"). Single emphasized word per line — never more.
 3. **Fluid display type.** `font-display`, `font-light`, `leading-[1.05]`, `clamp(34px, 7vw, 84px)`, `font-variation-settings:'opsz' 144` (optical sizing maxed). Big, light, tight — editorial, never heavy.
 4. **Uppercase letter-spaced eyebrow.** `text-[11px] uppercase tracking-[0.5em]` in deep-gold, fade-in via opacity. Micro-label above every section ("Est. 1980 — Bogor").
 5. **Gradient hairline divider.** `h-px bg-[linear-gradient(90deg,transparent,var(--gold),transparent)]` with width animating `0 → 100%` — a center-out reveal used as section/hero separation.
@@ -142,27 +143,27 @@ Used as **subtle accents**, not dominant elements — so the UI stays clean like
 
 Each section is structurally distinct, yet cohesive:
 
-| Section | Rhythm |
-|---|---|
-| Hero | Full-bleed image overlay, word-reveal headline, pill nav above |
-| Featured service | Split image + copy + WhatsApp CTA |
-| About | Stacked multi-line headline + paired images |
-| Stats | Numbered 01–04 grid with count-ups |
-| Client logos | Hover-pause marquee band |
-| History | Vertical year timeline (1980 → 1990 → …) |
+| Section          | Rhythm                                                         |
+| ---------------- | -------------------------------------------------------------- |
+| Hero             | Full-bleed image overlay, word-reveal headline, pill nav above |
+| Featured service | Split image + copy + WhatsApp CTA                              |
+| About            | Stacked multi-line headline + paired images                    |
+| Stats            | Numbered 01–04 grid with count-ups                             |
+| Client logos     | Hover-pause marquee band                                       |
+| History          | Vertical year timeline (1980 → 1990 → …)                       |
 
 **Cohesion glue:** one display serif + italic accent word, one token family (`bg-ink`, `ring-line`, `text-paper`, gold ramp), one rounded-card treatment, one motion grammar (masked reveals + transform/shadow transitions + curtain intro).
 
 ### 10.3 Mapping to Catering Nusantara (GSAP, no bottleneck)
 
-| Benchmark pattern | Our implementation |
-|---|---|
-| Word-mask reveal | GSAP `ScrollTrigger` + masked word spans (stagger 0.05–0.08s) — hero & section headers only |
-| Preloader curtain | One-time `useGSAP` intro on `/` (respect `prefers-reduced-motion` → skip) |
-| Gold divider grow | ScrollTrigger scaleX 0→1 on `::after` gradient hairline |
-| Count-up stats | GSAP snap + counter object, triggered once in view |
-| Marquee | CSS `animation` + `animation-play-state` (no JS loop) |
-| Pill header | CSS scroll class toggle (no GSAP needed) |
+| Benchmark pattern | Our implementation                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------- |
+| Word-mask reveal  | GSAP `ScrollTrigger` + masked word spans (stagger 0.05–0.08s) — hero & section headers only |
+| Preloader curtain | One-time `useGSAP` intro on `/` (respect `prefers-reduced-motion` → skip)                   |
+| Gold divider grow | ScrollTrigger scaleX 0→1 on `::after` gradient hairline                                     |
+| Count-up stats    | GSAP snap + counter object, triggered once in view                                          |
+| Marquee           | CSS `animation` + `animation-play-state` (no JS loop)                                       |
+| Pill header       | CSS scroll class toggle (no GSAP needed)                                                    |
 
 **Token mapping:** `text-paper`→`text-foreground`, `bg-ink`→`bg-background`/dark surface, gold ramp→`primary` amber, `ring-line`→`border-border`. **One signature moment per viewport** (per §7); the curtain is the only full-screen effect and only on the landing surface.
 
@@ -170,11 +171,11 @@ Each section is structurally distinct, yet cohesive:
 
 Three pillars, one pipeline — every UI surface passes all three before shipping:
 
-| Pillar | Role | Enforcement |
-|---|---|---|
-| **1. Taste & Dials** | Choose the *direction* | `catering-nusantara-design` skill: VARIANCE 5 / MOTION 4 / DENSITY 3, warm OKLCH cream/amber tokens, Fraunces/Space Grotesk/Instrument Serif, "homey not stiff" |
-| **2. Hallmark** | Shape the *structure* | `~/.opencode/skills/hallmark` (v1.1.0): macrostructure selection (structural variety — different pages ≠ same template), 57-gate slop test, pre-emit self-critique (Philosophy/Hierarchy/Execution/Specificity/Restraint/Variety, all ≥3), honest copy (gate 46), locked tokens (gate 48), no re-drawn chrome (gate 47), responsive floor 320/375/414/768 (gates 34, 49–53) |
-| **3. Impeccable** | Verify the *code* | `npm run lint:design` (`impeccable detect src/`) — deterministic hard gate, must stay `[]`; `/impeccable critique|polish|audit` for review passes |
+| Pillar               | Role                   | Enforcement                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1. Taste & Dials** | Choose the _direction_ | `catering-nusantara-design` skill: VARIANCE 5 / MOTION 4 / DENSITY 3, warm OKLCH cream/amber tokens, Fraunces/Space Grotesk/Instrument Serif, "homey not stiff"                                                                                                                                                                                                             |
+| **2. Hallmark**      | Shape the _structure_  | `~/.opencode/skills/hallmark` (v1.1.0): macrostructure selection (structural variety — different pages ≠ same template), 57-gate slop test, pre-emit self-critique (Philosophy/Hierarchy/Execution/Specificity/Restraint/Variety, all ≥3), honest copy (gate 46), locked tokens (gate 48), no re-drawn chrome (gate 47), responsive floor 320/375/414/768 (gates 34, 49–53) |
+| **3. Impeccable**    | Verify the _code_      | `npm run lint:design` (`impeccable detect src/`) — deterministic hard gate, must stay `[]`; `/impeccable critique                                                                                                                                                                                                                                                           | polish | audit` for review passes |
 
 **Workflow:** Hallmark picks the macrostructure + runs the slop test → Taste dials + brand tokens bind the result to the Catering Nusantara identity → Impeccable validates the shipped code. Load order: `catering-nusantara-design` → `hallmark` → `impeccable`.
 

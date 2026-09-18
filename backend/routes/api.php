@@ -37,6 +37,7 @@ Route::prefix('v1')->group(function () {
     // with the public paket/galeri routes.
     Route::prefix('admin')->middleware('auth:sanctum')->group(function () {
         Route::get('/overview', [\App\Http\Controllers\OverviewController::class, 'index'])->name('overview.index');
+        Route::get('/visitors', [\App\Http\Controllers\VisitorsController::class, 'index'])->name('visitors.index');
         // Literal path MUST precede apiResource('paket') so '/admin/paket/search'
         // resolves as its own route, never the resource's '{paket}' wildcard.
         Route::get('/paket/search', [PaketController::class, 'search'])

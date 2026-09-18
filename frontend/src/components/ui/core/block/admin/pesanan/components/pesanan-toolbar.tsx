@@ -46,23 +46,25 @@ export function PesananToolbar({
           onSearchChange={onSearchChange}
           className="w-full xl:max-w-xs"
         />
-        <MultiSelectFilter
-          options={STATUS_FILTER_OPTIONS}
-          value={statuses}
-          onChange={onStatusesChange}
-          placeholder="Filter status"
-          ariaLabel="Filter status pesanan"
-        />
-        <MultiSelectFilter
-          options={METODE_PEMBAYARAN_FILTER_OPTIONS}
-          value={metodePembayaran}
-          onChange={onMetodePembayaranChange}
-          placeholder="Filter pembayaran"
-          ariaLabel="Filter metode pembayaran"
-        />
+        <div className="grid md:w-fit w-full grid-cols-2 gap-2 md:flex">
+          <MultiSelectFilter
+            options={STATUS_FILTER_OPTIONS}
+            value={statuses}
+            onChange={onStatusesChange}
+            placeholder="Filter status"
+            ariaLabel="Filter status pesanan"
+          />
+          <MultiSelectFilter
+            options={METODE_PEMBAYARAN_FILTER_OPTIONS}
+            value={metodePembayaran}
+            onChange={onMetodePembayaranChange}
+            placeholder="Filter pembayaran"
+            ariaLabel="Filter metode pembayaran"
+          />
+        </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:ml-auto">
+      <div className="flex flex-col items-center gap-2 sm:ml-auto md:flex-row">
         {hasActiveFilters && (
           <Button
             type="button"
@@ -76,8 +78,9 @@ export function PesananToolbar({
         )}
         <Button
           type="button"
-          variant="ghost"
-          className=""
+          variant="outline"
+          size={"lg"}
+          className="w-full md:w-fit"
           onClick={onExport}
           disabled={isExporting}
         >
@@ -88,7 +91,7 @@ export function PesananToolbar({
           )}
           {isExporting ? "Mengekspor…" : "Export"}
         </Button>
-        <Button onClick={onAdd} size="sm">
+        <Button onClick={onAdd} className="w-full md:w-fit" size="lg">
           <HugeiconsIcon icon={PlusSignIcon} className="mr-2 size-4" />
           Tambah Pesanan
         </Button>

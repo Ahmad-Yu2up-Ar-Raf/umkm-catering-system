@@ -87,7 +87,8 @@ export function GaleriTable({
   onToggleAll,
 }: GaleriTableProps) {
   const isAllSelected = items.length > 0 && selectedIds.length === items.length
-  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < items.length
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < items.length
   const { isPending: isDeleting, variables: deleteVariables } =
     useGaleriDeleteMutation()
   const openImageModal = useImageModalStore((s) => s.open)
@@ -109,7 +110,7 @@ export function GaleriTable({
             variant="ghost"
             size="sm"
             className={cn(
-              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:bg-muted/50",
+              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:hover:bg-secondary/30",
               isSorted && "font-semibold text-foreground"
             )}
           >
@@ -180,8 +181,12 @@ export function GaleriTable({
         <TableRow className="border-border hover:bg-transparent">
           <TableHead className="w-12">
             <Checkbox
-              checked={isAllSelected ? true : isIndeterminate ? "indeterminate" : false}
-              onCheckedChange={(checked: boolean | "indeterminate") => onToggleAll?.(checked === true)}
+              checked={
+                isAllSelected ? true : isIndeterminate ? "indeterminate" : false
+              }
+              onCheckedChange={(checked: boolean | "indeterminate") =>
+                onToggleAll?.(checked === true)
+              }
               aria-label="Select all"
               className="mx-3 translate-y-0.5"
             />
@@ -238,9 +243,21 @@ export function GaleriTable({
           return (
             <TableRow
               key={galeri.id}
-              className="group border-border transition-colors hover:bg-muted/40"
+              role="button"
+              tabIndex={0}
+              onClick={() => onEdit(galeri)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  onEdit(galeri)
+                }
+              }}
+              className="group cursor-pointer border-border transition-colors hover:hover:bg-secondary/30"
             >
-              <TableCell>
+              <TableCell
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <Checkbox
                   checked={selectedIds.includes(galeri.id)}
                   onCheckedChange={() => onToggle?.(galeri.id)}
@@ -314,7 +331,7 @@ export function GaleriTable({
               )}
 
               {!hiddenCols.jumlah_tamu && (
-                <TableCell className=" text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground">
                   {galeri.jumlah_tamu != null
                     ? `${galeri.jumlah_tamu} tamu`
                     : "—"}
@@ -345,7 +362,11 @@ export function GaleriTable({
                 </TableCell>
               )}
 
-              <TableCell className="sticky right-2 text-right">
+              <TableCell
+                className="sticky right-2 text-right"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <RowActions
                   onEdit={() => onEdit(galeri)}
                   onDelete={() => onDelete(galeri)}

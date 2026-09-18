@@ -1,4 +1,5 @@
 # Master Testimoni — Product Requirements Document
+
 > **Project:** Catering Nusantara · **Module:** Master Testimoni (Admin CMS)
 > **Phase:** Planning & PRD — Research Only (No Production Code)
 > **Monorepo Root:** `../../` · **PRD Location:** `frontend/docs/PRD-Master-Testimoni.md`
@@ -13,16 +14,16 @@
 
 No new architectural pattern is invented. The feature is a **composition of two proven benchmarks**:
 
-| Concern | Benchmark | Why |
-|---|---|---|
-| Block/file skeleton, form shell, single-entity CRUD, validation, upload-at-submit, orphan sweep | **Master Galeri** (closest domain: named event + photo + category-ish metadata) | Smallest structural delta; 1:1 clone-then-rename |
-| Data table, search bar, sort, pagination, row actions, bulk update/delete + action bar | **Master Pesanan** (exact requirement) | Requirement mandates Pesanan parity |
-| Relational dropdown (`paket_id`) | **Master Pesanan** (`pesanan-form.tsx` Collapsible combobox + `usePaketSearch`/`usePaketDetail`) | Only existing paket-relation picker |
-| Multi-image upload field | **Master Paket** (`paket-form.tsx` `ImagesUpload maxFiles={8}` + `resolveUploads` at submit) | Only existing multi-image pipeline |
+| Concern                                                                                         | Benchmark                                                                                        | Why                                              |
+| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| Block/file skeleton, form shell, single-entity CRUD, validation, upload-at-submit, orphan sweep | **Master Galeri** (closest domain: named event + photo + category-ish metadata)                  | Smallest structural delta; 1:1 clone-then-rename |
+| Data table, search bar, sort, pagination, row actions, bulk update/delete + action bar          | **Master Pesanan** (exact requirement)                                                           | Requirement mandates Pesanan parity              |
+| Relational dropdown (`paket_id`)                                                                | **Master Pesanan** (`pesanan-form.tsx` Collapsible combobox + `usePaketSearch`/`usePaketDetail`) | Only existing paket-relation picker              |
+| Multi-image upload field                                                                        | **Master Paket** (`paket-form.tsx` `ImagesUpload maxFiles={8}` + `resolveUploads` at submit)     | Only existing multi-image pipeline               |
 
 **Route is pre-stubbed:** `frontend/src/router/index.tsx:89-91` already registers `path: "testimoni"` under `AppShell` (`/dashboard/testimoni`) pointing at `frontend/src/pages/admin/testimoni-page.tsx`, which renders a placeholder `TestimoniBlock` (`@/components/ui/core/block/testimoni/testimoni-block.tsx`). Phase 2 replaces the placeholder with the real Master block.
 
-**One approval gates everything:** `testimoni` is currently an *explicitly unapproved* table (`docs/architecture.md` §4.3, `backend/docs/database.md:19`, `AGENTS.md` §3 — "do not create migrations beyond the 4 core tables without explicit instructions"). This PRD **is** the confirmation vehicle: no migration is written until the user approves this document.
+**One approval gates everything:** `testimoni` is currently an _explicitly unapproved_ table (`docs/architecture.md` §4.3, `backend/docs/database.md:19`, `AGENTS.md` §3 — "do not create migrations beyond the 4 core tables without explicit instructions"). This PRD **is** the confirmation vehicle: no migration is written until the user approves this document.
 
 ---
 
@@ -51,29 +52,29 @@ catering/                  # monorepo root (/mnt/c/Dev/Web/catering)
 
 ### 2.3 Documentation read (full)
 
-| Doc | Finding relevant to Testimoni |
-|---|---|
-| `docs/architecture.md` | Sitemap: Testimonials (public #5) is **Optional/static** ("Business Profile" sheet, not DB-backed); admin masters are #9–12. §4.3: `testimoni` + `faq` tables **outside scope — must not be created without explicit confirmation**. Data→page map: Testimonials currently static. |
-| `docs/project-context.md` | Brand "Down to Earth", WhatsApp-first conversion, no stock photos, warm-cream/amber identity. Testimoni content must use real client names/photos. |
-| `AGENTS.md` (root) | §§3/5: no new tables without instruction; JSON columns via Form Requests; `total_harga`/`nomor_struk` server-only; zustand ≠ server data; React Query + Ky; no hardcoded tokens; no core `ui/` edits. |
-| `frontend/docs/architecture.md` | SPA map, `src/api/client.ts` (Ky + Sanctum Bearer + 401→`/login`), services-layer data flow, guards (`GuestGuard`/`AuthenticatedGuard`), block/fragment composition. |
-| `frontend/docs/design.md` | Suasana OKLCH tokens via `src/index.css`, Fraunces/Space Grotesk/Instrument Serif, shadcn-first, admin table tokens (`border-border`, `bg-muted/50` header), Drawer/Dialog + `AnimatePresence`, `sonner` toasts. Implementation must pass `npm run lint:design`. |
-| `frontend/docs/admin-overview-prd.md` | House PRD format reference (header refs → summary → benchmark → deep dive → plan). This file follows it. |
-| `backend/docs/database.md` | 5-table DBML + JSON-array cast/rules + server-only money rules. Line 19: `testimoni`/`faq` **NOT approved**. |
-| `backend/docs/api-collection.md` + `openapi.json` | Canonical endpoint/payload contract (consulted via benchmark report; Phase 2 must add the Testimoni section). |
+| Doc                                               | Finding relevant to Testimoni                                                                                                                                                                                                                                                      |
+| ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/architecture.md`                            | Sitemap: Testimonials (public #5) is **Optional/static** ("Business Profile" sheet, not DB-backed); admin masters are #9–12. §4.3: `testimoni` + `faq` tables **outside scope — must not be created without explicit confirmation**. Data→page map: Testimonials currently static. |
+| `docs/project-context.md`                         | Brand "Down to Earth", WhatsApp-first conversion, no stock photos, warm-cream/amber identity. Testimoni content must use real client names/photos.                                                                                                                                 |
+| `AGENTS.md` (root)                                | §§3/5: no new tables without instruction; JSON columns via Form Requests; `total_harga`/`nomor_struk` server-only; zustand ≠ server data; React Query + Ky; no hardcoded tokens; no core `ui/` edits.                                                                              |
+| `frontend/docs/architecture.md`                   | SPA map, `src/api/client.ts` (Ky + Sanctum Bearer + 401→`/login`), services-layer data flow, guards (`GuestGuard`/`AuthenticatedGuard`), block/fragment composition.                                                                                                               |
+| `frontend/docs/design.md`                         | Suasana OKLCH tokens via `src/index.css`, Fraunces/Space Grotesk/Instrument Serif, shadcn-first, admin table tokens (`border-border`, `hover:bg-secondary/30` header), Drawer/Dialog + `AnimatePresence`, `sonner` toasts. Implementation must pass `npm run lint:design`.         |
+| `frontend/docs/admin-overview-prd.md`             | House PRD format reference (header refs → summary → benchmark → deep dive → plan). This file follows it.                                                                                                                                                                           |
+| `backend/docs/database.md`                        | 5-table DBML + JSON-array cast/rules + server-only money rules. Line 19: `testimoni`/`faq` **NOT approved**.                                                                                                                                                                       |
+| `backend/docs/api-collection.md` + `openapi.json` | Canonical endpoint/payload contract (consulted via benchmark report; Phase 2 must add the Testimoni section).                                                                                                                                                                      |
 
 ### 2.4 Benchmark code-read (via explore subagent + direct verification reads)
 
-| Artifact | Verified |
-|---|---|
-| `frontend/src/components/ui/core/block/admin/{galeri,paket,pesanan}/` | Inventories: galeri 18 files, paket 19, pesanan 22 (see §3). `admin/` currently holds only `galeri/ overview/ paket/ pesanan/ shared/` — no `testimoni/` yet. |
-| `.../admin/pesanan/components/pesanan-form.tsx` (469 lines) | Direct-read head (1–80): `"use client"`, TanStack `useStore(form.store)` for `paket_id`, `usePaketSearch("")` + `usePaketDetail(paketId)`, Collapsible combobox, `PesananCalcPanel`, `FieldGroup` fragments. |
-| `.../admin/paket/components/paket-form.tsx` (225 lines) | Direct-read head (1–60): submit hijack → `form.handleSubmit()`, `grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]`, `FieldGroup`, `Informasi Dasar` section. Multi-image: `field.ImagesUpload maxFiles={8}` + `field.ImageUpload` thumbnail; submit-phase parallel `resolveUploads` via `cloudinaryTransport`; orphan sweep `purgeCloudinaryImages`. |
-| `frontend/src/router/index.tsx` | Direct-read full (96 lines): `testimoni` route **already registered** (`:89-91`) under `AuthenticatedGuard → AppShell → /dashboard`. Import at `:17`. |
-| `frontend/src/pages/admin/testimoni-page.tsx` | Direct-read full (8 lines): thin wrapper over `@/components/ui/core/block/testimoni/testimoni-block` (placeholder, **outside** `admin/`). |
-| `backend/routes/api.php` | Direct-read full (59 lines): public `paket/galeri/pesanan(store)`; `admin` group (`auth:sanctum`) with `paket` (search + bulk + `apiResource`), `galeri` (bulk + `apiResource`), `pesanan` (explicit routes + bulk + struk), `cloudinary/signature|destroy`. **No testimoni routes yet.** |
-| `backend/app/Http/Controllers/CloudinaryController.php` | Direct-read full (108 lines): `signature()` resolves folder from `kategori_acara|category` via `resolveFolder()` allowlist (galeri 7 slugs → `catering-nusantara/galeri/{slug}`; paket 4 slugs → `catering-nusantara/products/{slug}`; fallback `galeri/lainnya`). **No testimoni branch — required change.** |
-| `frontend/src/lib/cloudinary.ts` | Direct-read head (1–40): `CLOUDINARY_PRODUCTS_FOLDER`, cached signature (`getUploadSignature`), `purgeCloudinaryImages` fire-and-forget `DELETE admin/cloudinary`. |
+| Artifact                                                              | Verified                                                                                                                                                                                                                                                                                                                                                |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `frontend/src/components/ui/core/block/admin/{galeri,paket,pesanan}/` | Inventories: galeri 18 files, paket 19, pesanan 22 (see §3). `admin/` currently holds only `galeri/ overview/ paket/ pesanan/ shared/` — no `testimoni/` yet.                                                                                                                                                                                           |
+| `.../admin/pesanan/components/pesanan-form.tsx` (469 lines)           | Direct-read head (1–80): `"use client"`, TanStack `useStore(form.store)` for `paket_id`, `usePaketSearch("")` + `usePaketDetail(paketId)`, Collapsible combobox, `PesananCalcPanel`, `FieldGroup` fragments.                                                                                                                                            |
+| `.../admin/paket/components/paket-form.tsx` (225 lines)               | Direct-read head (1–60): submit hijack → `form.handleSubmit()`, `grid lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]`, `FieldGroup`, `Informasi Dasar` section. Multi-image: `field.ImagesUpload maxFiles={8}` + `field.ImageUpload` thumbnail; submit-phase parallel `resolveUploads` via `cloudinaryTransport`; orphan sweep `purgeCloudinaryImages`. |
+| `frontend/src/router/index.tsx`                                       | Direct-read full (96 lines): `testimoni` route **already registered** (`:89-91`) under `AuthenticatedGuard → AppShell → /dashboard`. Import at `:17`.                                                                                                                                                                                                   |
+| `frontend/src/pages/admin/testimoni-page.tsx`                         | Direct-read full (8 lines): thin wrapper over `@/components/ui/core/block/testimoni/testimoni-block` (placeholder, **outside** `admin/`).                                                                                                                                                                                                               |
+| `backend/routes/api.php`                                              | Direct-read full (59 lines): public `paket/galeri/pesanan(store)`; `admin` group (`auth:sanctum`) with `paket` (search + bulk + `apiResource`), `galeri` (bulk + `apiResource`), `pesanan` (explicit routes + bulk + struk), `cloudinary/signature                                                                                                      | destroy`. **No testimoni routes yet.**                                                                                                                                                                                   |
+| `backend/app/Http/Controllers/CloudinaryController.php`               | Direct-read full (108 lines): `signature()` resolves folder from `kategori_acara                                                                                                                                                                                                                                                                        | category`via`resolveFolder()`allowlist (galeri 7 slugs →`catering-nusantara/galeri/{slug}`; paket 4 slugs → `catering-nusantara/products/{slug}`; fallback `galeri/lainnya`). **No testimoni branch — required change.** |
+| `frontend/src/lib/cloudinary.ts`                                      | Direct-read head (1–40): `CLOUDINARY_PRODUCTS_FOLDER`, cached signature (`getUploadSignature`), `purgeCloudinaryImages` fire-and-forget `DELETE admin/cloudinary`.                                                                                                                                                                                      |
 
 ---
 
@@ -154,7 +155,7 @@ Schema::create('testimonis', function (Blueprint $table) {
 ```
 
 - Engine notes: PostgreSQL (Neon) `json` column; model casts `gambar => 'array'` (database.md JSON rules).
-- `restrictOnDelete` on the **testimoni→paket** direction means deleting a *paket* referenced by testimoni must return `409` (same convention as `PaketController` delete guard `pesanan_count>0` — extend the guard to `testimoni_count>0`).
+- `restrictOnDelete` on the **testimoni→paket** direction means deleting a _paket_ referenced by testimoni must return `409` (same convention as `PaketController` delete guard `pesanan_count>0` — extend the guard to `testimoni_count>0`).
 - Approval gate: creating this migration is the explicit act this PRD seeks approval for (overrides architecture §4.3 / database.md:19 for `testimoni` only; `faq` remains unapproved).
 
 ### 4.2 Model — `app/Models/Testimoni.php`
@@ -165,15 +166,15 @@ Mirror `Models/Galeri.php`: singular, `protected $table = 'testimonis'`, `HasFac
 
 (Place under `Admin/` mirroring `Requests/Admin/Galeri/*`; fallback to `Requests/Testimoni/*` only if the team prefers the non-admin path.)
 
-| Field | Store rules | Update rules |
-|---|---|---|
-| `nama` | `required\|string\|max:255` | `sometimes\|required\|string\|max:255` |
-| `pesanan` | `required\|string\|max:255` | `sometimes\|required\|string\|max:255` |
-| `acara` | `required\|string\|max:255` | `sometimes\|required\|string\|max:255` |
-| `lokasi` | `required\|string\|max:255` | `sometimes\|required\|string\|max:255` |
-| `paket_id` | `required\|integer\|exists:paket,id` | `sometimes\|required\|integer\|exists:paket,id` |
-| `gambar` | `nullable\|array\|max:8` | `nullable\|array\|max:8` |
-| `gambar.*` | `string\|url\|max:2048` (canonical http URL; File objects never reach the backend — uploads resolve client-side) | same |
+| Field      | Store rules                                                                                                      | Update rules                                    |
+| ---------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `nama`     | `required\|string\|max:255`                                                                                      | `sometimes\|required\|string\|max:255`          |
+| `pesanan`  | `required\|string\|max:255`                                                                                      | `sometimes\|required\|string\|max:255`          |
+| `acara`    | `required\|string\|max:255`                                                                                      | `sometimes\|required\|string\|max:255`          |
+| `lokasi`   | `required\|string\|max:255`                                                                                      | `sometimes\|required\|string\|max:255`          |
+| `paket_id` | `required\|integer\|exists:paket,id`                                                                             | `sometimes\|required\|integer\|exists:paket,id` |
+| `gambar`   | `nullable\|array\|max:8`                                                                                         | `nullable\|array\|max:8`                        |
+| `gambar.*` | `string\|url\|max:2048` (canonical http URL; File objects never reach the backend — uploads resolve client-side) | same                                            |
 
 Strictness notes: no `total_harga`-style server-computed field exists here — nothing to strip. `Rule::enum` not needed in v1 (no enum column).
 
@@ -219,14 +220,14 @@ No public (`auth`-less) routes in v1 — public Testimonials page stays static u
 
 ### 5.2 Directory changes
 
-| Action | Path |
-|---|---|
-| CREATE (full skeleton §3.1) | `src/components/ui/core/block/admin/testimoni/**` |
-| CREATE | `src/store/testimoni-upload-store.ts` (or colocate `store/` under block if galeri/paket stores are colocated — match whichever location the benchmark uses) |
-| REWRITE (thin wrapper) | `src/pages/admin/testimoni-page.tsx` → `return <MasterTestimoniBlock />` |
-| DELETE (after repoint) | `src/components/ui/core/block/testimoni/testimoni-block.tsx` placeholder + its directory if emptied |
-| REUSE (import, never copy) | `src/api/client.ts`, `src/hooks/use-form.ts` (`useAppForm`), `src/hooks/use-debounced-value.ts`, `src/lib/cloudinary.ts`, `src/lib/audio-feedback.ts`, shared fragments (`field/*`, `table/*`, `dialog/delete-dialog`, `search-bar`, `multi-select-filter`), view-store pattern |
-| ADD | `CLOUDINARY_TESTIMONI_FOLDER` export in `src/lib/cloudinary.ts` (§7) |
+| Action                      | Path                                                                                                                                                                                                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CREATE (full skeleton §3.1) | `src/components/ui/core/block/admin/testimoni/**`                                                                                                                                                                                                                               |
+| CREATE                      | `src/store/testimoni-upload-store.ts` (or colocate `store/` under block if galeri/paket stores are colocated — match whichever location the benchmark uses)                                                                                                                     |
+| REWRITE (thin wrapper)      | `src/pages/admin/testimoni-page.tsx` → `return <MasterTestimoniBlock />`                                                                                                                                                                                                        |
+| DELETE (after repoint)      | `src/components/ui/core/block/testimoni/testimoni-block.tsx` placeholder + its directory if emptied                                                                                                                                                                             |
+| REUSE (import, never copy)  | `src/api/client.ts`, `src/hooks/use-form.ts` (`useAppForm`), `src/hooks/use-debounced-value.ts`, `src/lib/cloudinary.ts`, `src/lib/audio-feedback.ts`, shared fragments (`field/*`, `table/*`, `dialog/delete-dialog`, `search-bar`, `multi-select-filter`), view-store pattern |
+| ADD                         | `CLOUDINARY_TESTIMONI_FOLDER` export in `src/lib/cloudinary.ts` (§7)                                                                                                                                                                                                            |
 
 ### 5.3 State management (repo rules apply)
 
@@ -255,15 +256,15 @@ Image union refines `File` (draft) vs canonical http URL (committed) — same `z
 
 ## 6. API Contract (v1, admin-only)
 
-| Method & Path | Purpose | Notes |
-|---|---|---|
+| Method & Path                                                         | Purpose                  | Notes                                                         |
+| --------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------- |
 | `GET /api/v1/admin/testimoni?search=&sortBy=&sortDir=&page=&perPage=` | Paginated list + filters | Envelope via `respondWithPagination`; `with paket` eager-load |
-| `POST /api/v1/admin/testimoni` | Create | `201` + `TestimoniResource`; FormRequest validation |
-| `GET /api/v1/admin/testimoni/{id}` | Detail | `with paket` |
-| `PUT /api/v1/admin/testimoni/{id}` | Update | `sometimes\|required` rules; purge removed image URLs |
-| `DELETE /api/v1/admin/testimoni/{id}` | Delete | Purge its `gambar` URLs (best-effort) |
-| `POST /api/v1/admin/testimoni/bulk-update` | Bulk single-field update | Only if D4 approves a whitelisted field |
-| `POST /api/v1/admin/testimoni/bulk-delete` | Bulk delete | `{ ids: number[] }` |
+| `POST /api/v1/admin/testimoni`                                        | Create                   | `201` + `TestimoniResource`; FormRequest validation           |
+| `GET /api/v1/admin/testimoni/{id}`                                    | Detail                   | `with paket`                                                  |
+| `PUT /api/v1/admin/testimoni/{id}`                                    | Update                   | `sometimes\|required` rules; purge removed image URLs         |
+| `DELETE /api/v1/admin/testimoni/{id}`                                 | Delete                   | Purge its `gambar` URLs (best-effort)                         |
+| `POST /api/v1/admin/testimoni/bulk-update`                            | Bulk single-field update | Only if D4 approves a whitelisted field                       |
+| `POST /api/v1/admin/testimoni/bulk-delete`                            | Bulk delete              | `{ ids: number[] }`                                           |
 
 Frontend service: colocate fetch functions in `hooks/use-testimoni-query.ts` (Galeri style — no separate service file) unless a `paket-search`-style shared lookup is needed (it already exists; reuse `usePaketSearch`/`usePaketDetail` from the pesanan block or promote to shared if the team prefers).
 
@@ -283,28 +284,28 @@ Target folder: **`catering-nusantara/testimoni`** (flat — no per-category subf
 
 ## 8. Field Matrix (normative)
 
-| Field | Type (DB) | Required | Source / Notes |
-|---|---|---|---|
-| `nama` | `string` | ✅ mandatory | Nama pemberi testimoni (e.g. "Ibu Ratna") |
-| `pesanan` | `string` | ✅ mandatory | Ringkasan pesanan bebas (e.g. "Nasi Box Hemat × 150"). ⚠️ See D1 — NOT a FK; the relational link is `paket_id` |
-| `acara` | `string` | ✅ mandatory | Jenis acara bebas (e.g. "Pernikahan", "Arisan"). Free string in v1 (see D4 for enum option) |
-| `lokasi` | `string` | ✅ mandatory | Lokasi acara (e.g. "Taman Sari, Bogor") |
-| `paket_id` | `FK → paket.id` | ✅ mandatory | Relational dropdown (pesanan pattern); `restrictOnDelete` + 409 guard on paket delete |
-| `gambar` | `json nullable` | ⚪ optional | Array of canonical Cloudinary URLs, max 8 (see D2) |
+| Field      | Type (DB)       | Required     | Source / Notes                                                                                                 |
+| ---------- | --------------- | ------------ | -------------------------------------------------------------------------------------------------------------- |
+| `nama`     | `string`        | ✅ mandatory | Nama pemberi testimoni (e.g. "Ibu Ratna")                                                                      |
+| `pesanan`  | `string`        | ✅ mandatory | Ringkasan pesanan bebas (e.g. "Nasi Box Hemat × 150"). ⚠️ See D1 — NOT a FK; the relational link is `paket_id` |
+| `acara`    | `string`        | ✅ mandatory | Jenis acara bebas (e.g. "Pernikahan", "Arisan"). Free string in v1 (see D4 for enum option)                    |
+| `lokasi`   | `string`        | ✅ mandatory | Lokasi acara (e.g. "Taman Sari, Bogor")                                                                        |
+| `paket_id` | `FK → paket.id` | ✅ mandatory | Relational dropdown (pesanan pattern); `restrictOnDelete` + 409 guard on paket delete                          |
+| `gambar`   | `json nullable` | ⚪ optional  | Array of canonical Cloudinary URLs, max 8 (see D2)                                                             |
 
 ---
 
 ## 9. Open Decisions (resolve before/at Phase 2 kickoff)
 
-| # | Decision | Recommendation | Impact if opposite |
-|---|---|---|---|
-| R1 | **Approve `testimonis` migration** (overrides architecture §4.3 / database.md:19) | Approve `testimoni` only; `faq` stays unapproved | No implementation possible |
-| D1 | `pesanan` semantics: free-text snapshot vs FK to `pesanan` order row | **Free-text string** (order rows are Mini-POS-internal; testimoni authors are customers; snapshot survives order deletion) | FK would need nullable + cascade policy + order-lookup UI |
-| D2 | `gambar` storage: JSON array on row vs `testimoni_images` side table (paket_images pattern) | **JSON array** per requirements (≤8 URLs, no per-image metadata, no cross-image queries) | Side table = extra model/migration/resource + gallery-sync logic |
-| D3 | Public read API (`GET /api/v1/testimoni`) for the sitemap Testimonials page | **Defer** — v1 admin-only; public page stays static per current sitemap | Adds public controller/index + contract docs to Phase 2 |
-| D4 | `acara` free string vs enum + bulk-update whitelist | **Free string v1; ship bulk-delete only** (bulk-update needs a whitelisted field) | Enum = new Enum class + FormRequest `Rule::enum` + filter UI + seeder pools |
-| D5 | Grid/card view toggle (galeri/paket have it; pesanan does not) | **Defer** — table-only v1 (testimoni is text-dense; grid adds little) | Adds `testimoni-card-grid` + view-toggle + view-store |
-| D6 | Rating/stars field (sitemap mentions "star ratings") | **Out of v1 scope** — unrequested; add later with explicit spec | Adds column + validation + star UI + seeder data |
+| #   | Decision                                                                                    | Recommendation                                                                                                             | Impact if opposite                                                          |
+| --- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| R1  | **Approve `testimonis` migration** (overrides architecture §4.3 / database.md:19)           | Approve `testimoni` only; `faq` stays unapproved                                                                           | No implementation possible                                                  |
+| D1  | `pesanan` semantics: free-text snapshot vs FK to `pesanan` order row                        | **Free-text string** (order rows are Mini-POS-internal; testimoni authors are customers; snapshot survives order deletion) | FK would need nullable + cascade policy + order-lookup UI                   |
+| D2  | `gambar` storage: JSON array on row vs `testimoni_images` side table (paket_images pattern) | **JSON array** per requirements (≤8 URLs, no per-image metadata, no cross-image queries)                                   | Side table = extra model/migration/resource + gallery-sync logic            |
+| D3  | Public read API (`GET /api/v1/testimoni`) for the sitemap Testimonials page                 | **Defer** — v1 admin-only; public page stays static per current sitemap                                                    | Adds public controller/index + contract docs to Phase 2                     |
+| D4  | `acara` free string vs enum + bulk-update whitelist                                         | **Free string v1; ship bulk-delete only** (bulk-update needs a whitelisted field)                                          | Enum = new Enum class + FormRequest `Rule::enum` + filter UI + seeder pools |
+| D5  | Grid/card view toggle (galeri/paket have it; pesanan does not)                              | **Defer** — table-only v1 (testimoni is text-dense; grid adds little)                                                      | Adds `testimoni-card-grid` + view-toggle + view-store                       |
+| D6  | Rating/stars field (sitemap mentions "star ratings")                                        | **Out of v1 scope** — unrequested; add later with explicit spec                                                            | Adds column + validation + star UI + seeder data                            |
 
 ---
 
@@ -366,6 +367,7 @@ Target folder: **`catering-nusantara/testimoni`** (flat — no per-category subf
 **Approved items:** R1 (create migration) · D1 (`pesanan` free-text) · D2 (`gambar` JSON array) · D4 (`acara` free string, bulk-delete only). **Deferred:** D3 (admin-only v1, no public routes) · D5 (table-only v1). **Out of scope:** D6 (no rating field).
 
 **Audit corrections applied at implementation (deviations from §§4–7 as drafted):**
+
 1. Table is **`testimoni` (singular)**, not `testimonis` — every existing table is singular (`paket`, `galeri`, `pesanan`); model sets `protected $table = 'testimoni'` explicitly.
 2. FK uses bare `->constrained('paket')` (matches `create_pesanans_table`), not explicit `->restrictOnDelete()`; 409 protection is enforced at the API layer (`PaketController::destroy` + `bulkDelete`, both extended to `testimoni` dependents).
 3. `PaketController::destroy` guard reads `$paket->pesanan()->exists()` (not a `pesanan_count` column); testimoni check added symmetrically via new `Paket::testimoni()` relation.
@@ -385,6 +387,7 @@ Target folder: **`catering-nusantara/testimoni`** (flat — no per-category subf
 **New requirement:** `visibility` enum (`public` | `private`, default `private`) + radio group in form + table filter + status badge + complete frontend, executed immediately.
 
 **Backend delta (all under prior approvals + new visibility mandate):**
+
 1. `App\Enums\TestimoniVisibilityEnum` (PHP 8 backed string enum) — single source of truth for `Rule::enum`, casts, filter whitelist.
 2. Migration `2026_09_13_000002_add_visibility_to_testimoni_table` — plain `string` column, `default('private')`, indexed (deliberately NOT a native PG enum: galeri's native enum required raw-SQL ALTERs on PostgreSQL; strictness comes from `Rule::enum`).
 3. `Testimoni` model: `+visibility` fillable, `'visibility' => TestimoniVisibilityEnum::class` cast.

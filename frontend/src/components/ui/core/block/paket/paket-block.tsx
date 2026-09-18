@@ -18,12 +18,12 @@ import { usePaketQuery, useSavedPaketsSource } from "./hooks/use-paket-query"
 import { useHeaderOffset } from "./hooks/use-header-offset"
 
 /**
- * Anchor the saved-filter toggle landing (`?saved=1`) scrolls to. Flipping
- * the filter is same-page (no pathname change), so the global `ScrollToTop`
- * never fires — this block owns the viewport and glides straight past the
- * hero to the list instead.
+ * Anchor every committed filter change scrolls to. All filter writes are
+ * same-page (no pathname change, `preventScrollReset`), so the global
+ * `ScrollToTop` never fires — this block owns the viewport and glides
+ * straight past the hero to the list instead.
  */
-const SAVED_LIST_ANCHOR = "paket-list"
+const LIST_ANCHOR = "paket-list"
 
 /**
  * Katalog Paket — the public package catalog (sitemap #3).
@@ -35,7 +35,9 @@ const SAVED_LIST_ANCHOR = "paket-list"
  * Saved view (`?saved=1`): the grid shows only packages whose IDs are in the
  * persisted `useSavedPaketStore`, sourced from one bulk fetch
  * (`useSavedPaketsSource`, enabled solely here) and filtered client-side.
- * Landing on it auto-scrolls past the hero to the list.
+ *
+ * Any committed filter change auto-scrolls past the hero to the list
+ * (mount/hydration excluded).
  *
  * Motion: ONE GSAP reveal on the hero only (per `design-system/pages/
  * catalog.md` — opacity/y 24px, stagger 0.08s), fully gated by
@@ -70,13 +72,30 @@ export function PaketBlock() {
     ? savedPakets.length
     : (query.data?.pages[0]?.meta.pagination.total ?? 0)
 
-  // Saved-view landing: bypass the hero and glide straight to the package
-  // list. Runs when `savedOnly` flips on via the filter-bar toggle — one rAF
-  // so the fresh layout is measured before scrolling.
+  // Unified filter landing: any committed filter change (category pill incl.
+  // "Semua", saved toggle, applied search / clear) bypasses the hero and
+  // glides straight to the package list — one rAF so the fresh layout is
+  // measured before scrolling. Keyed on the URL-committed values (search is
+  // debounced at its source), never the input's keystrokes. The prev-snapshot
+  // guard skips the initial mount / deep-link hydration, and also absorbs
+  // late Lenis arrival (values unchanged → no scroll).
+  const prevFilters = useRef<{
+    kategori: string
+    savedOnly: boolean
+    search: string
+  } | null>(null)
   useEffect(() => {
-    if (!savedOnly) return
+    const prev = prevFilters.current
+    prevFilters.current = { kategori, savedOnly, search }
+    if (
+      !prev ||
+      (prev.kategori === kategori &&
+        prev.savedOnly === savedOnly &&
+        prev.search === search)
+    )
+      return
     const raf = requestAnimationFrame(() => {
-      const el = document.getElementById(SAVED_LIST_ANCHOR)
+      const el = document.getElementById(LIST_ANCHOR)
       if (!el) return
       if (lenis) lenis.scrollTo(el, { duration: reduced ? 0 : 1.1 })
       else
@@ -86,7 +105,7 @@ export function PaketBlock() {
         })
     })
     return () => cancelAnimationFrame(raf)
-  }, [savedOnly, lenis, reduced])
+  }, [kategori, savedOnly, search, lenis, reduced])
 
   // Signal the global layout when the catalog is fully drained (CTA band +
   // footer only appear after the last page — hidden while loading/scrollable).
@@ -160,7 +179,7 @@ export function PaketBlock() {
         </div>
 
         <div
-          id={SAVED_LIST_ANCHOR}
+          id={LIST_ANCHOR}
           className="container m-auto w-full scroll-mt-24 pt-10 pb-24 md:pt-10 md:pb-32"
         >
           <PaketGrid

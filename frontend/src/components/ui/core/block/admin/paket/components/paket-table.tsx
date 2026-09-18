@@ -74,7 +74,8 @@ export function PaketTable({
   onToggleAll,
 }: PaketTableProps) {
   const isAllSelected = items.length > 0 && selectedIds.length === items.length
-  const isIndeterminate = selectedIds.length > 0 && selectedIds.length < items.length
+  const isIndeterminate =
+    selectedIds.length > 0 && selectedIds.length < items.length
   const { isPending: isDeleting, variables: deleteVariables } =
     usePaketDeleteMutation()
 
@@ -95,7 +96,7 @@ export function PaketTable({
             variant="ghost"
             size="sm"
             className={cn(
-              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:bg-muted/50",
+              "-ml-3 h-auto gap-2 px-3 text-left text-sm hover:hover:bg-secondary/30",
               isSorted && "font-semibold text-foreground"
             )}
           >
@@ -142,8 +143,12 @@ export function PaketTable({
         <TableRow className="border-border hover:bg-transparent">
           <TableHead className="w-12">
             <Checkbox
-              checked={isAllSelected ? true : isIndeterminate ? "indeterminate" : false}
-              onCheckedChange={(checked: boolean | "indeterminate") => onToggleAll?.(checked === true)}
+              checked={
+                isAllSelected ? true : isIndeterminate ? "indeterminate" : false
+              }
+              onCheckedChange={(checked: boolean | "indeterminate") =>
+                onToggleAll?.(checked === true)
+              }
               aria-label="Select all"
               className="mx-3 translate-y-0.5"
             />
@@ -203,9 +208,21 @@ export function PaketTable({
           return (
             <TableRow
               key={paket.id}
-              className="group border-border transition-colors hover:bg-muted/40"
+              role="button"
+              tabIndex={0}
+              onClick={() => onEdit(paket)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault()
+                  onEdit(paket)
+                }
+              }}
+              className="group cursor-pointer border-border transition-colors hover:hover:bg-secondary/30"
             >
-              <TableCell>
+              <TableCell
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <Checkbox
                   checked={selectedIds.includes(paket.id)}
                   onCheckedChange={() => onToggle?.(paket.id)}
@@ -300,8 +317,9 @@ export function PaketTable({
 
               {!hiddenCols.ulasan && (
                 <TableCell>
-                  {(paket.testimoni_count ?? 0) > 0 && paket.rating_avg != null ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-700 dark:text-amber-400">
+                  {(paket.testimoni_count ?? 0) > 0 &&
+                  paket.rating_avg != null ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium whitespace-nowrap text-amber-700">
                       <HugeiconsIcon
                         icon={StarIcon}
                         className="size-3.5 fill-amber-400 text-amber-400"
@@ -338,7 +356,11 @@ export function PaketTable({
                 </TableCell>
               )}
 
-              <TableCell className="text-right sticky  right-2">
+              <TableCell
+                className="sticky right-2 text-right"
+                onClick={(e) => e.stopPropagation()}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
                 <RowActions
                   onEdit={() => onEdit(paket)}
                   onDelete={() => onDelete(paket)}
