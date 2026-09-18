@@ -57,7 +57,7 @@ async function pollExportBlob(
     }
     if (res.status === 404) throw new Error("Export kedaluwarsa — silakan ulangi")
     if (res.status === 401) throw new Error("Sesi berakhir — silakan login kembali")
-    const state = await res.json<{ data: { status: string; message?: string; stale?: boolean } }>()
+    const state = (await res.json()) as { data: { status: string; message?: string; stale?: boolean } }
     if (state.data.status === "ready") break
     if (state.data.status === "failed") throw new Error(state.data.message || "Export gagal di server")
     if (state.data.stale) throw new Error("Worker export berhenti — coba lagi")
