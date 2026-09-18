@@ -1,7 +1,8 @@
+import { useEffect } from "react" // 1. Tambahkan import useEffect
 import { NavGroup } from "./nav-group"
 import { navGroups, navExternal } from "../app-shared"
 import { LogOut } from "./log-out"
-import { Link } from "react-router"
+import { Link, useLocation } from "react-router" // 2. Tambahkan import useLocation
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
@@ -32,8 +33,19 @@ import {
 
 export function AppSidebar() {
   const isMobile = useIsMobile()
-  const { open, openMobile, toggleSidebar } = useSidebar()
+  // 3. Destructure setOpenMobile dari useSidebar
+  const { open, openMobile, toggleSidebar, setOpenMobile } = useSidebar()
   const sidebarOpen = isMobile ? openMobile : open
+
+  // 4. Panggil useLocation untuk melacak path saat ini
+  const location = useLocation()
+
+  // 5. Efek ajaib untuk menutup sidebar otomatis di mobile saat URL berubah
+  useEffect(() => {
+    if (isMobile && openMobile) {
+      setOpenMobile(false)
+    }
+  }, [location.pathname, isMobile, setOpenMobile]) // Trigger setiap kali pathname berubah
 
   return (
     <Sidebar collapsible="icon" variant="inset">
@@ -44,10 +56,7 @@ export function AppSidebar() {
             sidebarOpen ? "justify-between gap-2" : "justify-center"
           )}
         >
-          {/* Brand: the logo icon is ALWAYS mounted (collapsed included);
-              only the wordmark is gated on open/mobile. On desktop-collapse
-              the logo fades out on hover to make room for the toggle that
-              overlays the exact same spot. */}
+          {/* Brand Logo */}
           <SidebarMenuButton asChild>
             <Link
               to={"/dashboard"}
@@ -88,7 +97,6 @@ export function AppSidebar() {
                   aria-label={sidebarOpen ? "Tutup sidebar" : "Buka sidebar"}
                   className={cn(
                     "shrink-0 transition-opacity",
-                    // Hover-revealed (Sidebar root carries `group` on desktop).
                     "h opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
                     !sidebarOpen && "absolute inset-0 m-auto"
                   )}
