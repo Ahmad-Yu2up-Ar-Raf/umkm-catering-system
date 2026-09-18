@@ -41,11 +41,19 @@ export function scrollToHash(hash: string, lenis?: Lenis | null): boolean {
 
   const scrollTarget = resolveScrollTarget(targetEl)
 
+  // gsap-performance batching rule: ALL reads first, then ALL writes — never
+  // interleave. Both reads below are layout queries; no style write may run
+  // between them or the browser is forced into a synchronous reflow (the PSI
+  // "Forced synchronous layout" warning). The single write (scrollTo) follows.
+  // Callers must invoke this only after layout is stable (home two-frame gate:
+  // refresh → lenis.resize → here; same-page: DOM already settled).
+  const scrollY = window.scrollY
+  const rectTop = scrollTarget.getBoundingClientRect().top
+
   // Absolute destination. `rect.top + scrollY` is the element's document
   // position — it holds at ANY current scroll, so the jump cannot land short
   // of the pin's reserved travel no matter how far the page is scrolled.
-  const destination =
-    scrollTarget.getBoundingClientRect().top + window.scrollY + HEADER_OFFSET
+  const destination = rectTop + scrollY + HEADER_OFFSET
 
   if (lenis) {
     // NUMBER target → Lenis skips element rect resolution entirely (no stale

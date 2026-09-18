@@ -227,7 +227,10 @@ function OrderingBlock() {
             {/* ───────────── LEFT — header + step stage + numeral nav ───────────── */}
             <div>
               <div className="mb-6 md:mb-11">
-                <p className="mb-5 flex items-center gap-3.5 text-[11px] font-normal tracking-[0.28em] text-primary uppercase">
+                {/* P4 a11y: eyebrow label uses secondary-foreground (darker warm
+                    brown token) for WCAG AA ≥4.5:1 on the cream surface at
+                    11px — the decorative hairlines stay bg-primary. */}
+                <p className="mb-5 flex items-center gap-3.5 text-[11px] font-normal tracking-[0.28em] text-secondary-foreground uppercase">
                   <span aria-hidden="true" className="h-px w-10 bg-primary" />
                   <BlurReveal as="span" blur={6} amount={0.5}>
                     Cara Pemesanan

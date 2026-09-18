@@ -26,6 +26,18 @@
     />
     <link rel="manifest" href="/assets/logo/site.webmanifest" />
 
+    <!-- P1 perf: LCP preload — the hero backdrop is the LCP element. Exactly
+         one image preload per route; each extra preload competes for bandwidth.
+         `scripts/optimize-images.mjs` (run once locally) generates the .webp
+         siblings; once present, point this href at the 1024w .webp + imagesrcset. -->
+    <link
+      rel="preload"
+      as="image"
+      fetchpriority="high"
+      href="/assets/images/banners/hero-banner-tumpeng.png"
+      imagesizes="100vw"
+    />
+
     <!-- SEO: Primary -->
     <title>
       Katering Bogor | Nasi Box, Prasmanan & Tumpeng Mini | Catering Nusantara

@@ -118,11 +118,11 @@ To achieve the premium feel, use `@gsap/react` (`useGSAP`). We need concurrent t
         </h2>
       </div>
       <div class="hidden md:block" style="opacity: 1; transform: none;">
-        <a class="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full border font-normal uppercase tracking-[0.18em] transition-colors duration-500 hover:text-ink active:scale-[0.98] border-gold/70 text-gold-soft px-8 py-[14px] text-[12.5px] " href="/menu">
+        <Link class="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full border font-normal uppercase tracking-[0.18em] transition-colors duration-500 hover:text-ink active:scale-[0.98] border-gold/70 text-gold-soft px-8 py-[14px] text-[12.5px] " to="/menu">
           <span aria-hidden="true" class="absolute inset-0 translate-y-full bg-gold transition-transform duration-500 ease-out group-hover:translate-y-0"></span>
           <span class="relative">Lihat Menu Lengkap</span>
           <span aria-hidden="true" class="relative transition-transform duration-500 group-hover:translate-x-1">→</span>
-        </a>
+        </Link>
       </div>
     </div>
     <div class="grid gap-8 md:grid-cols-12 md:gap-12">
@@ -138,9 +138,9 @@ To achieve the premium feel, use `@gsap/react` (`useGSAP`). We need concurrent t
             <div class="absolute inset-x-6 bottom-5 md:inset-x-7 md:bottom-6" style="opacity: 1; transform: none;">
               <p class="text-[11px] uppercase tracking-[0.28em] text-gold-soft">01 — Flavorful Indonesian</p>
               <p class="mt-1 text-[13px] leading-[1.6] text-paper/80">Tumpeng, Rujak Pengantin, Nasi Keranjang</p>
-              <a class="group mt-2.5 inline-flex items-center gap-2 text-[11.5px] uppercase tracking-[0.2em] text-gold-bright" href="/menu#indonesian">
+              <Link class="group mt-2.5 inline-flex items-center gap-2 text-[11.5px] uppercase tracking-[0.2em] text-gold-bright" to="/menu#indonesian">
                 Jelajahi kategori<span aria-hidden="true" class="transition-transform duration-300 group-hover:translate-x-1">→</span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>

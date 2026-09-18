@@ -95,22 +95,29 @@ export function ParallaxMotionBackground({
       // Layer has 10% headroom above/below → clamp travel strictly inside it.
       const travel = gsap.utils.clamp(1, 9, parallaxSpeed * 20)
 
+      // P2 perf: scroll-scrubbed parallax runs on tablet/desktop only — on
+      // phones the backdrop is static (no per-frame scrub cost on slow CPUs).
+      // The zoom reveal below stays ungated so first paint is identical.
+      // gsap-performance: matchMedia (not UA) + composited yPercent only.
+      const mm = gsap.matchMedia()
       if (enableParallax) {
-        gsap.fromTo(
-          layer,
-          { yPercent: -travel },
-          {
-            yPercent: travel,
-            ease: "none",
-            immediateRender: false,
-            scrollTrigger: {
-              trigger: rootRef.current,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: 1, // velocity-smoothed scrub — fluid, follows the scroll
-            },
-          }
-        )
+        mm.add("(min-width: 768px)", () => {
+          gsap.fromTo(
+            layer,
+            { yPercent: -travel },
+            {
+              yPercent: travel,
+              ease: "none",
+              immediateRender: false,
+              scrollTrigger: {
+                trigger: rootRef.current,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: 1, // velocity-smoothed scrub — fluid, follows the scroll
+              },
+            }
+          )
+        })
       }
 
       if (revealScale) {
@@ -145,6 +152,9 @@ export function ParallaxMotionBackground({
           )
         }
       }
+
+      // useGSAP scope cleanup reverts the matchMedia context above.
+      return () => mm.revert()
     },
     {
       scope: rootRef,

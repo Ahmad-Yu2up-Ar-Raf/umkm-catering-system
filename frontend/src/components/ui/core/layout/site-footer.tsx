@@ -67,6 +67,7 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
               <div className="group mb-10 flex items-center space-x-2 transition-transform">
                 <Link
                   to="/"
+                  aria-label="Catering Nusantara — Beranda"
                   className="size-10 transition-transform duration-300 group-hover:scale-105 group-hover:brightness-110 sm:size-5 md:size-8 lg:size-10"
                 >
                   <Logo className="size-12" />

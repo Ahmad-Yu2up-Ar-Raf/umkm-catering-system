@@ -239,7 +239,10 @@ export function PaketGrid({
                 <PaketCard
                   paket={paket}
                   layoutMode={layoutMode}
-                  priority={index < 4}
+                  // P1 perf: exactly ONE eager/high image per route (the LCP).
+                  // Four competing high-priority requests re-create the burst
+                  // the idle gates were built to prevent.
+                  priority={index === 0}
                   className={cn(isPlaceholderData && "opacity-60")}
                 />
               </motion.div>
