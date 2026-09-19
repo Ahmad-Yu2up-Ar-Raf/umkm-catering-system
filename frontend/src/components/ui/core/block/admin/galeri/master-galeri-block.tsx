@@ -70,7 +70,7 @@ function MasterGaleriBlock() {
   const { mutate: bulkDelete, isPending: isBulkDeleting } = useGaleriBulkDeleteMutation()
   const isAnyBulkPending = isBulkUpdating || isBulkDeleting
 
-  const { isExporting, run: runExport } = useExportExcel({
+  const { isExporting, run: runExport, cancel: cancelExport } = useExportExcel({
     filename: `galeri-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
     asyncModule: "galeri",
     fetchBlob: (p) => {
@@ -168,6 +168,7 @@ function MasterGaleriBlock() {
           })
         }
         isExporting={isExporting}
+        onCancelExport={cancelExport}
       />
 
       <FloatingActionMenu

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import { toast } from "sonner"
 import { playDownload, playError, playNotification } from "@/lib/audio-feedback"
+import { HTTPError } from "ky"
 import { api } from "@/api/client"
 
 export type ExportFetcher = (params: Record<string, string | string[]>) => Promise<Blob>
@@ -19,10 +20,37 @@ interface UseExportExcelOptions {
 /** Poll delays: exponential backoff 1s → 2s → 4s → 8s, capped at 10s. */
 const POLL_DELAYS = [1000, 2000, 4000, 8000, 10000]
 /**
- * Absolute poll deadline: 16 min. Must exceed the job budget ($timeout 900s)
- * so a healthy-but-slow export is never killed client-side first.
+ * Fail-fast circuit breaker: `pending` with no worker pickup for >30s means
+ * the queue worker is dead, idle, or never received the job — terminate now
+ * instead of polling a silent queue until the absolute deadline.
  */
-const POLL_DEADLINE_MS = 16 * 60_000
+const PENDING_SILENCE_MS = 30_000
+/**
+ * Fail-fast circuit breaker: `processing` with no row progress for >45s means
+ * the job stalled (DB hang, OOM, lost heartbeat) — terminate now.
+ */
+const PROCESSING_STALL_MS = 45_000
+/**
+ * Absolute backstop: 6 min. Must exceed the job budget ($timeout 240s) so a
+ * healthy-but-slow export is never killed client-side first. Every stuck case
+ * trips the 30s/45s breaker long before this fires.
+ */
+const POLL_DEADLINE_MS = 6 * 60_000
+
+/** Thrown the moment the circuit breaker opens — never loop silently. */
+const CIRCUIT_OPEN_MESSAGE = "Worker export tidak merespon — silakan coba lagi."
+
+interface ExportPollState {
+  status: string
+  message?: string
+  stale?: boolean
+  rows?: number
+  total?: number
+}
+
+function httpStatusOf(err: unknown): number | null {
+  return err instanceof HTTPError ? err.response.status : null
+}
 
 async function pollExportBlob(
   module: AsyncExportModule,
@@ -30,48 +58,90 @@ async function pollExportBlob(
   signal: AbortSignal,
   onProgress?: (rows?: number, total?: number) => void
 ): Promise<Blob> {
-  const queued = await api
-    .post(`admin/exports/${module}`, { json: params })
-    .json<{ data: { token: string } }>()
-  const token = queued.data.token
-  const deadline = Date.now() + POLL_DEADLINE_MS
+  let token: string
+  try {
+    const queued = await api
+      .post(`admin/exports/${module}`, { json: params })
+      .json<{ data: { token: string } }>()
+    token = queued.data.token
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err
+    const status = httpStatusOf(err)
+    throw new Error(
+      status !== null ? `Export gagal dimulai (HTTP ${status}) — coba lagi` : "Koneksi terputus saat memulai export",
+      { cause: err }
+    )
+  }
+  const pollStart = Date.now()
+  const deadline = pollStart + POLL_DEADLINE_MS
   let attempt = 0
   let networkErrors = 0
+  let lastProgressAt = pollStart
+  let lastRows = -1
   for (;;) {
     if (signal.aborted) throw new DOMException("export cancelled", "AbortError")
     if (Date.now() > deadline) throw new Error("Export timeout — file terlalu besar, coba filter lebih spesifik")
     const delay = POLL_DELAYS[Math.min(attempt, POLL_DELAYS.length - 1)]
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const t = setTimeout(resolve, delay)
-      signal.addEventListener("abort", () => {
-        clearTimeout(t)
-        reject(new DOMException("export cancelled", "AbortError"))
-      })
+      signal.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(t)
+          reject(new DOMException("export cancelled", "AbortError"))
+        },
+        { once: true }
+      )
     })
     attempt += 1
-    let res: Response
+    let state: ExportPollState
     try {
-      res = await api.get(`admin/exports/${token}`, { signal })
+      const res = await api.get(`admin/exports/${token}`, { signal })
+      state = ((await res.json()) as { data: ExportPollState }).data
     } catch (err) {
-      // Transient network blip: 2 retries, then terminal.
-      networkErrors += 1
       if (err instanceof DOMException && err.name === "AbortError") throw err
-      if (networkErrors > 2) throw new Error("Koneksi terputus saat memantau export")
+      const status = httpStatusOf(err)
+      if (status !== null) {
+        // Terminal HTTP failure — surface now, never mask as transient.
+        if (status === 404) throw new Error("Export kedaluwarsa — silakan ulangi", { cause: err })
+        if (status === 401) throw new Error("Sesi berakhir — silakan login kembali", { cause: err })
+        throw new Error(`Export gagal di server (HTTP ${status}) — coba lagi`, { cause: err })
+      }
+      // Genuine network blip only: 2 retries, then terminal.
+      networkErrors += 1
+      if (networkErrors > 2) throw new Error("Koneksi terputus saat memantau export", { cause: err })
       continue
     }
-    if (res.status === 404) throw new Error("Export kedaluwarsa — silakan ulangi")
-    if (res.status === 401) throw new Error("Sesi berakhir — silakan login kembali")
-    const state = (await res.json()) as {
-      data: { status: string; message?: string; stale?: boolean; rows?: number; total?: number }
+    if (state.status === "ready") break
+    if (state.status === "failed") throw new Error(state.message || "Export gagal di server")
+    if (state.stale) throw new Error("Worker export berhenti — coba lagi")
+    // Circuit breaker: silence without progress is terminal — never loop blindly.
+    const now = Date.now()
+    if (state.status === "processing") {
+      const rows = typeof state.rows === "number" ? state.rows : lastRows
+      if (rows > lastRows) {
+        lastRows = rows
+        lastProgressAt = now
+      } else if (now - lastProgressAt > PROCESSING_STALL_MS) {
+        throw new Error(CIRCUIT_OPEN_MESSAGE)
+      }
+    } else if (now - pollStart > PENDING_SILENCE_MS) {
+      // `pending` (or unknown status) that never advances: worker never picked up.
+      throw new Error(CIRCUIT_OPEN_MESSAGE)
     }
-    if (state.data.status === "ready") break
-    if (state.data.status === "failed") throw new Error(state.data.message || "Export gagal di server")
-    if (state.data.stale) throw new Error("Worker export berhenti — coba lagi")
-    if (typeof onProgress === "function") onProgress(state.data.rows, state.data.total)
+    if (typeof onProgress === "function") onProgress(state.rows, state.total)
   }
   // Large xlsx needs longer than the global 30s ky timeout; abortable via run's controller.
-  const blob = await api.get(`admin/exports/${token}/download`, { signal, timeout: 120_000 }).blob()
-  return blob
+  try {
+    return await api.get(`admin/exports/${token}/download`, { signal, timeout: 120_000 }).blob()
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") throw err
+    const status = httpStatusOf(err)
+    if (status === 409) throw new Error("Export belum siap — silakan ulangi", { cause: err })
+    if (status === 404) throw new Error("File export hilang — silakan ulangi", { cause: err })
+    if (status !== null) throw new Error(`Unduhan gagal (HTTP ${status}) — coba lagi`, { cause: err })
+    throw new Error("Koneksi terputus saat mengunduh export", { cause: err })
+  }
 }
 
 export function useExportExcel({ filename, fetchBlob, asyncModule }: UseExportExcelOptions) {

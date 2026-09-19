@@ -28,6 +28,7 @@ interface PaketToolbarProps {
   onAdd: () => void
   onExport: () => void
   isExporting: boolean
+  onCancelExport?: () => void
 }
 
 export function PaketToolbar({
@@ -42,6 +43,7 @@ export function PaketToolbar({
   onAdd,
   onExport,
   isExporting,
+  onCancelExport,
 }: PaketToolbarProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -99,6 +101,17 @@ export function PaketToolbar({
             )}
             {isExporting ? "Mengekspor…" : "Export"}
           </Button>
+          {isExporting && onCancelExport && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              className="w-full md:w-fit"
+              onClick={onCancelExport}
+            >
+              Batal
+            </Button>
+          )}
           <Button  size={"lg"} onClick={onAdd}>
             <HugeiconsIcon icon={Add01Icon} className="size-4" />
             Tambah Paket
@@ -122,6 +135,17 @@ export function PaketToolbar({
           )}
           {isExporting ? "Mengekspor…" : "Export"}
         </Button>
+        {isExporting && onCancelExport && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            className="mt-2 w-full"
+            onClick={onCancelExport}
+          >
+            Batal
+          </Button>
+        )}
       </div>
     </div>
   )

@@ -68,7 +68,7 @@ function MasterTestimoniBlock() {
     useTestimoniBulkUpdateMutation()
   const isAnyBulkPending = isBulkUpdating || isBulkDeleting
 
-  const { isExporting, run: runExport } = useExportExcel({
+  const { isExporting, run: runExport, cancel: cancelExport } = useExportExcel({
     filename: `testimoni-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
     asyncModule: "testimoni",
     fetchBlob: (p) => {
@@ -166,6 +166,7 @@ function MasterTestimoniBlock() {
           })
         }
         isExporting={isExporting}
+        onCancelExport={cancelExport}
       />
 
       <FloatingActionMenu

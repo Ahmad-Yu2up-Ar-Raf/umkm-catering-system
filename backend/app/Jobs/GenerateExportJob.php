@@ -33,8 +33,10 @@ class GenerateExportJob implements ShouldQueue
 {
     use Queueable;
 
+    // ponytail: self-times-out below worker --timeout (300) so overruns die
+    // inside handle() → cache `failed`, never SIGKILLed mid-write with no status
     /** @var int max seconds the worker may spend on one export */
-    public $timeout = 900;
+    public $timeout = 240;
 
     /** @var int never retry a heavy export blindly — surface failure instead */
     public $tries = 1;

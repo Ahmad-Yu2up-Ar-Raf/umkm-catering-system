@@ -23,6 +23,7 @@ interface GaleriToolbarProps {
   onAdd: () => void
   onExport: () => void
   isExporting: boolean
+  onCancelExport?: () => void
 }
 
 export function GaleriToolbar({
@@ -35,6 +36,7 @@ export function GaleriToolbar({
   onAdd,
   onExport,
   isExporting,
+  onCancelExport,
 }: GaleriToolbarProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -84,6 +86,17 @@ export function GaleriToolbar({
             )}
             {isExporting ? "Mengekspor…" : "Export"}
           </Button>
+          {isExporting && onCancelExport && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              className="w-full md:w-fit"
+              onClick={onCancelExport}
+            >
+              Batal
+            </Button>
+          )}
           <Button  size={"lg"} onClick={onAdd}>
             <HugeiconsIcon icon={Add01Icon} className="size-4" />
             Tambah Galeri
@@ -107,6 +120,17 @@ export function GaleriToolbar({
           )}
           {isExporting ? "Mengekspor…" : "Export"}
         </Button>
+        {isExporting && onCancelExport && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            className="mt-2 w-full"
+            onClick={onCancelExport}
+          >
+            Batal
+          </Button>
+        )}
       </div>
     </div>
   )
