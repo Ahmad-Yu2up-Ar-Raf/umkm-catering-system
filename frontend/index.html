@@ -28,13 +28,15 @@
 
     <!-- P1 perf: LCP preload — the hero backdrop is the LCP element. Exactly
          one image preload per route; each extra preload competes for bandwidth.
-         `scripts/optimize-images.mjs` (run once locally) generates the .webp
-         siblings; once present, point this href at the 1024w .webp + imagesrcset. -->
+         1024w .webp is 31 KB (was a 3.2 MB PNG); the browser picks the tight
+         candidate via imagesrcset. -->
     <link
       rel="preload"
       as="image"
+      type="image/webp"
       fetchpriority="high"
-      href="/assets/images/banners/hero-banner-tumpeng.png"
+      href="/assets/images/banners/hero-banner-tumpeng-1024.webp"
+      imagesrcset="/assets/images/banners/hero-banner-tumpeng-640.webp 640w, /assets/images/banners/hero-banner-tumpeng-1024.webp 1024w, /assets/images/banners/hero-banner-tumpeng-1920.webp 1920w"
       imagesizes="100vw"
     />
 
@@ -155,6 +157,30 @@
         ]
       }
     </script>
+
+    <!-- STEP 4 critical paint: the smallest above-fold shell (preloader layer,
+         hero floor, root container) so first paint never waits on the full
+         stylesheet. Tokens only — same oklch values as src/index.css.
+         The full bundle still loads normally (no async-CSS swap: a manual
+         split risks FOUC on route chunks, rejected deliberately). -->
+    <style>
+      #root {
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+      }
+      #hero {
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+      }
+      .preloader-shell {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background-color: oklch(0.9582 0.0152 90.2357);
+      }
+    </style>
 
     <script type="module" src="/src/main.tsx"></script>
   </head>

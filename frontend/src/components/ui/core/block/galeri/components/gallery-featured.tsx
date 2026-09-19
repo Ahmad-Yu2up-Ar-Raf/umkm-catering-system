@@ -73,12 +73,15 @@ export function GalleryFeatured({
           }}
           className="absolute inset-0"
         >
+          {/* STEP 1: the featured slide is the /galeri LCP — eager/high.
+              Every other gallery image stays lazy via MediaItem default. */}
           <MediaItem
             webViewLink={active.gambar_acara}
             className="absolute inset-0 h-full w-full"
             imageClassName="h-full w-full object-cover"
             width={2400}
             height={1350}
+            priority
           />
         </motion.div>
       </AnimatePresence>

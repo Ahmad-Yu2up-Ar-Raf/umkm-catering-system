@@ -32,6 +32,13 @@ type ParallaxMotionBackgroundProps = {
   /** ScrollTrigger start for `revealTrigger="scroll"` (default "top 80%"). */
   revealStart?: string
   className?: string
+  /** Next-gen responsive sources for the backdrop. When provided, the photo
+   *  renders as `<picture>` with one `<source>` per entry (avif → webp order)
+   *  and `imageUrl` stays the universal fallback. Entries carry a `srcSet`
+   *  with width descriptors; `sizes` defaults to `100vw` (full-bleed). */
+  pictureSources?: { srcSet: string; type: string }[]
+  /** `sizes` for the responsive sources (default "100vw"). */
+  sizes?: string
 }
 
 /**
@@ -72,6 +79,8 @@ export function ParallaxMotionBackground({
   play = true,
   revealStart = "top 80%",
   className,
+  pictureSources,
+  sizes = "100vw",
 }: ParallaxMotionBackgroundProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const layerRef = useRef<HTMLDivElement>(null)
@@ -185,16 +194,33 @@ export function ParallaxMotionBackground({
         {/* P7 perf: only preloader-gated heroes (revealTrigger="mount") keep
             eager/high — every below-fold instance lazy-decodes so image work
             never competes with the hero reveal on route change. */}
-        {/* Only preloader-gated heroes decode eagerly — below-fold instances
-            lazy-decode so image work never shares the hero's frame burst. */}
-        <img
-          src={imageUrl}
-          alt={alt}
-          className="h-full w-full object-cover"
-          loading={revealTrigger === "mount" ? "eager" : "lazy"}
-          fetchPriority={revealTrigger === "mount" ? "high" : "auto"}
-          decoding="async"
-        />
+        {/* STEP 1 raster: when `pictureSources` are provided the browser picks
+            the cheapest next-gen candidate (avif → webp → fallback) instead of
+            the multi-MB raw PNG. Exactly one eager/high image per route. */}
+        {pictureSources && pictureSources.length > 0 ? (
+          <picture>
+            {pictureSources.map((s) => (
+              <source key={s.type} srcSet={s.srcSet} sizes={sizes} type={s.type} />
+            ))}
+            <img
+              src={imageUrl}
+              alt={alt}
+              className="h-full w-full object-cover"
+              loading={revealTrigger === "mount" ? "eager" : "lazy"}
+              fetchPriority={revealTrigger === "mount" ? "high" : "auto"}
+              decoding="async"
+            />
+          </picture>
+        ) : (
+          <img
+            src={imageUrl}
+            alt={alt}
+            className="h-full w-full object-cover"
+            loading={revealTrigger === "mount" ? "eager" : "lazy"}
+            fetchPriority={revealTrigger === "mount" ? "high" : "auto"}
+            decoding="async"
+          />
+        )}
       </div>
       {overlayGradient &&
         (Array.isArray(overlayGradient) ? (

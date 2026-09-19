@@ -1,11 +1,19 @@
 import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
+import compression from "vite-plugin-compression"
 import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  // STEP 4: gzip pre-compression for text assets (JS/CSS/SVG/HTML ≥10 KB).
+  // Vercel Edge also compresses on the fly — these files are the fallback for
+  // local preview / non-Vercel hosts. Originals kept (deleteOriginals: false).
+  plugins: [
+    react(),
+    tailwindcss(),
+    compression({ algorithm: "gzip", ext: ".gz", threshold: 10240 }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),

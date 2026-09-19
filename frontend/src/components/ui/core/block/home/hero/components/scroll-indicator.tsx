@@ -38,13 +38,19 @@ export function ScrollIndicator() {
       if (reduced || !rootRef.current) return
 
       // ENTRANCE — fade-blur reveal, delayed until the hero is done loading.
+      // STEP 2 micro-guard: on phones (<768px) the 22px cue skips `filter`
+      // entirely (autoAlpha + y only) — blur buys nothing at this size and
+      // costs a paint-chain layer during the hero reveal burst.
+      const isMobile = window.matchMedia("(max-width: 767px)").matches
       gsap.fromTo(
         rootRef.current,
-        { autoAlpha: 0, y: 10, filter: "blur(8px)" },
+        isMobile
+          ? { autoAlpha: 0, y: 10 }
+          : { autoAlpha: 0, y: 10, filter: "blur(8px)" },
         {
           autoAlpha: 1,
           y: 0,
-          filter: "blur(0px)",
+          ...(isMobile ? {} : { filter: "blur(0px)" }),
           duration: 0.8,
           ease: "power3.out",
           delay: ENTRANCE_DELAY,

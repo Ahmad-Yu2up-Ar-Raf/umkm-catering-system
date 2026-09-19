@@ -1,60 +1,47 @@
-# PageSpeed Insights Analysis Report - Mobile
-**Target URL:** `https://cateringnusantara.vercel.app/`
-**Device:** Mobile
+# Mobile Performance Analysis Report - Catering Nusantara
+**Target Audience:** AI Developer Agent (Opencode)
+**Objective:** Resolve critical performance bottlenecks (Score < 60) across all pages on Mobile viewports.
 
-## 1. Key Metrics Summary
-Based on the test, performance on mobile devices is in a critical state:
-* **Performance:** 53/100 (Poor)
-* **Accessibility:** 91/100 (Excellent)
-* **Best Practices:** 100/100 (Perfect)
-* **SEO:** 100/100 (Perfect)
+## 1. Homepage (`/`)
+**Current Score:** 43/100 | **LCP:** 45.4s | **TBT:** 570ms | **Total Payload:** ~12.5 MB
 
-**Core Web Vitals:**
-* **First Contentful Paint (FCP):** 5.7s (Very Slow)
-* **Largest Contentful Paint (LCP):** 42.2s (Critical - Completely fails standard limits)
-* **Total Blocking Time (TBT):** 220 ms
-* **Speed Index:** 9.5s
-* **Cumulative Layout Shift (CLS):** 0 (Very Stable)
+### Critical Insights & Bottlenecks:
+* **Enormous Network Payload:** The total page weight is an unacceptable 12.5 MB[cite: 37]. A single image (`banners/hero-banner-tumpeng.png`) is 3.2 MB, and the first-party payload is 7.7 MB[cite: 37].
+* **LCP Lazy-Loading Violation:** The hero LCP image contains `loading="lazy"`, forcing the browser to delay fetching the most critical visual element[cite: 37].
+* **Unused JavaScript & Main Thread Blocking:** Scripts from PostHog (`posthog.com`) and massive vendor bundles (`/assets/vendor-mo...`) are blocking the main thread for over 2.8 seconds[cite: 37].
+* **Uncomposited Animations:** Tailwind CSS animations are triggering layout shifts. Animating properties other than `transform` or `opacity` is causing layout thrashing[cite: 37].
 
----
-
-## 2. In-Depth Analysis & Main Issues (Performance)
-
-A score of 53 and an LCP of 42.2s on mobile devices is a severe warning. CPU and bandwidth limitations on mobile simulations reveal the true bottlenecks of the current front-end architecture.
-
-### A. Critical Issue: Enormous Network Payload (Massive Images)
-This is the primary cause of the devastated LCP score (42.2s) on mobile devices.
-* **Total Payload:** Avoid enormous network payloads. This page loads a total payload of **14,537 KB (around 14.5 MB)!**. This is lethal for 3G/4G connections.
-* **Serve images in next-gen formats:** There is a spectacular potential saving of **11,203 KB (11 MB)** if images do not use legacy formats (high-res PNG/JPG).
-* **List of Largest Image Payloads:**
-  1. `hero-banner-tumpeng.png` (3,252 KB -> potential savings 3,141 KB).
-  2. `paket-tumpeng-mini-2.png` (1,555 KB -> potential savings 1,545 KB).
-  3. `paket-prasmanan-makanan1.png` (1,515 KB -> potential savings 1,502 KB).
-  4. `paket-prasmanan-korporat-2.png` (1,477 KB -> potential savings 1,467 KB).
-  5. `paket-tumpeng.png` (1,192 KB -> potential savings 1,183 KB).
-  *(All images are rendered at their original size without responsive viewport detection for mobile).*
-
-### B. Render-Blocking & Main-Thread Performance
-* **Eliminate render-blocking resources:** The `/assets/index-CnT359nh.css` file blocks the initial render, with an estimated wasted time of around **720 ms** on mobile devices.
-* **GSAP Execution & Layout Thrashing:** Similar to Desktop, the GSAP animation script (`/assets/gsap-DusXayav.js`) triggers a *Forced Synchronous Layout*. Because mobile CPUs are slower than desktop CPUs, the DOM recalculation process containing **823 elements** consumes significant main-thread resources.
-* **Reduce unused JavaScript:** There is dead code or delayed initialization code of ~253 KB (`use-form`, `posthog`, `index`) that must be parsed by the phone's CPU.
-
-### C. LCP Request Chain Discovery
-* LCP on mobile is delayed due to a long and unoptimized asset request chain. The LCP image (`paket-tumpeng-mini-2.png`) has a `loading="lazy"` attribute. Applying lazy load to image elements in the initial viewport (Above the fold) is a major mistake (Anti-pattern). This drastically delays the fetching of the LCP image.
+### Required Actions (Homepage):
+1. **Cloudinary Optimization:** Ensure ALL Cloudinary image URLs include `q_auto,f_auto`. Replace `.png` extensions in the URL with automatic format delivery.
+2. **Fix LCP Image Priority:** On the Hero image, strictly set `loading="eager"` (or omit the loading attribute) and add `fetchpriority="high"`.
+3. **Defer Third-Party Scripts:** Move PostHog initialization to a Web Worker (using `@builder.io/partytown`) or strictly defer it until after page hydration.
 
 ---
 
-## 3. Mobile-Specific Accessibility Analysis
+## 2. Gallery Pages (`/galeri` & `/galeri/semua`)
+**Current Score:** 56-58/100 | **LCP:** 23.6s - 25.0s | **TBT:** 150ms | **Total Payload:** ~8.6 MB
 
-* **Color Contrast Issues:** The text "CARA PEMESANAN" does not have a sufficient background and foreground contrast ratio (Hard to read on mobile screens).
-* **Navigation & Heading Elements:** Similar to desktop findings, there is no `<h1>` element, or the heading structure is skipped.
-* **Link Labels:** Links containing interactive SVG elements do not have recognizable names.
+### Critical Insights & Bottlenecks:
+* **Massive Unoptimized Images:** The image `corporate-lunch-box-overhead-lifestyle.png` is 4.05 MB[cite: 36]. Images are missing proper modern formats like WebP/AVIF[cite: 35, 36].
+* **Render-Blocking CSS/JS:** The initial CSS bundle (`/assets/index-C15u...css`) and vendor JS are blocking the First Contentful Paint (FCP) by ~300ms[cite: 35, 36].
+* **DOM Size & Depth:** The `/galeri` page is rendering too many DOM nodes concurrently instead of virtualizing the gallery grid[cite: 36].
+
+### Required Actions (Gallery):
+1. **Implement Next.js Image Component (or equivalent):** Use `<Image />` with `sizes` attributes properly configured (e.g., `sizes="(max-width: 640px) 100vw, 50vw"`). This forces Cloudinary to serve smaller resolutions for mobile viewports[cite: 35].
+2. **Lazy Load Below-the-Fold Images:** ALL gallery images *except* the first 2-4 visible images must strictly use `loading="lazy"`. 
+3. **Pagination / Infinite Scroll:** Do not render all gallery items at once. Implement intersection observers to load images only when they enter the viewport.
 
 ---
 
-## 4. Urgent Instructions for AI Agent (Opencode)
-1. **[CRITICAL FIX]** Remove the `loading="lazy"` attribute on images located in the initial viewport (such as `hero-banner-tumpeng.png` or the first product image). Use `fetchpriority="high"`. The lazy loading attribute should only be used for images *below the fold*.
-2. Implement the Next.js `<Image />` component to dynamically serve `.webp` / `.avif` and provide a `srcset` so mobile devices only download small-sized images (e.g., 640px wide) instead of the 3MB version. The total payload MUST be compressed below 2-3 MB.
-3. Extract *Critical CSS* to eliminate render-blocking issues from `index-CnT359nh.css`.
-4. Fix the text contrast ratio in the "CARA PEMESANAN" section to meet WCAG AA accessibility standards (minimum ratio of 4.5:1).
-5. Add a semantic `<h1>` tag in the Hero area.
+## 3. Package Detail Pages (`/paket` & `/paket/15`)
+**Current Score:** 46/100 | **LCP:** 24.1s | **TBT:** 470ms
+
+### Critical Insights & Bottlenecks:
+* **Forced Synchronous Layout:** JavaScript is requesting geometric properties (like `offsetWidth`) right after styles are invalidated, causing forced reflows that take up to 258ms on the main thread[cite: 38].
+* **Legacy JavaScript:** Polyfills and legacy JS are being served to modern browsers, wasting ~17 KB of critical parsing time[cite: 38].
+* **Render-Blocking Fonts & Assets:** `fraunces.woff2` is being fetched late in the critical request chain, maxing out at 1,680ms[cite: 38].
+
+### Required Actions (Package):
+1. **Font Preloading:** Add `<link rel="preload" href="/assets/fraunces.woff2" as="font" type="font/woff2" crossorigin>` to the document head[cite: 38]. Ensure `font-display: swap` is used in CSS.
+2. **Avoid Layout Thrashing:** Review React `useEffect` or Alpine.js hooks. Do not read DOM measurements (like `getBoundingClientRect()`) and write styles in the same synchronous frame.
+3. **Bundle Modernization:** Ensure the bundler (Vite/Next) target is set to `esnext` or modern browsers to drop unnecessary polyfills.

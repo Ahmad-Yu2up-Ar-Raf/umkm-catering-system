@@ -1,53 +1,31 @@
-# PageSpeed Insights Analysis Report - Desktop
-**Target URL:** `https://cateringnusantara.vercel.app/`
-**Device:** Desktop
+# Desktop Performance Analysis Report - Catering Nusantara
+**Target Audience:** AI Developer Agent (Opencode)
+**Objective:** Standardize and optimize Desktop Core Web Vitals based on the shared codebase bottlenecks.
 
-## 1. Key Metrics Summary
-Based on the test, here are the main metric scores on desktop:
-* **Performance:** 76/100 (Moderate)
-* **Accessibility:** 94/100 (Excellent)
-* **Best Practices:** 100/100 (Perfect)
-* **SEO:** 100/100 (Perfect)
+*Note: While Desktop CPUs and network connections typically yield higher baseline scores than Mobile, the architectural bottlenecks remain identical and will severely penalize the Desktop LCP and CLS if left unaddressed.*
 
-**Core Web Vitals:**
-* **First Contentful Paint (FCP):** 1.0s (Fast)
-* **Largest Contentful Paint (LCP):** 3.5s (Needs Improvement - Exceeds 2.5s threshold)
-* **Total Blocking Time (TBT):** 170 ms
-* **Speed Index:** 1.0s
-* **Cumulative Layout Shift (CLS):** 0 (Very Stable)
+## Global Desktop Architecture Bottlenecks
 
----
+### 1. The Cloudinary Transformation Gap
+The most critical failure point across the entire application is how images are fetched from the Cloudinary CDN. The desktop layouts render larger grid areas, which exacerbates the payload size.
+* **The Issue:** Raw `.png` and `.jpg` files are being fetched without size bounding or format negotiation.
+* **Best Practice Fix:** 
+  The AI Agent must rewrite the image utility/loader to guarantee the following URL structure:
+  `https://res.cloudinary.com/[cloud_name]/image/upload/f_auto,q_auto,w_[width]/v[version]/[public_id]`
+  - `f_auto`: Automatically delivers AVIF or WebP based on the browser.
+  - `q_auto`: Intelligent quality compression.
+  - `w_[width]`: Never serve a 4000px image inside a 600px desktop grid column.
 
-## 2. In-Depth Analysis & Main Issues (Performance)
+### 2. Next.js / React Hydration Overhead
+* **The Issue:** The main thread is blocked by large React vendor chunks (`vendor-mo.js`). The desktop viewport is processing complex DOM trees (especially on the `/galeri/semua` route) simultaneously.
+* **Best Practice Fix:**
+  - **Dynamic Imports (`next/dynamic` or `React.lazy`):** Any component below the desktop viewport (like footers, heavy carousels, or Modals) MUST be dynamically imported.
+  - **Third-Party Script Optimization:** SurveyJS and PostHog are severely penalizing the Time to Interactive (TTI). Use the `next/script` component with `strategy="lazyOnload"` or `strategy="worker"` for these tools.
 
-### A. Biggest Issue: Image Optimization & Network Payload
-The most significant issue holding back the desktop performance score is image sizing.
-* **Serve images in next-gen formats:** There is a potential bandwidth saving of **2,948 KB (almost 3MB)** if modern image formats like WebP or AVIF are used.
-* **Main Culprit:** The file `hero-banner-tumpeng.png` has a raw size of **3,252.7 KB**. This file heavily impacts the LCP. If optimized, its size could drop drastically, saving around 2,940.4 KB.
-* **Avoid enormous network payloads:** The total network payload is high, mostly dominated by static image assets (like banners and product images).
+### 3. Cumulative Layout Shift (CLS) on Desktop Grid
+* **The Issue:** Because desktop uses a wider grid, images arriving late cause the rest of the layout to jump.
+* **Best Practice Fix:** Every single `<img>` tag or Cloudinary component must have explicit `width` and `height` attributes defined in the HTML (or use Tailwind's `aspect-ratio` utility `aspect-video`, `aspect-square`) to reserve the exact layout space before the image downloads.
 
-### B. Render-Blocking Resources
-* **Eliminate render-blocking resources:** There is a CSS file (`/assets/index-CnT359nh.css`) of about 32.4 KB that blocks the initial page render. This delays the FCP and LCP with potential savings of around **80 ms**.
-
-### C. JavaScript Execution & DOM Performance
-* **Avoid forced synchronous layouts (Layout Thrashing):** A layout recalculation is occurring that consumes time. Analysis indicates this originates from the `/assets/gsap-DusXayav.js` file, suggesting GreenSock (GSAP) animations are requesting geometry properties (like `offsetWidth`) before styles (CSS) are fully calculated.
-* **Reduce unused JavaScript:** There is a potential saving of about **254 KB** from non-essential JS execution early on. Files contributing to this load include `use-form-...js`, `posthog...js`, and `index-...js`.
-* **Legacy JavaScript:** There are polyfills or legacy JS transformations being sent to modern browsers (potentially saving 17 KB), mostly from third-party tracking like PostHog (`/assets/posthog-...js`).
-* **Optimize DOM Size:** This page has a total of **823 DOM elements**. While not extreme, a large DOM affects page responsiveness when CSS is recalculated, especially by animation scripts.
-
----
-
-## 3. Accessibility & Agentic Crawling (SEO) Analysis
-
-Despite high Accessibility and SEO scores, there are a few minor notes for perfection:
-* **Agentic Crawling & Heading Structure:** This page **does not have an `<h1>` element** at all. AI or screen readers will struggle to identify the main topic of the page due to skipped or out-of-order heading levels.
-* **ARIA Attributes on Links:** There are link elements (like `<div class="group">` containing an SVG) that do not have a recognizable text label (`aria-label`). This makes it difficult for screen reader users.
-
----
-
-## 4. Instructions for AI Agent (Opencode)
-1. Convert all image assets in the `/assets/images/` directory to `.webp` or `.avif` formats. Implement Next.js `<Image />` component for automatic optimization (Lazy loading, compression, sizing).
-2. Defer the loading of non-essential third-party scripts like PostHog.
-3. Check the GSAP animation initialization, avoid reading layout properties (like `offsetWidth/Height`) before elements are fully loaded in the DOM, and use `requestAnimationFrame` if necessary.
-4. Add a semantically descriptive `<h1>` tag for the Hero Section (can be visually hidden with an `sr-only` class if it disrupts the UI design).
-5. Add an `aria-label="Description"` attribute to buttons or links that only contain SVG icons.
+### 4. CSS Uncomposited Animations
+* **The Issue:** Hover effects on desktop (like hovering over package cards) are triggering layout recalculations.
+* **Best Practice Fix:** Audit Tailwind classes. Replace any animations that modify `margin`, `padding`, `width`, or `height` with `transform: translate()` and `transform: scale()`.

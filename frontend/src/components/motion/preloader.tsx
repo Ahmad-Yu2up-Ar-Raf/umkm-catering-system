@@ -133,7 +133,7 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
     <div
       ref={rootRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center bg-muted"
+      className="preloader-shell pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center bg-muted"
     >
       <div className="flex w-full flex-col items-center gap-0 px-6 pb-24 text-center">
         {/* Eyebrow — exact Hero composition: hairline — label — hairline. */}

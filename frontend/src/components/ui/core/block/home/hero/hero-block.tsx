@@ -99,7 +99,9 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             >
               <MediaItem
                 className="h-full w-full cursor-zoom-in"
-
+                sizes="(max-width: 640px) 40vw, (max-width: 1024px) 25vw, 220px"
+                width={220}
+                height={260}
                 webViewLink={"/assets/images/lifestyle/paket-combo-1.png"}
               />
             </div>
@@ -115,7 +117,9 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             >
               <MediaItem
                 className="h-full w-full cursor-zoom-in"
-
+                sizes="(max-width: 640px) 40vw, (max-width: 1024px) 25vw, 240px"
+                width={240}
+                height={280}
                 webViewLink={
                   "/assets/images/products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-1.png"
                 }
@@ -133,7 +137,9 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             >
               <MediaItem
                 className="h-full w-full cursor-zoom-in"
-
+                sizes="(max-width: 640px) 40vw, (max-width: 1024px) 25vw, 240px"
+                width={240}
+                height={280}
                 webViewLink={
                   "/assets/images/products/paket-tumpeng-mini/paket-tumpeng-mini-2.png"
                 }
@@ -151,7 +157,9 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             >
               <MediaItem
                 className="h-full w-full cursor-zoom-in"
-
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 30vw, 280px"
+                width={280}
+                height={280}
                 webViewLink={
                   "/assets/images/products/paket-prasmanan-korporat/paket-prasmanan-korporat-2.png"
                 }
@@ -165,6 +173,19 @@ export function HeroBlock({ preloaderDone }: { preloaderDone: boolean }) {
             #kontak, so the two full-bleed sections feel like one system). */}
         <ParallaxMotionBackground
           imageUrl="/assets/images/banners/hero-banner-tumpeng.png"
+          pictureSources={[
+            {
+              srcSet:
+                "/assets/images/banners/hero-banner-tumpeng-640.avif 640w, /assets/images/banners/hero-banner-tumpeng-1024.avif 1024w, /assets/images/banners/hero-banner-tumpeng-1920.avif 1920w",
+              type: "image/avif",
+            },
+            {
+              srcSet:
+                "/assets/images/banners/hero-banner-tumpeng-640.webp 640w, /assets/images/banners/hero-banner-tumpeng-1024.webp 1024w, /assets/images/banners/hero-banner-tumpeng-1920.webp 1920w",
+              type: "image/webp",
+            },
+          ]}
+          sizes="100vw"
           parallaxSpeed={0.2}
           revealScale
           revealTrigger="mount"
@@ -381,7 +402,8 @@ export function Marque({ preloaderDone }: { preloaderDone: boolean }) {
           ref={row1Ref}
           className="h-12 w-[160dvw] bg-repeat-x md:h-16 lg:h-20"
           style={{
-            backgroundImage: "url('/assets/images/patern/songket2.jpg')",
+            // STEP 1 raster: 147 KB webp tile (was a 2.2 MB JPEG).
+            backgroundImage: "url('/assets/images/patern/songket2-opt.webp')",
             backgroundRepeat: "repeat-x",
             backgroundSize: "auto 100%",
             backgroundPosition: "0 50%",

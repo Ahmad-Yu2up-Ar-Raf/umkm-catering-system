@@ -27,10 +27,20 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..", "public", "asse
 const HERO = "banners/hero-banner-tumpeng.png";
 const HERO_WIDTHS = [640, 1024, 1920];
 const CARDS = [
+  // Verified present 2026-09-19 (older PSI names like
+  // paket-prasmanan-makanan1.png / paket-tumpeng.png no longer exist locally —
+  // those slots are Cloudinary-served via API + MediaItem f_auto,q_auto).
   "products/paket-tumpeng-mini/paket-tumpeng-mini-2.png",
-  "products/paket-prasmanan-makanan/paket-prasmanan-makanan1.png",
+  "products/paket-tumpeng-mini/paket-tumpeng-mini-3.png",
+  "products/paket-prasmanan-korporat/paket-prasmanan-korporat-1.png",
   "products/paket-prasmanan-korporat/paket-prasmanan-korporat-2.png",
-  "products/paket-tumpeng/paket-tumpeng.png",
+  "products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-2.png",
+  "products/paket-prasmanan-nikahan/paket-prasmanan-nikahan-3.png",
+  "products/paket-snack-box-arisan/paket-snack-box-arisan-2.png",
+  "products/paket-nasi-box-hemat/paket-nasi-box-hemat-2.png",
+  "products/paket-nasi-box-hemat/paket-nasi-box-hemat-3.png",
+  "lifestyle/corporate-lunch-box-overhead-lifestyle.png",
+  "lifestyle/wedding-buffet-lifestyle-shot.png",
 ];
 const MARQUEE = "patern/songket2.jpg";
 
