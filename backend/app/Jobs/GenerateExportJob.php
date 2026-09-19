@@ -164,6 +164,15 @@ class GenerateExportJob implements ShouldQueue
         ], 3600);
     }
 
+    /** Rows at or below this skip the queue and build inline in store(). */
+    public const SYNC_ROW_THRESHOLD = 100;
+
+    /** Cheap COUNT so the controller can fast-path tiny exports synchronously. */
+    public function estimatedRows(): int
+    {
+        return $this->build()[3]->count();
+    }
+
     public function statusKey(): string
     {
         return "exports:{$this->token}";

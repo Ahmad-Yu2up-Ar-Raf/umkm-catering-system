@@ -4,6 +4,7 @@
 # after 5s so a crashed worker can never wedge exports in `pending` forever.
 supervise_worker() {
     while true; do
+        echo "[worker] starting: queue:work database --sleep=5 --tries=1 --timeout=300 --memory=512 --max-jobs=50"
         php artisan queue:work database --sleep=5 --tries=1 --timeout=300 --memory=512 --max-jobs=50
         echo "[worker] exited with $? — restarting in 5s"
         sleep 5

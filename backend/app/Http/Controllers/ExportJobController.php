@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\GenerateExportJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -12,6 +13,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Async exports: POST returns 202 + poll URL immediately, the XLSX is built
  * by GenerateExportJob (chunked, off the HTTP worker), then downloaded.
+ * Tiny datasets (<= SYNC_ROW_THRESHOLD rows) build inline in store() instead
+ * — same 202 shape, first poll already sees ready/failed, no worker needed.
  * The existing sync export endpoints stay untouched for small datasets.
  */
 class ExportJobController extends Controller
@@ -26,7 +29,25 @@ class ExportJobController extends Controller
         $token = (string) Str::uuid();
         Cache::put("exports:{$token}", ['status' => 'pending', 'heartbeat_at' => now()->toIso8601String()], 3600);
 
-        GenerateExportJob::dispatch($token, $module, $request->except(['module']));
+        $filters = $request->except(['module']);
+        $job = new GenerateExportJob($token, $module, $filters);
+        try {
+            $small = $job->estimatedRows() <= GenerateExportJob::SYNC_ROW_THRESHOLD;
+        } catch (\Throwable $e) {
+            $small = false;
+        }
+        if ($small) {
+            // ponytail: tiny exports skip the queue — no pickup latency, immune
+            // to dead workers. 202 shape unchanged: first poll already sees ready/failed.
+            try {
+                $job->handle();
+            } catch (\Throwable $e) {
+                // handle() already logged + wrote `failed`; stay 202 so the poll surfaces it.
+            }
+        } else {
+            GenerateExportJob::dispatch($token, $module, $filters);
+        }
+        Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small]);
 
         return response()->json([
             'status' => true,

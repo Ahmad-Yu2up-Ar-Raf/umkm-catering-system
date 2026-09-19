@@ -72,15 +72,40 @@ async function pollExportBlob(
       { cause: err }
     )
   }
+  // Immutable anchor: assigned exactly once per export run inside this closure
+  // (never a ref/state, never reset by re-renders) — all elapsed math is absolute.
   const pollStart = Date.now()
+  console.log(`[ExportPoll] dispatch ok module=${module} token=${token}`)
   const deadline = pollStart + POLL_DEADLINE_MS
   let attempt = 0
   let networkErrors = 0
+  let lastState: ExportPollState | null = null
   let lastProgressAt = pollStart
   let lastRows = -1
+  const noteProgress = (state: ExportPollState, at: number): void => {
+    if (state.status !== "processing") return
+    const rows = typeof state.rows === "number" ? state.rows : lastRows
+    if (rows > lastRows) {
+      lastRows = rows
+      lastProgressAt = at
+    }
+  }
+  // True once silence exceeds the fail-fast budget. Evaluated BEFORE sleeping
+  // (backoff must not delay detection) and again after every poll.
+  const breakerTripped = (state: ExportPollState | null, at: number): boolean => {
+    if (state === null) return false
+    if (state.status === "processing") {
+      const rows = typeof state.rows === "number" ? state.rows : lastRows
+      if (rows > lastRows) return false
+      return at - lastProgressAt > PROCESSING_STALL_MS
+    }
+    // `pending` (or unknown status) that never advances: worker never picked up.
+    return at - pollStart > PENDING_SILENCE_MS
+  }
   for (;;) {
     if (signal.aborted) throw new DOMException("export cancelled", "AbortError")
     if (Date.now() > deadline) throw new Error("Export timeout — file terlalu besar, coba filter lebih spesifik")
+    if (breakerTripped(lastState, Date.now())) throw new Error(CIRCUIT_OPEN_MESSAGE)
     const delay = POLL_DELAYS[Math.min(attempt, POLL_DELAYS.length - 1)]
     await new Promise<void>((resolve, reject) => {
       const t = setTimeout(resolve, delay)
@@ -116,19 +141,13 @@ async function pollExportBlob(
     if (state.status === "failed") throw new Error(state.message || "Export gagal di server")
     if (state.stale) throw new Error("Worker export berhenti — coba lagi")
     // Circuit breaker: silence without progress is terminal — never loop blindly.
-    const now = Date.now()
-    if (state.status === "processing") {
-      const rows = typeof state.rows === "number" ? state.rows : lastRows
-      if (rows > lastRows) {
-        lastRows = rows
-        lastProgressAt = now
-      } else if (now - lastProgressAt > PROCESSING_STALL_MS) {
-        throw new Error(CIRCUIT_OPEN_MESSAGE)
-      }
-    } else if (now - pollStart > PENDING_SILENCE_MS) {
-      // `pending` (or unknown status) that never advances: worker never picked up.
-      throw new Error(CIRCUIT_OPEN_MESSAGE)
-    }
+    const at = Date.now()
+    noteProgress(state, at)
+    lastState = state
+    console.log(
+      `[ExportPoll] elapsed=${((at - pollStart) / 1000).toFixed(0)}s status=${state.status} rows=${state.rows ?? "?"}/${state.total ?? "?"} attempt=${attempt} nextPollIn=${delay}ms`
+    )
+    if (breakerTripped(state, at)) throw new Error(CIRCUIT_OPEN_MESSAGE)
     if (typeof onProgress === "function") onProgress(state.rows, state.total)
   }
   // Large xlsx needs longer than the global 30s ky timeout; abortable via run's controller.
