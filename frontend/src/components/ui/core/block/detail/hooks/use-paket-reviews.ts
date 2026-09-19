@@ -35,9 +35,10 @@ const reviewsKey = (paketId: number) => ["paket", "reviews", paketId] as const
  * Offline contract: `null` = backend unreachable (caller hides the section
  * entirely — no skeleton, no empty shell); `[]` = live but no reviews yet.
  */
-export function usePaketReviews(paketId: number) {
+export function usePaketReviews(paketId: number, enabled = true) {
   return useQuery({
     queryKey: reviewsKey(paketId),
+    enabled,
     queryFn: async (): Promise<PaketReview[] | null> => {
       try {
         const res = await api

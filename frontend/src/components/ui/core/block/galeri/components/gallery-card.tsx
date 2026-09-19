@@ -84,11 +84,15 @@ export function GalleryCard({
               className
             )}
           >
+            {/* STEP 1 mobile diet: explicit tight sizes so @unpic's Cloudinary
+                srcset resolves to the smallest sufficient w_ candidate — a
+                360px phone pulls ~320-640w instead of full-res. */}
             <MediaItem
               webViewLink={item.gambar_acara}
               className="absolute inset-0 h-full w-full"
               imageClassName="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover/card:scale-110"
               layout="fullWidth"
+              sizes="(max-width: 640px) 40vw, (max-width: 1024px) 30vw, 25vw"
               onImageLoaded={(w, h) => onImageLoaded?.(item.id, w, h)}
             />
 
@@ -98,12 +102,12 @@ export function GalleryCard({
               className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-foreground/40 to-foreground/90"
             />
 
-            {/* Clean caption — eyebrow + title only. */}
-            <div className="absolute inset-x-0 bottom-0 p-3.5 text-left">
-              <p className="text-[9.5px] tracking-[0.22em] text-accent uppercase">
+            {/* Clean caption — eyebrow + title only. Compact on mobile. */}
+            <div className="absolute inset-x-0 bottom-0 p-3 text-left sm:p-3.5">
+              <p className="text-[8.5px] tracking-[0.22em] text-accent uppercase sm:text-[9.5px]">
                 {category.label}
               </p>
-              <p className="mt-1 line-clamp-1 text-sm leading-snug font-light text-background">
+              <p className="mt-1 line-clamp-1 text-xs leading-snug font-light text-background sm:text-sm">
                 {item.nama_acara}
               </p>
             </div>

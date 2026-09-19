@@ -11,9 +11,10 @@ const RELATED_PER_PAGE = 12
  * category filter, so recommendations always have enough items to mix
  * freely. The consumer excludes the current paket and caps the rail.
  */
-export function useRelatedPaketQuery() {
+export function useRelatedPaketQuery(enabled = true) {
   return useQuery({
     queryKey: ["paket", "related"],
+    enabled,
     retry: false,
     queryFn: async (): Promise<Paket[]> => {
       try {

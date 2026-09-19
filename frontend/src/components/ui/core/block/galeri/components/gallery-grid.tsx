@@ -12,20 +12,16 @@ import { cn } from "@/lib/utils"
 import type { GalleryItem } from "../types/gallery-types"
 import { GalleryCard } from "./gallery-card"
 
-/** Responsive column count — 1 / 2 / 3, driven by Tailwind breakpoints. */
+/** Responsive column count — 2 on mobile/tablet, 3 on desktop. */
 function useColumnCount() {
-  const [cols, setCols] = useState(1)
+  const [cols, setCols] = useState(2)
 
   useEffect(() => {
-    const mqs = [
-      window.matchMedia("(min-width: 640px)"),
-      window.matchMedia("(min-width: 1024px)"),
-    ]
-    const update = () =>
-      setCols(mqs[1].matches ? 3 : mqs[0].matches ? 2 : 1)
+    const mq = window.matchMedia("(min-width: 1024px)")
+    const update = () => setCols(mq.matches ? 3 : 2)
     update()
-    mqs.forEach((m) => m.addEventListener("change", update))
-    return () => mqs.forEach((m) => m.removeEventListener("change", update))
+    mq.addEventListener("change", update)
+    return () => mq.removeEventListener("change", update)
   }, [])
 
   return cols
@@ -164,7 +160,7 @@ export function GalleryGrid({
   /** Renders one column as a list of nodes (cards). P7: `cv-auto` skips
       off-screen layout/paint for below-viewport columns. */
   const renderColumnNodes = (nodes: React.ReactNode[]) => (
-    <div className="flex min-w-0 flex-1 flex-col gap-4 cv-auto">
+    <div className="flex min-w-0 flex-1 flex-col gap-3 sm:gap-4 cv-auto">
       {nodes}
     </div>
   )
@@ -193,7 +189,7 @@ export function GalleryGrid({
         </div>
       ) : isLoading ? (
         // Skeleton mirrors the greedy-placement footprint for its column.
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-3 sm:gap-4">
           {placeColumns(
             Array.from({ length: 9 }, (_, i) => i),
             cols,
@@ -225,7 +221,7 @@ export function GalleryGrid({
         </div>
       ) : (
         <>
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 sm:gap-4">
             {columns.map((col, columnIndex) =>
               renderColumnNodes(
                 // STEP 3/5: per-card whileInView is KEPT deliberately —

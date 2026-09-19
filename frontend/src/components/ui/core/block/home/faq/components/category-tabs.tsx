@@ -117,13 +117,16 @@ export function CategoryTabs({
 
                 {/* Hover line — snaps away instantly once the tab is active.
                     `items-center` + `self-center` keep it on the text axis. */}
+                {/* Desktop-report item D: hover grows via composited scaleY,
+                    never height — height animation forces CPU layout per frame.
+                    Identical pixels (1.5px line, 16px tall when open). */}
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "h-0 w-[1.5px] self-center rounded-full bg-primary/30",
+                    "h-4 w-[1.5px] origin-center scale-y-0 self-center rounded-full bg-primary/30",
                     !isActive
-                      ? "transition-all duration-300 ease-out group-hover:h-4"
-                      : "h-0 opacity-0 transition-none group-hover:h-0"
+                      ? "transition-transform duration-300 ease-out group-hover:scale-y-100"
+                      : "scale-y-0 opacity-0 transition-none"
                   )}
                 />
 

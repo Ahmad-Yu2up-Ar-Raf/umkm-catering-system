@@ -70,11 +70,16 @@ function ReviewCard({ review }: { review: PaketReview }) {
   )
 }
 
-function CarouselSkeleton() {
+/** Mirrors the live carousel track (basis 80/55/32) — a horizontal peek row
+ *  on mobile, never a vertical stack. Exported for DetailSkeleton reuse. */
+export function CarouselSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="flex gap-4 overflow-hidden">
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex flex-col gap-3 rounded-2xl border border-border p-5 sm:p-6">
+        <div
+          key={i}
+          className="flex shrink-0 basis-[80%] flex-col gap-3 rounded-2xl border border-border p-5 sm:basis-[55%] sm:p-6 lg:basis-[32%]"
+        >
           <Skeleton className="h-4 w-24 rounded" />
           <Skeleton className="h-4 w-full rounded" />
           <Skeleton className="h-4 w-5/6 rounded" />
@@ -160,8 +165,8 @@ export function PackageReviews({ paketId, vm }: { paketId: number; vm: DetailVie
             </CarouselContent>
             <div className="mt-6 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <CarouselPrevious className="static inset-auto my-0 translate-none" />
-                <CarouselNext className="static inset-auto my-0 translate-none" />
+                <CarouselPrevious className="static inset-auto my-0 hidden translate-none md:flex" />
+                <CarouselNext className="static inset-auto my-0 hidden translate-none md:flex" />
               </div>
               <Button onClick={() => setFormOpen(true)}>
               <HugeiconsIcon icon={MessageAdd01Icon} className="mr-2 size-4" />

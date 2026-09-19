@@ -83,11 +83,11 @@ export function GalleryCategorySection({
     >
       <motion.div
         variants={lineVariants}
-        className="mb-5  px-6 flex flex-wrap items-baseline justify-between gap-2 md:px-2"
+        className="mb-6 px-6 flex flex-wrap items-baseline justify-between gap-3 md:mb-5 md:px-2"
       >
         <h2
           id={headingId}
-          className="font-heading text-[clamp(20px,2.6vw,28px)] leading-tight font-light tracking-[-0.01em] text-foreground"
+          className="font-heading text-[clamp(24px,3vw,28px)] leading-tight font-light tracking-[-0.01em] text-foreground"
         >
           {category.label}
         </h2>
@@ -101,7 +101,7 @@ export function GalleryCategorySection({
               : `/galeri/${category.slug}`
           }
           className={cn(
-            "group inline-flex items-center gap-1.5 text-[11px] tracking-[0.22em] text-primary uppercase",
+            "group inline-flex items-center gap-1.5 text-[10px] tracking-[0.22em] text-primary uppercase sm:text-[11px]",
             "transition-colors duration-300 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           )}
         >
@@ -119,7 +119,7 @@ export function GalleryCategorySection({
             {Array.from({ length: 4 }, (_, j) => (
               <Skeleton
                 key={j}
-                className="aspect-[16/10] shrink-0 basis-[72%] rounded-2xl sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
+                className="aspect-[16/10] shrink-0 basis-[60%] rounded-2xl sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
               />
             ))}
           </div>
@@ -132,7 +132,7 @@ export function GalleryCategorySection({
               {items.map((item, index) => (
                 <CarouselItem
                   key={item.id}
-                  className="basis-[72%] pl-3 sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
+                  className="basis-[60%] pl-3 sm:basis-[40%] md:basis-[30%] lg:basis-[24%]"
                 >
                   <GalleryCard
                     item={item}
@@ -143,8 +143,10 @@ export function GalleryCategorySection({
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="-left-4 hidden border-border bg-background text-foreground shadow-sm hover:bg-muted sm:flex" />
-            <CarouselNext className="-right-4 hidden border-border bg-background text-foreground shadow-sm hover:bg-muted sm:flex" />
+            <div className="mt-6 hidden items-center gap-2 md:flex">
+              <CarouselPrevious className="static inset-auto my-0 hidden translate-none md:flex" />
+              <CarouselNext className="static inset-auto my-0 hidden translate-none md:flex" />
+            </div>
           </Carousel>
         )}
       </motion.div>

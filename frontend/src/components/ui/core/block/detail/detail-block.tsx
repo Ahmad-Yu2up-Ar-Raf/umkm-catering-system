@@ -7,6 +7,8 @@ import { useDetailStore } from "@/store/detail-store"
 import { useSeo } from "@/hooks/use-seo"
 
 import { FetchPaketDetail } from "./hooks/use-detail-query"
+import { usePaketReviews } from "./hooks/use-paket-reviews"
+import { useRelatedPaketQuery } from "./hooks/use-related-paket"
 import { toDetailViewModel } from "./utils/detail-view-model"
 import { DetailContent } from "./components/detail-content"
 import { DetailSkeleton } from "./components/detail-skeleton"
@@ -34,6 +36,14 @@ import { DetailError } from "./components/detail-error"
  */
 export function PaketDetailBlock({ id }: { id: string }) {
   const query = FetchPaketDetail(id)
+  // Parallel prefetch — reviews + recommendations warm the SAME queryKey
+  // cache that DetailContent's sections read, so all three datasets (and
+  // their skeletons) start on mount instead of after the detail settles.
+  // Disabled for non-numeric ids (not-found path fires no requests).
+  const numericId = /^\d+$/.test(id) ? Number(id) : NaN
+  const prefetchEnabled = Number.isInteger(numericId)
+  usePaketReviews(numericId, prefetchEnabled)
+  useRelatedPaketQuery(prefetchEnabled)
   const setReady = useDetailStore((s) => s.setReady)
 
   // (1) reset — chrome hidden the instant the route/id changes (mount included).

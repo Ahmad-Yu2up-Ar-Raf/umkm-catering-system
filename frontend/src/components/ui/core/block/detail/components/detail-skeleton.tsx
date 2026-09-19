@@ -2,6 +2,8 @@
 
 import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 
+import { CarouselSkeleton } from "./package-reviews"
+
 /**
  * 1:1 skeleton for the FINAL structure — one responsive skeleton:
  *
@@ -86,8 +88,18 @@ export function DetailSkeleton() {
         </div>
       </div>
 
-      {/* BOTTOM — recommendations grid (mirrors PaketGrid grid-3) */}
-      <div className="mt-24 flex flex-col gap-10 md:mt-28">
+      {/* MIDDLE — reviews (mirrors PackageReviews header + track rhythm) */}
+      <div className="mt-13 flex flex-col gap-8 md:mt-20 lg:gap-10">
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-3 w-28 rounded-full" />
+          <Skeleton className="h-8 w-64" />
+        </div>
+        <CarouselSkeleton />
+      </div>
+
+      {/* BOTTOM — recommendations grid (mirrors DetailRecommendations:
+          header rhythm + PaketGrid grid-3 card footprint, no desc lines) */}
+      <div className="mt-13 flex flex-col gap-8 md:mt-20 lg:gap-10">
         <div className="flex flex-col gap-3">
           <Skeleton className="h-3 w-28 rounded-full" />
           <Skeleton className="h-8 w-64" />
@@ -99,10 +111,9 @@ export function DetailSkeleton() {
               <div className="flex flex-col gap-3 py-2">
                 <Skeleton className="h-6 w-1/3 rounded-full" />
                 <Skeleton className="h-7 w-3/4" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-5/6" />
                 <div className="pt-4">
                   <Skeleton className="h-6 w-1/4" />
+                  <Skeleton className="mt-2 h-4 w-2/3" />
                 </div>
               </div>
             </div>

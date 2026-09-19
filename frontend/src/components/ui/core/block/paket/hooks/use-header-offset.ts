@@ -10,13 +10,23 @@ export function useHeaderOffset() {
   const [top, setTop] = useState(0)
 
   useEffect(() => {
+    // Mobile-report item: resize reads are rAF-throttled — rapid resize snaps
+    // collapse into one measure per frame instead of one forced reflow each.
+    // Reads stay batched (single getBoundingClientRect, no interleaved write).
+    let raf = 0
     const measure = () => {
-      const header = document.querySelector("header")
-      setTop(header?.getBoundingClientRect().height ?? 0)
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const header = document.querySelector("header")
+        setTop(header?.getBoundingClientRect().height ?? 0)
+      })
     }
     measure()
-    window.addEventListener("resize", measure)
-    return () => window.removeEventListener("resize", measure)
+    window.addEventListener("resize", measure, { passive: true })
+    return () => {
+      cancelAnimationFrame(raf)
+      window.removeEventListener("resize", measure)
+    }
   }, [])
 
   return top

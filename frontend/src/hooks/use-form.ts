@@ -24,6 +24,7 @@ import { FormCurrencyInput } from "@/components/ui/fragments/custom-ui/form/form
 import { FormCombobox } from "@/components/ui/fragments/custom-ui/form/form-combobox"
 import { FormRadioGroup } from "@/components/ui/fragments/custom-ui/form/form-radio-group"
 import { FormRating } from "@/components/ui/fragments/custom-ui/form/form-rating"
+import { playError } from "@/lib/audio-feedback"
 
 const fieldComponents = {
   Input: FormInput,
@@ -84,11 +85,14 @@ function focusFirstInvalidField(formApi: AnyFormApi) {
   }
 }
 
-/** Default invalid-submit handler: Sonner toast + jump to the first mistake. */
+/** Default invalid-submit handler: Sonner toast + error sound + jump to the first mistake. */
 function globalOnSubmitInvalid({ formApi }: { formApi: AnyFormApi }) {
   toast.error("Validasi Gagal", {
     description: "Periksa kembali isian form yang ditandai merah.",
   })
+  // ponytail: stateless + internally try/catch — never throws, never re-renders.
+  // Fires once per failed submit attempt (not per field), so no cue spam.
+  playError()
   // Defer a frame so the error states settle, then scroll to the mistake.
   requestAnimationFrame(() => focusFirstInvalidField(formApi))
 }

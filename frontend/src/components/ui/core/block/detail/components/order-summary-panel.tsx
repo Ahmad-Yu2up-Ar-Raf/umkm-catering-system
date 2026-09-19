@@ -38,7 +38,7 @@ export function OrderSummaryPanel({ vm }: { vm: DetailViewModel }) {
 
   return (
     <aside className="relative">
-      <div className="sticky top-0 hidden h-fit flex-col gap-7 rounded-2xl p-5 ring ring-border/80 lg:flex">
+      <div className="sticky top-4 hidden h-fit flex-col gap-7 rounded-2xl p-5 ring ring-border/80 lg:flex">
         <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-muted">
           <MediaItem
             webViewLink={vm.gallery[0] ?? DETAIL_FALLBACK_IMAGE}
