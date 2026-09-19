@@ -19,10 +19,10 @@ interface UseExportExcelOptions {
 /** Poll delays: exponential backoff 1s → 2s → 4s → 8s, capped at 10s. */
 const POLL_DELAYS = [1000, 2000, 4000, 8000, 10000]
 /**
- * Absolute poll deadline: 12 min. Must exceed the job budget ($timeout 900s)
+ * Absolute poll deadline: 16 min. Must exceed the job budget ($timeout 900s)
  * so a healthy-but-slow export is never killed client-side first.
  */
-const POLL_DEADLINE_MS = 12 * 60_000
+const POLL_DEADLINE_MS = 16 * 60_000
 
 async function pollExportBlob(
   module: AsyncExportModule,

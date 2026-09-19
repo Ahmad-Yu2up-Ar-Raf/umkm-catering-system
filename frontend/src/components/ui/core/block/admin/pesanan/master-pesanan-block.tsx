@@ -87,7 +87,7 @@ function MasterPesananBlock() {
   const { mutate: bulkDelete, isPending: isBulkDeleting } = usePesananBulkDeleteMutation()
   const isAnyBulkPending = isBulkUpdating || isBulkDeleting
 
-  const { isExporting, run: runExport } = useExportExcel({
+  const { isExporting, run: runExport, cancel: cancelExport } = useExportExcel({
     filename: `pesanan-export-${new Date().toISOString().slice(0, 10)}.xlsx`,
     asyncModule: "pesanan",
     fetchBlob: (p) =>
@@ -236,6 +236,7 @@ function MasterPesananBlock() {
           })
         }
         isExporting={isExporting}
+        onCancelExport={cancelExport}
       />
 
       <FloatingActionMenu

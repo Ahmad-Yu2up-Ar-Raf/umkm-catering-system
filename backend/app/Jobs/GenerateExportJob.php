@@ -272,7 +272,8 @@ class GenerateExportJob implements ShouldQueue
     private function pesanan(): array
     {
         $f = $this->filters;
-        $query = Pesanan::query()->with('paket');
+        // ponytail: select only mapped columns — SELECT * drags JSON/text over Neon latency per row
+        $query = Pesanan::query()->select(['id', 'nomor_struk', 'nama_pemesan', 'no_telepon', 'paket_id', 'jumlah_paket', 'harga_paket_satuan', 'biaya_tambahan', 'total_harga', 'status_pesanan', 'metode_pembayaran', 'tanggal_acara', 'alamat', 'menu_tambahan', 'detail_tambahan', 'catatan', 'created_at'])->with('paket:id,nama_paket');
         $statuses = array_values(array_intersect($this->strArray($f['status_pesanan'] ?? []), ['pending', 'confirmed', 'completed', 'cancelled']));
         if ($statuses !== []) {
             $query->whereIn('status_pesanan', $statuses);

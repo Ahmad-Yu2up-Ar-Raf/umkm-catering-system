@@ -23,6 +23,7 @@ interface PesananToolbarProps {
   onAdd: () => void
   onExport: () => void
   isExporting: boolean
+  onCancelExport?: () => void
 }
 
 export function PesananToolbar({
@@ -37,6 +38,7 @@ export function PesananToolbar({
   onAdd,
   onExport,
   isExporting,
+  onCancelExport,
 }: PesananToolbarProps) {
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -91,6 +93,17 @@ export function PesananToolbar({
           )}
           {isExporting ? "Mengekspor…" : "Export"}
         </Button>
+        {isExporting && onCancelExport && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            className="w-full md:w-fit"
+            onClick={onCancelExport}
+          >
+            Batal
+          </Button>
+        )}
         <Button onClick={onAdd} className="w-full md:w-fit" size="lg">
           <HugeiconsIcon icon={PlusSignIcon} className="mr-2 size-4" />
           Tambah Pesanan
@@ -113,6 +126,17 @@ export function PesananToolbar({
           )}
           {isExporting ? "Mengekspor…" : "Export"}
         </Button>
+        {isExporting && onCancelExport && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            className="mt-2 w-full"
+            onClick={onCancelExport}
+          >
+            Batal
+          </Button>
+        )}
       </div>
     </div>
   )

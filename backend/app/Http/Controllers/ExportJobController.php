@@ -46,13 +46,14 @@ class ExportJobController extends Controller
             return response()->json(['status' => false, 'message' => 'Export not found or expired', 'data' => null], 404);
         }
 
-        // Dead-worker detection: heartbeats now fire every 100 rows (seconds),
-        // so 300s of silence genuinely means death — no false positives from
-        // one slow chunk. Applies to `pending` (never picked up) and
-        // `processing`. Report stale so the frontend terminates polling.
+        // Dead-worker detection: `processing` must heartbeat every 100 rows,
+        // so 300s of silence means death. `pending` means queued behind the
+        // single worker — allow a full job budget (900s) before crying stale,
+        // otherwise a second queued export false-positives while worker is busy.
+        $staleAfter = ($state['status'] ?? null) === 'pending' ? 900 : 300;
         if (in_array($state['status'] ?? null, ['pending', 'processing'], true)) {
             $beat = isset($state['heartbeat_at']) ? strtotime($state['heartbeat_at']) : false;
-            if ($beat === false || (time() - $beat) > 300) {
+            if ($beat === false || (time() - $beat) > $staleAfter) {
                 $state['stale'] = true;
             }
         }
@@ -76,10 +77,11 @@ class ExportJobController extends Controller
         $path = Storage::disk('local')->path("exports/{$token}.xlsx");
         abort_unless(is_file($path), 404, 'Export file missing');
 
+        // ponytail: purge temp xlsx on send — HF disk is ephemeral but tiny
         return response()->download(
             $path,
             $state['filename'] ?? "export-{$token}.xlsx",
             ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
-        );
+        )->deleteFileAfterSend(true);
     }
 }
