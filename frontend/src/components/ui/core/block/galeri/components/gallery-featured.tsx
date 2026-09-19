@@ -7,6 +7,7 @@ import MediaItem from "@/components/ui/fragments/custom-ui/media-item"
 import { Badge } from "@/components/ui/fragments/shadcn-ui/badge"
 import { useImageModalStore } from "@/store/image-modal-store"
 import { useReducedMotion } from "@/hooks/use-reduced-motion"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { getCategoryById, AUTO_ADVANCE_MS } from "../galeri-data"
 import type { GalleryItem } from "../types/gallery-types"
 import { Button } from "@/components/ui/fragments/shadcn-ui/button"
@@ -48,6 +49,12 @@ export function GalleryFeatured({
   onSelect: (index: number) => void
 }) {
   const reduced = useReducedMotion()
+  // STEP 3 GPU: the full-bleed featured slide animates filter:blur(6px) on
+  // every rotation — a whole-viewport paint-chain layer that locks phone GPUs.
+  // On <768px the crossfade + zoom run opacity/scale-only (same timing, same
+  // ease); desktop keeps the blur settle. Reduced-motion stays authoritative.
+  const isMobile = useIsMobile()
+  const staticMotion = reduced || isMobile
   const active = items[activeIndex]
   const category = getCategoryById(active.category)
   const meta = metaParts(active)
@@ -61,12 +68,12 @@ export function GalleryFeatured({
       <AnimatePresence mode="sync" initial={false}>
         <motion.div
           key={active.id}
-          initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.08, filter: "blur(6px)" }}
-          animate={reduced ? { opacity: 1 } : { opacity: 1, scale: 1, filter: "blur(0px)" }}
-          exit={reduced ? { opacity: 0 } : { opacity: 0, filter: "blur(6px)" }}
+          initial={staticMotion ? { opacity: 0 } : { opacity: 0, scale: 1.08, filter: "blur(6px)" }}
+          animate={staticMotion ? { opacity: 1 } : { opacity: 1, scale: 1, filter: "blur(0px)" }}
+          exit={staticMotion ? { opacity: 0 } : { opacity: 0, filter: "blur(6px)" }}
           transition={{
             opacity: { duration: 0.7, ease: "easeInOut" },
-            scale: reduced
+            scale: staticMotion
               ? { duration: 0 }
               : { duration: AUTO_ADVANCE_MS / 1000, ease: "linear" },
             filter: { duration: 0.7, ease: "easeInOut" },

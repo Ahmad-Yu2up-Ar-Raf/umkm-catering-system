@@ -16,7 +16,7 @@ const HeaderDashboard = ({ Icon, Title, Deskrpsi }: compoenentProp) => {
   const [firstWord, secondWord] = words
   return (
     <div className="mb-3 flex md:flex-row items-center gap-8 md:w-fit">
-      <div className="aspect-square size-17 items-center justify-center rounded-2xl border border-border bg-background p-3.5 text-primary md:flex">
+      <div className="aspect-square hidden size-17 items-center justify-center rounded-2xl border border-border bg-background p-3.5 text-primary md:flex">
         <HugeiconsIcon icon={Icon} className="size-full text-primary" />
       </div>
       <div className="space-y-2">
@@ -26,7 +26,7 @@ const HeaderDashboard = ({ Icon, Title, Deskrpsi }: compoenentProp) => {
             {secondWord}
           </span>
         </h1>
-        <p className="w-fit line-clamp-1 text-sm text-neutral-500 lg:text-base">
+        <p className="w-fit text-sm text-neutral-500 lg:text-base">
           {Deskrpsi}
         </p>
       </div>

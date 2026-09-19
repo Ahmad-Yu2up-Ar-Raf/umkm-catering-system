@@ -1,4 +1,5 @@
 <!-- Context Anchor & Monorepo Topology -->
+
 > **Scope:** Feature Plan — "Kalkulator Pesanan" (Order Calculation Modal, sitemap #3.1 conversion step) · **Monorepo Root:** `../../`
 >
 > Companion docs: [Design (single source)](../docs/design.md) · [Frontend Architecture](../frontend/docs/architecture.md) · [Design System MASTER](../frontend/design-system/MASTER.md) · [Paket Detail Contract](../frontend/docs/paket-detail-page-plan.md) · [Backend API](../backend/docs/api-collection.md) · [Backend DB](../backend/docs/database.md) · [Root Architecture (userflow §3.1)](../../docs/architecture.md)
@@ -21,17 +22,17 @@ calculation dialog that collects the order details, computes a live estimate, an
 the `wa.me` deep link with a **fully prefilled, structured message** — eliminating the manual
 "Admin, saya mau pesan…" back-and-forth.
 
-| Pillar | Decision (short) |
-|---|---|
-| **Trigger** | `OriginButton` "Pesan via WhatsApp" → wraps a Shadcn `DialogTrigger` (asChild). No href anymore — opens the modal. |
-| **Surface** | Shadcn `Dialog` (Radix) — dark fixed overlay (`bg-black/80`), `rounded-4xl` warm-cream panel, built-in `data-open` fade/zoom (tw-animate-css) — the same dialog grammar as `ShareDialog` / admin, the same dark-ink family as `GlobalImageModal`. |
-| **Layout** | Desktop `lg:grid-cols-[0.9fr_1.1fr]`: LEFT product image + live price breakdown (summary panel), RIGHT the form. Mobile: single column, form first, sticky price footer. |
-| **Form stack** | **@tanstack/react-form** via the existing `useAppForm` (`src/hooks/use-form.ts`) + Zod factory schema — NOT react-hook-form (explicitly forbidden by AGENTS.md; the repo's form pattern is TanStack Form, proven by `use-auth.ts`). |
-| **Calculation** | Pure function, derived state: `base = jumlah_porsi × Number(harga_per_porsi)`. Add-on names are listed but **never priced** (no add-on price data exists — see §4.3). Estimate is honest: "belum termasuk biaya tambahan". |
-| **Validation** | Zod factory `createOrderSchema({ minOrder, capacity, addonOptions })` — mirrors the `login-schema.ts` pattern, parametrized by package runtime values. |
-| **Payload** | Multiline WhatsApp message (structured bullet list) → `getWhatsAppLink(BUSINESS_NUMBER, msg)` → `window.open(url, "_blank", "noopener")`. |
-| **New deps** | **None.** Everything needed is installed (`@tanstack/react-form`, `zod`, `date-fns`, `radix-ui`, `framer-motion`, Hugeicons, `ky`, TanStack Query). |
-| **Backend** | **No changes.** Server still owns `total_harga` on `pesanan` creation; the modal total is a UX-only preview per root AGENTS.md §4. |
+| Pillar          | Decision (short)                                                                                                                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Trigger**     | `OriginButton` "Pesan via WhatsApp" → wraps a Shadcn `DialogTrigger` (asChild). No href anymore — opens the modal.                                                                                                                                |
+| **Surface**     | Shadcn `Dialog` (Radix) — dark fixed overlay (`bg-black/80`), `rounded-4xl` warm-cream panel, built-in `data-open` fade/zoom (tw-animate-css) — the same dialog grammar as `ShareDialog` / admin, the same dark-ink family as `GlobalImageModal`. |
+| **Layout**      | Desktop `lg:grid-cols-[0.9fr_1.1fr]`: LEFT product image + live price breakdown (summary panel), RIGHT the form. Mobile: single column, form first, sticky price footer.                                                                          |
+| **Form stack**  | **@tanstack/react-form** via the existing `useAppForm` (`src/hooks/use-form.ts`) + Zod factory schema — NOT react-hook-form (explicitly forbidden by AGENTS.md; the repo's form pattern is TanStack Form, proven by `use-auth.ts`).               |
+| **Calculation** | Pure function, derived state: `base = jumlah_porsi × Number(harga_per_porsi)`. Add-on names are listed but **never priced** (no add-on price data exists — see §4.3). Estimate is honest: "belum termasuk biaya tambahan".                        |
+| **Validation**  | Zod factory `createOrderSchema({ minOrder, capacity, addonOptions })` — mirrors the `login-schema.ts` pattern, parametrized by package runtime values.                                                                                            |
+| **Payload**     | Multiline WhatsApp message (structured bullet list) → `getWhatsAppLink(BUSINESS_NUMBER, msg)` → `window.open(url, "_blank", "noopener")`.                                                                                                         |
+| **New deps**    | **None.** Everything needed is installed (`@tanstack/react-form`, `zod`, `date-fns`, `radix-ui`, `framer-motion`, Hugeicons, `ky`, TanStack Query).                                                                                               |
+| **Backend**     | **No changes.** Server still owns `total_harga` on `pesanan` creation; the modal total is a UX-only preview per root AGENTS.md §4.                                                                                                                |
 
 ---
 
@@ -69,16 +70,16 @@ the `wa.me` deep link with a **fully prefilled, structured message** — elimina
 
 ### 3.1 Stack (all already installed — verified in `package.json`)
 
-| Concern | Tool | Where it's already used |
-|---|---|---|
-| Form state + validation | `@tanstack/react-form` v1 + `zod` | `src/hooks/use-form.ts`, `use-auth.ts`, `login-schema.ts` |
-| HTTP | `ky` (via `src/api/client.ts`) | every query/mutation |
-| Server data | TanStack Query v5 | `use-detail-query.ts`, `use-paket-query.ts` |
-| Dialog | `radix-ui` Dialog via `src/components/ui/fragments/shadcn-ui/dialog.tsx` | `ShareDialog`, admin |
-| Date picker | `react-day-picker` via `calendar.tsx` + `FormDateInput` (date-fns formatting, `id` locale) | admin forms (built, registered in this task) |
-| Motion | `framer-motion` (dialog entrance optional) + `tw-animate-css` (Radix data-state) | `GlobalImageModal`, reveals |
-| Icons | `@hugeicons/react` + `@hugeicons/core-free-icons` | everywhere (zero lucide) |
-| Currency | `Intl.NumberFormat("id-ID", …)` — repo convention: one-liner per consumer, no shared module | `detail-view-model.ts` |
+| Concern                 | Tool                                                                                        | Where it's already used                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Form state + validation | `@tanstack/react-form` v1 + `zod`                                                           | `src/hooks/use-form.ts`, `use-auth.ts`, `login-schema.ts` |
+| HTTP                    | `ky` (via `src/api/client.ts`)                                                              | every query/mutation                                      |
+| Server data             | TanStack Query v5                                                                           | `use-detail-query.ts`, `use-paket-query.ts`               |
+| Dialog                  | `radix-ui` Dialog via `src/components/ui/fragments/shadcn-ui/dialog.tsx`                    | `ShareDialog`, admin                                      |
+| Date picker             | `react-day-picker` via `calendar.tsx` + `FormDateInput` (date-fns formatting, `id` locale)  | admin forms (built, registered in this task)              |
+| Motion                  | `framer-motion` (dialog entrance optional) + `tw-animate-css` (Radix data-state)            | `GlobalImageModal`, reveals                               |
+| Icons                   | `@hugeicons/react` + `@hugeicons/core-free-icons`                                           | everywhere (zero lucide)                                  |
+| Currency                | `Intl.NumberFormat("id-ID", …)` — repo convention: one-liner per consumer, no shared module | `detail-view-model.ts`                                    |
 
 ### 3.2 Data flow
 
@@ -507,7 +508,7 @@ const [orderOpen, setOrderOpen] = useState(false)
 
 - `OriginButton` without `href` renders `motion.button` (type="button" default — safe inside
   Radix's asChild), and it forwards refs → `DialogTrigger asChild` composes cleanly. The magnet
-  + origin-fill behavior is preserved; only the destination changes.
+  - origin-fill behavior is preserved; only the destination changes.
 - `whatsappHref` (the old static link) moves into the modal's submit path. The static
   "info ketersediaan" message is replaced by the structured order message (§4.5).
 - `Dialog` root is placed **outside** the `motion.div` price/CTA group so mount animation of the
@@ -757,34 +758,34 @@ estimate is UX-only preview (root AGENTS.md §4).
 
 ## 7. Integration Plan (phases)
 
-| Phase | Scope | Files | Gate |
-|---|---|---|---|
-| **0 — Preflight** | Verify form primitives; register `TextArea`/`DateInput`/`CheckboxGroup` in `use-form.ts`; token pass on `form-date-input.tsx` (see §8.2 — green → `primary`) | `hooks/use-form.ts`, `fragments/custom-ui/form/form-date-input.tsx` | `typecheck` |
-| **1 — Types & schema** | `order-schema.ts` factory; VM additions (`minOrder`/`capacity`/`hargaPerPorsi`) | `validations/order-schema.ts`, `utils/detail-view-model.ts` | `typecheck` |
-| **2 — Calculator** | `order-calculator.ts` (pure calc + `formatIDR` + WA builder) | `utils/order-calculator.ts` | `typecheck` |
-| **3 — Dialog shell** | `order-calculation-dialog.tsx` (2-col grid, scrollable form column) + `order-summary-panel.tsx` | 2 new components | `typecheck && lint:design` |
-| **4 — Form** | `order-form.tsx` (useAppForm, live calc, validation) | `components/order-form.tsx` | `typecheck && lint` |
-| **5 — Trigger swap** | `DetailSummary`: OriginButton → `DialogTrigger asChild` + mount dialog | `components/detail-summary.tsx` | `typecheck && lint && lint:design` |
-| **6 — Motion/UX polish** | mobile sticky estimate bar, focus/ESC checks, reduced-motion, 375/768/1024/1440 | dialog + panel | `lint:design` + manual |
-| **7 — Verification** | Full checklist (§9) | — | all three gates `[]` + browser |
+| Phase                    | Scope                                                                                                                                                        | Files                                                               | Gate                               |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- | ---------------------------------- |
+| **0 — Preflight**        | Verify form primitives; register `TextArea`/`DateInput`/`CheckboxGroup` in `use-form.ts`; token pass on `form-date-input.tsx` (see §8.2 — green → `primary`) | `hooks/use-form.ts`, `fragments/custom-ui/form/form-date-input.tsx` | `typecheck`                        |
+| **1 — Types & schema**   | `order-schema.ts` factory; VM additions (`minOrder`/`capacity`/`hargaPerPorsi`)                                                                              | `validations/order-schema.ts`, `utils/detail-view-model.ts`         | `typecheck`                        |
+| **2 — Calculator**       | `order-calculator.ts` (pure calc + `formatIDR` + WA builder)                                                                                                 | `utils/order-calculator.ts`                                         | `typecheck`                        |
+| **3 — Dialog shell**     | `order-calculation-dialog.tsx` (2-col grid, scrollable form column) + `order-summary-panel.tsx`                                                              | 2 new components                                                    | `typecheck && lint:design`         |
+| **4 — Form**             | `order-form.tsx` (useAppForm, live calc, validation)                                                                                                         | `components/order-form.tsx`                                         | `typecheck && lint`                |
+| **5 — Trigger swap**     | `DetailSummary`: OriginButton → `DialogTrigger asChild` + mount dialog                                                                                       | `components/detail-summary.tsx`                                     | `typecheck && lint && lint:design` |
+| **6 — Motion/UX polish** | mobile sticky estimate bar, focus/ESC checks, reduced-motion, 375/768/1024/1440                                                                              | dialog + panel                                                      | `lint:design` + manual             |
+| **7 — Verification**     | Full checklist (§9)                                                                                                                                          | —                                                                   | all three gates `[]` + browser     |
 
 ---
 
 ## 8. Risk Assessment & Mitigation
 
-| Risk | Severity | Mitigation |
-|---|---|---|
-| **Add-on prices don't exist in the data model** (§4.1) — the requested formula's `+ add-on prices` term is uncomputable truthfully | High | Never fabricate. Deterministic base + "belum termasuk biaya tambahan" note + add-on names in the WA message. If the client later adds add-on pricing (backend change), the calculator gains one optional `addonPriceMap` param — the UI copy changes only. |
-| **react-hook-form requested, but AGENTS.md forbids it** — the repo's form stack is `@tanstack/react-form` (proven in `use-auth.ts`) | Medium | Use `useAppForm` exactly like auth. This is a spec-vs-codebase contradiction; the plan follows the codebase. |
-| **`FormDateInput` uses hardcoded `text-green-500` success tokens** — violates the "tokens only / no green in the warm palette" rule and would look jomplang inside the dialog | Medium | Small token pass in Phase 0 (custom-ui fragment — editable per convention): `border-green-500` → `border-primary`, `text-green-500` → `text-primary`. Zero behavior change. |
-| **`DialogContent` default `sm:max-w-md`** would crush the 2-col layout | Low | Override `className="max-w-4xl sm:max-w-4xl"` (already in §5.1). |
-| **Long form on short viewports** (mobile landscape) | Low | Right column `max-h-[85svh] overflow-y-auto`; mobile estimate moves to a sticky bottom bar. |
-| **`menu_tambahan` null / empty** | Low | `vm.menuExtra ?? []`; checkbox group section omitted when empty (honest omission rule §7.3 of detail contract). |
-| **Tumpeng Mini per-package semantics** (`min_order: 10`, price is per portion) | Low | Validation uses `min_order` exactly as the catalog card does ("Min. 10 porsi"); estimate = qty × per-portion price, consistent with the server formula. Label stays "/ porsi" — no invented "/ paket" price. |
-| **Dialog stacking vs GlobalImageModal** (both z-50+; lightbox is z-[100] at App root) | Low | Order modal is z-50 (standard Radix); the gallery/lightbox is only reachable behind the dialog backdrop → no stacking conflict. |
-| **`harga_per_porsi` 0/NaN** (hand-entered admin rows) | Low | `calculateOrder.hasPrice` guard → `"—"`; submit still allowed (admin confirms price) — matches detail page's existing `hasPrice` behavior. |
-| **Reduced motion** | Low | Radix/tw-animate-css fade+zoom is 100ms opacity/scale; verify `prefers-reduced-motion` visually (project standard is manual QA, AGENTS.md §7). |
-| **No double-send / double-tab** | Low | `isSubmitting` disables the submit button (TanStack Form `isSubmitting` + `disabled`), same as `LoginForm`. |
+| Risk                                                                                                                                                                          | Severity | Mitigation                                                                                                                                                                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Add-on prices don't exist in the data model** (§4.1) — the requested formula's `+ add-on prices` term is uncomputable truthfully                                            | High     | Never fabricate. Deterministic base + "belum termasuk biaya tambahan" note + add-on names in the WA message. If the client later adds add-on pricing (backend change), the calculator gains one optional `addonPriceMap` param — the UI copy changes only. |
+| **react-hook-form requested, but AGENTS.md forbids it** — the repo's form stack is `@tanstack/react-form` (proven in `use-auth.ts`)                                           | Medium   | Use `useAppForm` exactly like auth. This is a spec-vs-codebase contradiction; the plan follows the codebase.                                                                                                                                               |
+| **`FormDateInput` uses hardcoded `text-green-500` success tokens** — violates the "tokens only / no green in the warm palette" rule and would look jomplang inside the dialog | Medium   | Small token pass in Phase 0 (custom-ui fragment — editable per convention): `border-green-500` → `border-primary`, `text-green-500` → `text-primary`. Zero behavior change.                                                                                |
+| **`DialogContent` default `sm:max-w-md`** would crush the 2-col layout                                                                                                        | Low      | Override `className="max-w-4xl sm:max-w-4xl"` (already in §5.1).                                                                                                                                                                                           |
+| **Long form on short viewports** (mobile landscape)                                                                                                                           | Low      | Right column `max-h-[85svh] overflow-y-auto`; mobile estimate moves to a sticky bottom bar.                                                                                                                                                                |
+| **`menu_tambahan` null / empty**                                                                                                                                              | Low      | `vm.menuExtra ?? []`; checkbox group section omitted when empty (honest omission rule §7.3 of detail contract).                                                                                                                                            |
+| **Tumpeng Mini per-package semantics** (`min_order: 10`, price is per portion)                                                                                                | Low      | Validation uses `min_order` exactly as the catalog card does ("Min. 10 porsi"); estimate = qty × per-portion price, consistent with the server formula. Label stays "/ porsi" — no invented "/ paket" price.                                               |
+| **Dialog stacking vs GlobalImageModal** (both z-50+; lightbox is z-[100] at App root)                                                                                         | Low      | Order modal is z-50 (standard Radix); the gallery/lightbox is only reachable behind the dialog backdrop → no stacking conflict.                                                                                                                            |
+| **`harga_per_porsi` 0/NaN** (hand-entered admin rows)                                                                                                                         | Low      | `calculateOrder.hasPrice` guard → `"—"`; submit still allowed (admin confirms price) — matches detail page's existing `hasPrice` behavior.                                                                                                                 |
+| **Reduced motion**                                                                                                                                                            | Low      | Radix/tw-animate-css fade+zoom is 100ms opacity/scale; verify `prefers-reduced-motion` visually (project standard is manual QA, AGENTS.md §7).                                                                                                             |
+| **No double-send / double-tab**                                                                                                                                               | Low      | `isSubmitting` disables the submit button (TanStack Form `isSubmitting` + `disabled`), same as `LoginForm`.                                                                                                                                                |
 
 ---
 
@@ -796,7 +797,7 @@ estimate is UX-only preview (root AGENTS.md §4).
 - [ ] Live calc: qty change / checkbox toggle updates the estimate instantly (no lag, no submit).
 - [ ] Honesty: estimate line says "belum termasuk biaya tambahan"; no fabricated add-on prices anywhere.
 - [ ] Validation: empty nama → error; past date → error; qty < `min_order` → error; qty > `kapasitas_produksi` → error (when set); errors appear after first submit attempt (submissionAttempts pattern).
-- [ ] Submit: opens `https://wa.me/6287870306031?text=<encoded structured message>` in a new tab with `noopener`; toast fires; dialog closes.
+- [ ] Submit: opens `https://wa.me/628561155113?text=<encoded structured message>` in a new tab with `noopener`; toast fires; dialog closes.
 - [ ] Message content: paket, tanggal (dd MMMM yyyy, id-ID), lokasi, jumlah, lauk list, estimasi, catatan — correct.
 - [ ] A11y: ESC closes, backdrop click closes, focus trapped, close button labeled, focus returns to trigger; touch targets ≥44px.
 - [ ] Reduced motion: no jarring motion; dialog still usable.
@@ -817,4 +818,4 @@ estimate is UX-only preview (root AGENTS.md §4).
 - **Add-on pricing left out of the calculator** — there is no data for it; a param can be added
   when the backend grows one (see §8 risk row).
 
-*End of plan. Stop — do not modify production code in this pass.*
+_End of plan. Stop — do not modify production code in this pass._

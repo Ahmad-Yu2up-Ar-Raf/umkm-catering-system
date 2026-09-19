@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react"
 import type { VariantProps } from "class-variance-authority"
 
 import { buttonVariants } from "@/components/ui/fragments/shadcn-ui/button"
+import { preloadRouteChunk } from "@/router/route-preload"
 
 import { cn } from "@/lib/utils"
 
@@ -216,7 +217,11 @@ export const NavItems = ({ items, className, onItemClick }: NavItemsProps) => {
         const isActive = item.link == paths
         return (
           <Link
-            onMouseEnter={() => setHovered(idx)}
+            onMouseEnter={() => {
+              setHovered(idx)
+              preloadRouteChunk(item.link)
+            }}
+            onFocus={() => preloadRouteChunk(item.link)}
             onClick={(e) => onItemClick?.(e, item.link)}
             className={cn(
               "cursor-target pointer-events-auto relative px-4 py-2 text-accent-foreground",

@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "lint:design": "impeccable detect src/ --json",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "preview": "vite preview",
     "sync:assets": "echo 'public/assets is the canonical asset store — no sync needed'"
   },

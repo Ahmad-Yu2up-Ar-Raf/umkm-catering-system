@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Add01Icon, Download01Icon, Image01Icon } from "@hugeicons/core-free-icons"
+import { Image01Icon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
 import { FloatingActionMenu } from "@/components/ui/fragments/custom-ui/floating-action-menu"
@@ -171,25 +171,8 @@ function MasterGaleriBlock() {
       />
 
       <FloatingActionMenu
-        options={[
-          {
-            label: "Tambah Galeri",
-            icon: Add01Icon,
-            onClick: () => setCreateOpen(true),
-          },
-          {
-            label: "Export",
-            icon: Download01Icon,
-            onClick: () =>
-              runExport({
-                kategori_acara: kategoriAcara,
-                search,
-                sort_by: sortBy,
-                sort_dir: sortDir,
-              }),
-            disabled: isExporting,
-          },
-        ]}
+        onCreate={() => setCreateOpen(true)}
+        label="Tambah Galeri"
       />
 
       <div

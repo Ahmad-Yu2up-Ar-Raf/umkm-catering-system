@@ -8,7 +8,7 @@ import { useIsLaptop } from "@/hooks/use-is-laptop"
 import { ScrollTrigger } from "@/components/motion/gsap"
 import { cn } from "@/lib/utils"
 import { usePreloaderStore } from "@/store/preloader-store"
-import { scrollToHash } from "@/lib/hash-scroll"
+import { scrollToHash, waitForImagesAbove } from "@/lib/hash-scroll"
 import { Preloader } from "@/components/motion/preloader"
 import { HeroBlock } from "@/components/ui/core/block/home/hero/hero-block"
 import AboutBlock from "@/components/ui/core/block/home/about/about-block"
@@ -146,6 +146,26 @@ function HomePage() {
     setIsMaskVisible(true)
 
     let cancelled = false
+    // SPA-aware stabilization (Phase 11): `window.load` never fires on
+    // client-side transitions and `fonts.ready` alone misses image decodes,
+    // so both are gone. Instead: re-jump once above-target images settle
+    // (decode-driven shifts), plus a bounded 3×/1.5s poll for font/async
+    // shifts. All jumps are instant Lenis teleports — idempotent no-ops when
+    // nothing moved — scoped to this landing via the hash-equality +
+    // cancelled guards, timers cleared on cleanup. NOT a global refresh.
+    const reassert = (): void => {
+      if (cancelled) return
+      if (window.location.hash !== hash) return
+      if (!document.querySelector(hash)) return
+      scrollToHash(hash, lenis)
+    }
+    const targetEl = document.querySelector<HTMLElement>(hash)
+    if (targetEl) {
+      void waitForImagesAbove(targetEl).then(() => reassert())
+    }
+    const pollTimers = [500, 1000, 1500].map((ms) =>
+      window.setTimeout(reassert, ms)
+    )
     requestAnimationFrame(() => {
       if (cancelled) return
       // Frame 1 — measure the stable layout ONCE and re-sync Lenis.
@@ -161,6 +181,7 @@ function HomePage() {
 
     return () => {
       cancelled = true
+      pollTimers.forEach((t) => window.clearTimeout(t))
     }
   }, [preloaderDone, location.hash, lenis])
 

@@ -17,18 +17,18 @@ The Paket Detail page (`/paket/:id`) is the conversion step between the catalog 
 
 The target is a **premium editorial detail page** that reads as the natural next level of `/paket` and `/galeri`:
 
-| Pillar           | Decision (short)                                                                                                                                                                                                                                      |
-| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Route**        | Keep `/paket/:id` (numeric `id` — backend route-model binds by primary key; no slug column exists).                                                                                                                                                   |
-| **Data**         | `GET /api/v1/paket/{paket}` (`PaketController@show` → `PaketResource`). Single `useQuery`; no list reuse.                                                                                                                                             |
-| **Gate**         | `src/store/detail-store.ts` (`ready`) + **explicit reset-on-id** effect; `LayoutWrapper` defers CTA band + footer until the current-id query settles. No timers.                                                                                       |
-| **Layout**       | Desktop `lg:grid-cols-[1.1fr_1fr]`: **CSS-native sticky** gallery left (`lg:sticky lg:top-24 lg:self-start`, NO JS-measured offset), summary rail right; full-width Menu & Fasilitas sections below. Mobile: gallery → identity → price → CTA → sections. |
-| **Gallery**      | Reuse Embla `image-carousel.tsx` + `paket-images-carousel.tsx` (controlled refactor); every image opens **GlobalImageModal** (single global lightbox, real store API documented in §12).                                                               |
-| **CTA**          | One primary conversion: **WhatsApp** — canonical `https://wa.me/6287870306031` (verified identical in `faq-data.ts`, `catalog-header.tsx`, `site-footer.tsx`) with a prefilled, honest inquiry message. No cart/wishlist/ratings — none exist in the data or business model. |
-| **Loading**      | 1:1 skeleton mirroring the final split (gallery + summary rail + section blocks); chrome gated until settle. 404/invalid id → dedicated not-found shell; API error → retry state (terminal states un-gate chrome).                                    |
-| **Motion**       | **Grouped** (not per-node) reveals: gallery surface (one), summary identity group, price/terms group, CTA/meta group, subtle per-section whileInView. Framer only — **no GSAP**. Reduced-motion aware.                                                   |
-| **Icons**        | Hugeicons only. **Remove all lucide-react.**                                                                                                                                                                                                          |
-| **Dependencies** | None added. `embla-carousel-react`, `framer-motion`, `react-router`, TanStack Query all already installed.                                                                             |
+| Pillar           | Decision (short)                                                                                                                                                                                                                                                            |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Route**        | Keep `/paket/:id` (numeric `id` — backend route-model binds by primary key; no slug column exists).                                                                                                                                                                         |
+| **Data**         | `GET /api/v1/paket/{paket}` (`PaketController@show` → `PaketResource`). Single `useQuery`; no list reuse.                                                                                                                                                                   |
+| **Gate**         | `src/store/detail-store.ts` (`ready`) + **explicit reset-on-id** effect; `LayoutWrapper` defers CTA band + footer until the current-id query settles. No timers.                                                                                                            |
+| **Layout**       | Desktop `lg:grid-cols-[1.1fr_1fr]`: **CSS-native sticky** gallery left (`lg:sticky lg:top-24 lg:self-start`, NO JS-measured offset), summary rail right; full-width Menu & Fasilitas sections below. Mobile: gallery → identity → price → CTA → sections.                   |
+| **Gallery**      | Reuse Embla `image-carousel.tsx` + `paket-images-carousel.tsx` (controlled refactor); every image opens **GlobalImageModal** (single global lightbox, real store API documented in §12).                                                                                    |
+| **CTA**          | One primary conversion: **WhatsApp** — canonical `https://wa.me/628561155113` (verified identical in `faq-data.ts`, `catalog-header.tsx`, `site-footer.tsx`) with a prefilled, honest inquiry message. No cart/wishlist/ratings — none exist in the data or business model. |
+| **Loading**      | 1:1 skeleton mirroring the final split (gallery + summary rail + section blocks); chrome gated until settle. 404/invalid id → dedicated not-found shell; API error → retry state (terminal states un-gate chrome).                                                          |
+| **Motion**       | **Grouped** (not per-node) reveals: gallery surface (one), summary identity group, price/terms group, CTA/meta group, subtle per-section whileInView. Framer only — **no GSAP**. Reduced-motion aware.                                                                      |
+| **Icons**        | Hugeicons only. **Remove all lucide-react.**                                                                                                                                                                                                                                |
+| **Dependencies** | None added. `embla-carousel-react`, `framer-motion`, `react-router`, TanStack Query all already installed.                                                                                                                                                                  |
 
 ---
 
@@ -65,6 +65,7 @@ src/components/ui/core/block/detail/
 ### 2.3 `detail-block.tsx` is dead code — replace, not patch
 
 Verified broken (fails typecheck + runtime):
+
 - **Nonexistent imports:** `@/lib/validations/index.t`, `@/config/enums/ProductsStatus`, `@/config/enums/CategoryProductsStatus`, `@/lib/utils/products/*`, `@/lib/actions/*`, `@/hooks/use-worldMax`, `@/hooks/use-initials`, `@inertiajs/react`, `lucide-react`.
 - **Undefined variables:** the entire body reads `product`, `seller`, etc. — nothing is in scope.
 - Renders Sundress-only concepts (ratings, VAT, cart/wishlist, shipping/returns accordions, vendor row) with **no Catering counterpart**.
@@ -107,18 +108,18 @@ Source: `github.com/Ahmad-Yu2up-Ar-Raf/sundress-ecommerce-web` → `resources/js
 
 ### Sundress → Catering mapping
 
-| Sundress                                | Catering equivalent                                                               |
-| --------------------------------------- | --------------------------------------------------------------------------------- |
-| `lucide-react`                          | `@hugeicons/react` + `@hugeicons/core-free-icons`                                 |
-| `@inertiajs/react` (route/page props)   | `react-router` (`useParams`, `useNavigate`, `Link`)                               |
-| `ProductsSchema` / `Vendor` / `@/types` | `Paket` (`block/paket/types/paket-types.ts`)                                      |
+| Sundress                                | Catering equivalent                                                                                 |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `lucide-react`                          | `@hugeicons/react` + `@hugeicons/core-free-icons`                                                   |
+| `@inertiajs/react` (route/page props)   | `react-router` (`useParams`, `useNavigate`, `Link`)                                                 |
+| `ProductsSchema` / `Vendor` / `@/types` | `Paket` (`block/paket/types/paket-types.ts`)                                                        |
 | `@/config/enums/*`, `ProductsStatus`    | `PaketKategoriEnum` + `PaketKategoriOptions` (labels/icons/colors only — **NOT images**, see §11.3) |
-| `handleCart` / `handleWhishlist`        | none — primary CTA = WhatsApp (§13)                                               |
-| Sundress image carousel                 | existing `detail/components/image-carousel.tsx` + `paket-images-carousel.tsx`     |
-| Sundress "similar products" carousel    | **omit** (not in sitemap)                                                         |
-| `<Head>` (Inertia)                      | `useSeo()` hook (`src/hooks/use-seo.ts`)                                          |
-| Accordion (Product/Shipping/Returns)    | editorial sections (no accordions)                                                |
-| Seller row + Avatar                     | **omit**                                                                          |
+| `handleCart` / `handleWhishlist`        | none — primary CTA = WhatsApp (§13)                                                                 |
+| Sundress image carousel                 | existing `detail/components/image-carousel.tsx` + `paket-images-carousel.tsx`                       |
+| Sundress "similar products" carousel    | **omit** (not in sitemap)                                                                           |
+| `<Head>` (Inertia)                      | `useSeo()` hook (`src/hooks/use-seo.ts`)                                                            |
+| Accordion (Product/Shipping/Returns)    | editorial sections (no accordions)                                                                  |
+| Seller row + Avatar                     | **omit**                                                                                            |
 
 ---
 
@@ -126,23 +127,23 @@ Source: `github.com/Ahmad-Yu2up-Ar-Raf/sundress-ecommerce-web` → `resources/js
 
 Verified against `docs/design.md`, `MASTER.md`, `catalog.md`, `galeri.md` and shipped code:
 
-| Asset               | Pattern (observed)                                                                                                                                                                                                                          |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Eyebrow**         | `text-[11px] tracking-[0.34em] uppercase text-primary`, optional hairline flanks (`h-px w-8 bg-primary/60`) — `catalog-header.tsx`, `gallery-hero.tsx`                                                                                        |
-| **Display H1**      | Fraunces `font-heading font-light tracking-[-0.02em] leading-[0.95]` with `clamp()`; **one** Instrument Serif italic accent word max (`font-accent italic text-primary`)                                                                      |
-| **Card title**      | `font-heading font-semibold tracking-tight`, `line-clamp-1` (`paket-card.tsx`)                                                                                                                                                                |
-| **Price**           | Space Grotesk `font-sans font-semibold`; `Intl.NumberFormat("id-ID", {style:"currency", currency:"IDR", maximumFractionDigits:0})` is **local to the consumer** (repo convention — no shared currency util)                                   |
-| **Meta caption**    | `text-xs text-muted-foreground`, `/ porsi`, `Min. N porsi` honesty rule                                                                                                                                                                      |
-| **Badges**          | shadcn `Badge`; category via `getCategoryIcon`/`getCategoryColor` (per-category `badgeColor`); `Best Seller` = existing `paket-card.tsx` pattern                                                                                              |
-| **Card/base**       | `bg-card border-border rounded-2xl ring-1 ring-border`; hover `-translate-y-1.5 hover:shadow-xl` — **no card-in-card**                                                                                                                        |
-| **Skeleton**        | shadcn `Skeleton` + `animate-pulse`, geometry mirrors real surface (`paket-grid.tsx`, `galeri-block.tsx`)                                                                                                                                    |
-| **Motion grammar**  | luxury ease `[0.16,1,0.3,1]`; blur-fade reveals `opacity/y 22–24/blur 6–10`, `duration 0.6–0.7`; **one signature moment per surface**; all gated by `useReducedMotion()` / `MotionConfig reducedMotion="user"` (galeri precedent); blur cleared on complete |
-| **CTA**             | `OriginButton` (magnetic + origin fill) — `catalog-header.tsx` pattern: `intensity={0.8} range={120}` + `window.open(WHATSAPP_URL, "_blank","noopener")`                                                                                       |
-| **Not-found shell** | editorial: eyebrow → Fraunces H1 (accent word) → muted sub → outline Button — `galeri-category-block.tsx` (pattern, not copy)                                                                                                                |
-| **Image treatment** | `MediaItem` (`@unpic/react`, lazy, spinner, `object-cover`); hover zoom/pause; lightbox = **GlobalImageModal** (single instance + store)                                                                                                      |
-| **Containers**      | `container m-auto w-full`; section spacing `pt-10/16 pb-24/32`; warm cream scrims via `from-background/80 via-background/30 to-background`                                                                                                     |
-| **Tokens only**     | ❌ no hex/OKLCH/font names in components (current prototype violates — `fill-yellow-400` etc.)                                                                                                                                                |
-| **Sticky precedent**| CSS-native sticky only: `FilterBar`/`GalleryFilterBar` use `sticky top-[measured]` for the *bar*; for moving panels prefer plain `lg:sticky lg:top-* lg:self-start` (NO JS-derived offset — see §10.2 Sticky bug note) |
+| Asset                | Pattern (observed)                                                                                                                                                                                                                                          |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Eyebrow**          | `text-[11px] tracking-[0.34em] uppercase text-primary`, optional hairline flanks (`h-px w-8 bg-primary/60`) — `catalog-header.tsx`, `gallery-hero.tsx`                                                                                                      |
+| **Display H1**       | Fraunces `font-heading font-light tracking-[-0.02em] leading-[0.95]` with `clamp()`; **one** Instrument Serif italic accent word max (`font-accent italic text-primary`)                                                                                    |
+| **Card title**       | `font-heading font-semibold tracking-tight`, `line-clamp-1` (`paket-card.tsx`)                                                                                                                                                                              |
+| **Price**            | Space Grotesk `font-sans font-semibold`; `Intl.NumberFormat("id-ID", {style:"currency", currency:"IDR", maximumFractionDigits:0})` is **local to the consumer** (repo convention — no shared currency util)                                                 |
+| **Meta caption**     | `text-xs text-muted-foreground`, `/ porsi`, `Min. N porsi` honesty rule                                                                                                                                                                                     |
+| **Badges**           | shadcn `Badge`; category via `getCategoryIcon`/`getCategoryColor` (per-category `badgeColor`); `Best Seller` = existing `paket-card.tsx` pattern                                                                                                            |
+| **Card/base**        | `bg-card border-border rounded-2xl ring-1 ring-border`; hover `-translate-y-1.5 hover:shadow-xl` — **no card-in-card**                                                                                                                                      |
+| **Skeleton**         | shadcn `Skeleton` + `animate-pulse`, geometry mirrors real surface (`paket-grid.tsx`, `galeri-block.tsx`)                                                                                                                                                   |
+| **Motion grammar**   | luxury ease `[0.16,1,0.3,1]`; blur-fade reveals `opacity/y 22–24/blur 6–10`, `duration 0.6–0.7`; **one signature moment per surface**; all gated by `useReducedMotion()` / `MotionConfig reducedMotion="user"` (galeri precedent); blur cleared on complete |
+| **CTA**              | `OriginButton` (magnetic + origin fill) — `catalog-header.tsx` pattern: `intensity={0.8} range={120}` + `window.open(WHATSAPP_URL, "_blank","noopener")`                                                                                                    |
+| **Not-found shell**  | editorial: eyebrow → Fraunces H1 (accent word) → muted sub → outline Button — `galeri-category-block.tsx` (pattern, not copy)                                                                                                                               |
+| **Image treatment**  | `MediaItem` (`@unpic/react`, lazy, spinner, `object-cover`); hover zoom/pause; lightbox = **GlobalImageModal** (single instance + store)                                                                                                                    |
+| **Containers**       | `container m-auto w-full`; section spacing `pt-10/16 pb-24/32`; warm cream scrims via `from-background/80 via-background/30 to-background`                                                                                                                  |
+| **Tokens only**      | ❌ no hex/OKLCH/font names in components (current prototype violates — `fill-yellow-400` etc.)                                                                                                                                                              |
+| **Sticky precedent** | CSS-native sticky only: `FilterBar`/`GalleryFilterBar` use `sticky top-[measured]` for the _bar_; for moving panels prefer plain `lg:sticky lg:top-* lg:self-start` (NO JS-derived offset — see §10.2 Sticky bug note)                                      |
 
 **Nusantara character:** typography (Fraunces + single `font-accent italic` word), warm cream/amber OKLCH tokens, natural client photography, soft `rounded-2xl`, generous rhythm. **No** batik/gold renders, **no** decorative SVG flourishes, **no** glassmorphism — photography and copy carry the identity.
 
@@ -151,29 +152,30 @@ Verified against `docs/design.md`, `MASTER.md`, `catalog.md`, `galeri.md` and sh
 ## 6. Backend / API Audit (final contract)
 
 ### Endpoint
+
 `GET /api/v1/paket/{paket}` — public, no auth. Route-model binding on **`id`**. Verified in `backend/routes/api.php` + `PaketController@show` (loads `images`).
 
 ### Response shape (`PaketResource`) — classification per §7
 
-| Field | Wire type | `REQUIRED`/`CONDITIONAL`/`DERIVED`/`INTERNAL` | Notes |
-|---|---|---|---|
-| `id` | number | required | route param |
-| `nama_paket` | string | required | title |
-| `kategori_paket` | string | required | enum → `Nasi Box` \| `Prasmanan` \| `Snack` \| `Tumpeng` |
-| `kategori_acara` | string \| null | conditional | enum → `Pernikahan` \| `Kantor` \| `Ulang Tahun` \| `Arisan` \| `Umum` |
-| `menu_utama` | string[] | required | `min:1` on create |
-| `menu_tambahan` | string[] \| null | conditional | nullable array |
-| `fasilitas_termasuk` | string[] \| null | conditional | nullable array |
-| `catatan_alergen` | string \| null | conditional | free text |
-| `jenis_kemasan` | string \| null | conditional | e.g. "Box kertas food grade" |
-| `min_order` | number | required | default 1 |
-| `harga_per_porsi` | **string** | required | `decimal:2` → `"22000.00"`; `Number()` before formatting |
-| `kapasitas_produksi` | number \| null | conditional | client range 20–1000 |
-| `deskripsi` | **string \| null** | conditional | nullable on wire — VM normalizes |
-| `thumbnail` | **string \| null** | conditional | null → fallback gallery (§11.3) |
-| `images` | string[] | conditional | always loaded by show; may be `[]`; usually contains URL equal to `thumbnail` |
-| `is_best_seller` | boolean | conditional | |
-| `created_at` / `updated_at` | datetime strings | **internal** | not customer-facing |
+| Field                       | Wire type          | `REQUIRED`/`CONDITIONAL`/`DERIVED`/`INTERNAL` | Notes                                                                         |
+| --------------------------- | ------------------ | --------------------------------------------- | ----------------------------------------------------------------------------- |
+| `id`                        | number             | required                                      | route param                                                                   |
+| `nama_paket`                | string             | required                                      | title                                                                         |
+| `kategori_paket`            | string             | required                                      | enum → `Nasi Box` \| `Prasmanan` \| `Snack` \| `Tumpeng`                      |
+| `kategori_acara`            | string \| null     | conditional                                   | enum → `Pernikahan` \| `Kantor` \| `Ulang Tahun` \| `Arisan` \| `Umum`        |
+| `menu_utama`                | string[]           | required                                      | `min:1` on create                                                             |
+| `menu_tambahan`             | string[] \| null   | conditional                                   | nullable array                                                                |
+| `fasilitas_termasuk`        | string[] \| null   | conditional                                   | nullable array                                                                |
+| `catatan_alergen`           | string \| null     | conditional                                   | free text                                                                     |
+| `jenis_kemasan`             | string \| null     | conditional                                   | e.g. "Box kertas food grade"                                                  |
+| `min_order`                 | number             | required                                      | default 1                                                                     |
+| `harga_per_porsi`           | **string**         | required                                      | `decimal:2` → `"22000.00"`; `Number()` before formatting                      |
+| `kapasitas_produksi`        | number \| null     | conditional                                   | client range 20–1000                                                          |
+| `deskripsi`                 | **string \| null** | conditional                                   | nullable on wire — VM normalizes                                              |
+| `thumbnail`                 | **string \| null** | conditional                                   | null → fallback gallery (§11.3)                                               |
+| `images`                    | string[]           | conditional                                   | always loaded by show; may be `[]`; usually contains URL equal to `thumbnail` |
+| `is_best_seller`            | boolean            | conditional                                   |                                                                               |
+| `created_at` / `updated_at` | datetime strings   | **internal**                                  | not customer-facing                                                           |
 
 **No slug column exists** → route stays numeric `/:id`.
 
@@ -213,12 +215,13 @@ export interface Paket {
   updated_at: string                      // was: Date
 }
 ```
+
 `PaketListResponse` / `Meta` unchanged.
 
 ### 7.3 Null / optional rule ("-", "N/A", "Unknown" are forbidden)
 
 - **Section omits itself** when its source data is absent (mirrors `GalleryCard.metaText` filtering).
-- The only contextual fallback is a warm "Keterangan belum tersedia" for the *description*, the one place a visitor expects prose.
+- The only contextual fallback is a warm "Keterangan belum tersedia" for the _description_, the one place a visitor expects prose.
 - `min_order` shows only when meaningful (always show — business rule); `kategori_acara`/`jenis_kemasan`/`kapasitas_produksi`/`fasilitas`/`menu_tambahan`/`alergen` hide when absent.
 - Never render empty badges, empty lists, or `RUB 0`-style fake values.
 
@@ -248,6 +251,7 @@ Visitor questions → sections:
 8. Next step? → WhatsApp CTA (in the summary rail, above the fold)
 
 **Desktop (lg+):**
+
 ```
 grid lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-10
 ├── LEFT — gallery (CSS sticky, §10.2)
@@ -269,6 +273,7 @@ Section 3: Fasilitas & Ketentuan — fasilitas + catatan alergen (conditional)
 ## 10. Desktop & Mobile Layout Strategy
 
 ### 10.1 Container & rhythm
+
 `container m-auto w-full`; inner `px-5 sm:px-10`; section spacing `pt-12 md:pt-16` / `pb-24 md:pb-32`.
 
 ### 10.2 Desktop gallery sticky — **CSS-native, NOT JS-measured**
@@ -276,6 +281,7 @@ Section 3: Fasilitas & Ketentuan — fasilitas + catatan alergen (conditional)
 ```tsx
 <aside className="lg:sticky lg:top-24 lg:self-start">
 ```
+
 - **No `useHeaderOffset()`** for this panel. The sticky requirement is "stays in view with comfortable clearance", not "aligned exactly under the chrome". JS-measured offsets caused the earlier Gallery sticky bug (sticky activating too early under a changing auto-hide header). A fixed token `lg:top-24` (96px) is deterministic and immune to header height variance.
 - Element height must stay under the viewport: gallery surface capped `lg:max-h-[min(38em,80svh)]` (carousel's own `md:h-[35em]` baseline, clamped so thumbs remain visible).
 - Breakpoints:
@@ -286,11 +292,13 @@ Section 3: Fasilitas & Ketentuan — fasilitas + catatan alergen (conditional)
 - Right rail scrolls; sticky ends when the rail's (undefined) column ends — i.e. it floats only as long as the gallery can stay in its own grid cell (native sticky behavior, no JS).
 
 ### 10.3 Desktop
+
 - Grid `lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-10`.
 - Gallery: main `aspect-[4/3] sm:aspect-[16/10] rounded-2xl`, vertical thumb rail left, `SliderPrevButton`/`SliderNextButton` edge pills, counter `SliderSnapDisplay`, fullscreen button.
 - Price `font-sans font-semibold text-3xl md:text-4xl`; terms `text-xs text-muted-foreground`.
 
 ### 10.4 Mobile / tablet
+
 - Gallery first (horizontal Embla), dots + counter, touch ≥44px, no thumb rail.
 - Identity → price → WhatsApp CTA immediately after gallery.
 - Sections stacked; no horizontal page scroll.
@@ -306,20 +314,22 @@ Section 3: Fasilitas & Ketentuan — fasilitas + catatan alergen (conditional)
 Strengths: solid Embla wiring, thumbs sync + auto-scroll, dots/counter/progress, keyboard handler, `isScale` tween (unused by us — the gallery uses plain axis), Framer snap-display counter (`AnimatePresence`).
 
 Issues for Catering gates:
-| # | Issue | Fix |
-|---|---|---|
-| 1 | Hardcoded `bg-gray-500`, `bg-black`,  semantic tokens (`bg-muted`, `bg-foreground/30`, `bg-card/80`, `bg-primary`) |
-| 2 | Desktop wrapper uses `direction:"rtl"` + vertical axis (confusing orientation, thumbs on wrong edge) | vertical axis, **no rtl**; thumbs rail left, main right |
-| 3 | Wrapper renders no prev/next | render `SliderPrevButton`/`SliderNextButton` (glass `size-11` pills like `GlobalImageModal`) — desktop only; mobile = swipe + dots |
-| 4 | No lightbox hook | main-image click + fullscreen button → `useImageModalStore.open(galleryScope, currentIndex)` (§12) |
-| 5 | `MediaItem` hardcodes `alt={webViewLink}` | add optional `alt` prop to `MediaItem` (default = current behavior); detail passes `paket.nama_paket`, `alt=""` for decorative thumbs |
-| 6 | Magic `w-18`/`h-18`/`h-[400px]` thumb sizes | tokenized `w-16 md:w-20`, thumb `aspect-[3/4]` |
-| 7 | No dedupe against `thumbnail` | gallery built in VM: `dedupe([thumbnail, ...images])` |
-| 8 | Missing counter `aria-live`, thumb labels | `SliderSnapDisplay` renamed/wrapped with `aria-live="polite"`; thumb `aria-label="Slide N"`; buttons `aria-label` ("Sebelumnya"/"Berikutnya"/"Perbesar") |
+
+| #   | Issue                                                                                                             | Fix                                                                                                                                                      |
+| --- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Hardcoded `bg-gray-500`, `bg-black`, semantic tokens (`bg-muted`, `bg-foreground/30`, `bg-card/80`, `bg-primary`) |
+| 2   | Desktop wrapper uses `direction:"rtl"` + vertical axis (confusing orientation, thumbs on wrong edge)              | vertical axis, **no rtl**; thumbs rail left, main right                                                                                                  |
+| 3   | Wrapper renders no prev/next                                                                                      | render `SliderPrevButton`/`SliderNextButton` (glass `size-11` pills like `GlobalImageModal`) — desktop only; mobile = swipe + dots                       |
+| 4   | No lightbox hook                                                                                                  | main-image click + fullscreen button → `useImageModalStore.open(galleryScope, currentIndex)` (§12)                                                       |
+| 5   | `MediaItem` hardcodes `alt={webViewLink}`                                                                         | add optional `alt` prop to `MediaItem` (default = current behavior); detail passes `paket.nama_paket`, `alt=""` for decorative thumbs                    |
+| 6   | Magic `w-18`/`h-18`/`h-[400px]` thumb sizes                                                                       | tokenized `w-16 md:w-20`, thumb `aspect-[3/4]`                                                                                                           |
+| 7   | No dedupe against `thumbnail`                                                                                     | gallery built in VM: `dedupe([thumbnail, ...images])`                                                                                                    |
+| 8   | Missing counter `aria-live`, thumb labels                                                                         | `SliderSnapDisplay` renamed/wrapped with `aria-live="polite"`; thumb `aria-label="Slide N"`; buttons `aria-label` ("Sebelumnya"/"Berikutnya"/"Perbesar") |
 
 **`components/paket-images-carousel.tsx`** — the responsive switch (mobile horizontal / desktop vertical). Refactor to: accept a `gallery: string[]` + `alt` prop (instead of deriving from children), own `currentIndex` + report it up or emit `onIndexChange`, render controls/counter/fullscreen, call the modal store. Rename export to `PaketImagesCarousel` (tree-shakeable named export; keep a default alias if preferred).
 
 ### 11.2 Desktop interaction spec
+
 - Main image (largest slot) + vertical thumb rail (left). Thumb click → `scrollTo`. Active thumb = `border-primary opacity-100` (existing ThumbsSlider pattern).
 - Prev/Next buttons flank the main image; disabled at ends (`prevBtnDisabled`/`nextBtnDisabled` from context).
 - Counter `1 / N` (SnapDisplay) `aria-live="polite"`, top-right or overlay.
@@ -327,19 +337,22 @@ Issues for Catering gates:
 - Keyboard: the context's `handleKeyDown` gives ArrowUp/ArrowDown on the vertical axis; buttons are fully focusable.
 
 ### 11.3 Mobile interaction spec
+
 - Horizontal swipe (Embla native), dots (`SliderDotButton`) + counter.
 - No thumb rail. Prev/Next rendered **only if useful** → decision: **omit on mobile** (dots + swipe cover it; avoids cramped touch targets).
 - Fullscreen button stays (44px target).
 - Touch targets ≥44×44 for every control.
 
 ### 11.4 Image fallback — **category-image claim REJECTED (assets don't exist)**
+
 `public/assets/images/categories/` **does not exist on disk**; `PaketKategoriOptions[*].image` paths are dead references. The prior plan's "use the category image" fallback would 404.
 
 New fallback tiers (no new assets, no backend change):
+
 1. **Gallery empty** (thumb + images both missing) → render **one static slide** with a guaranteed-present brand asset: `/assets/images/banners/hero-banner-tumpeng.png` (shipped + used by Hero/CTA — confirmed on disk).
 2. **Load failure** on any slide → swap that slide's `src` to the same brand asset (handled in the gallery wrapper's `onError`, since `MediaItem` has no `onError` prop — small wrapper addition; falls back to state-driven replace).
 3. **Empty-state panel** (applications where even the brand asset 404s — defensive): a rounded `bg-muted` panel with the category label + "Foto paket segera hadir" via `VisionMobileTech`-style Hugeicon. Honest, accessible, no broken `<img>`.
-The fallback slide still opens the modal (single item, `next/prev` no-op) — optional; simplest is to **not** wire a fallback-only slide to the modal.
+   The fallback slide still opens the modal (single item, `next/prev` no-op) — optional; simplest is to **not** wire a fallback-only slide to the modal.
 
 ---
 
@@ -359,9 +372,11 @@ close()                   // close (also via backdrop/ESC)
 next() / prev()           // wrap-around; no-ops when < 2 items or closed
 setIndex(index)           // direct index set (sync escape hatch)
 ```
+
 Mount: `<GlobalImageModal />` once in `App.tsx` (verified). Behavior: largest-fit sizing from measured natural dims, `object-contain`, caption band, scroll-lock, ESC / ← / → keyboard.
 
 ### The gallery → modal contract (package-scoped)
+
 ```ts
 // gallery VM output (per §14)
 const modalScope: ImageModalItem[] = gallery.map(g => ({
@@ -374,6 +389,7 @@ const modalScope: ImageModalItem[] = gallery.map(g => ({
 // open from the gallery at the carousel's current index:
 useImageModalStore.getState().open(modalScope, currentIndex)
 ```
+
 - **Scope == THIS package only** — `thumbnail + images` deduped, no unrelated assets. Verified `open` accepts scope + index.
 - **Index synchronization contract** (requirement §3#12):
   - Carousel → modal: pass the carousel's `selectedIndex` as `open`'s 2nd arg.
@@ -388,20 +404,21 @@ useImageModalStore.getState().open(modalScope, currentIndex)
 
 ### 13.1 Canonical WhatsApp source — VERIFIED
 
-**The single confirmed business number is `6287870306031`.** Grep over the project:
+**The single confirmed business number is `628561155113`.** Grep over the project:
 
-| Location | Value |
-|---|---|
-| `src/components/ui/core/block/home/faq/faq-data.ts:27` | `export const WHATSAPP_URL = "https://wa.me/6287870306031"` |
-| `src/components/ui/core/block/paket/components/catalog-header.tsx:9` | `const WHATSAPP_URL = "https://wa.me/6287870306031"` |
-| `src/components/ui/core/layout/site-footer.tsx:37` | `{ name: "Hubungi WhatsApp", to: "https://wa.me/6287870306031" }` |
-| `ordering-data.ts` | text-only step "Konfirmasi via WhatsApp" — no URL |
+| Location                                                             | Value                                                            |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `src/components/ui/core/block/home/faq/faq-data.ts:27`               | `export const WHATSAPP_URL = "https://wa.me/628561155113"`       |
+| `src/components/ui/core/block/paket/components/catalog-header.tsx:9` | `const WHATSAPP_URL = "https://wa.me/628561155113"`              |
+| `src/components/ui/core/layout/site-footer.tsx:37`                   | `{ name: "Hubungi WhatsApp", to: "https://wa.me/628561155113" }` |
+| `ordering-data.ts`                                                   | text-only step "Konfirmasi via WhatsApp" — no URL                |
 
 No other number exists anywhere in the codebase. The project **already duplicates the constant locally 3×**; it is consistent (no conflicting number has ever been introduced — earlier draft text in this plan had a wrong number once; now corrected + verified).
 
-**Decision for this task:** introduce **no 4th number and no new duplication**. The detail block uses `https://wa.me/6287870306031` exactly as the other three do. **Consolidation is out of scope** (3 existing copies + a shared config is a separate refactor) — noted in Risks §30 as follow-up.
+**Decision for this task:** introduce **no 4th number and no new duplication**. The detail block uses `https://wa.me/628561155113` exactly as the other three do. **Consolidation is out of scope** (3 existing copies + a shared config is a separate refactor) — noted in Risks §30 as follow-up.
 
 ### 13.2 CTA composition
+
 - **Primary:** `OriginButton` (intensity 0.8 / range 120, exactly `catalog-header.tsx`):
   `Pesan via WhatsApp` + Hugeicon arrow, `window.open(`${WHATSAPP_URL}?text=${encodeURIComponent(message)}`, "_blank", "noopener")`.
 - **Message** (honest, no fabricated numbers):
@@ -432,6 +449,7 @@ BELOW (full width):
 ├── Skeleton h-16 w-full max-w-3xl rounded-xl ×2 (menu lists)
 └── Skeleton h-16 w-full max-w-3xl rounded-xl ×1 (facilities)
 ```
+
 - Includes gallery counter/dots footprints (mobile) and thumb rail (desktop).
 - Rendered only while `isLoading` (no cached data); back-nav cache hit renders content instantly (skeleton flash-free).
 - **Layout shift minimized:** same aspect boxes, same column widths, `Skeleton` preserves box model.
@@ -440,16 +458,17 @@ BELOW (full width):
 
 ## 15. Error / Empty / Not-Found States
 
-| State | Trigger | UI | Chrome gate |
-|---|---|---|---|
-| **Loading** | `query.isLoading` (no cache) | §14 skeleton | **off** |
-| **Invalid id** | `!/^\d+$/.test(id)` (`enabled:false`) | not-found shell | **on** (terminal, no request) |
-| **404** | `HTTPError` status 404 | not-found shell | **on** (terminal) |
-| **API error** | other `isError` | `Gagal memuat paket` + `Button variant="outline"` retry (`refetch`) | **on** (terminal) |
-| **Optional/null data** | any `… | null` | section omitted (never `-`) | — |
-| **No images** | thumb + images empty | brand-asset fallback slide (§11.4) | — |
+| State                  | Trigger                               | UI                                                                  | Chrome gate                   |
+| ---------------------- | ------------------------------------- | ------------------------------------------------------------------- | ----------------------------- |
+| **Loading**            | `query.isLoading` (no cache)          | §14 skeleton                                                        | **off**                       |
+| **Invalid id**         | `!/^\d+$/.test(id)` (`enabled:false`) | not-found shell                                                     | **on** (terminal, no request) |
+| **404**                | `HTTPError` status 404                | not-found shell                                                     | **on** (terminal)             |
+| **API error**          | other `isError`                       | `Gagal memuat paket` + `Button variant="outline"` retry (`refetch`) | **on** (terminal)             |
+| **Optional/null data** | any `…                                | null`                                                               | section omitted (never `-`)   | —   |
+| **No images**          | thumb + images empty                  | brand-asset fallback slide (§11.4)                                  | —                             |
 
 **Not-found shell** (pattern from `galeri-category-block.tsx`, not its copy):
+
 ```
 <section container py-28 text-center>
   <p eyebrow>Katalog Paket</p>
@@ -458,6 +477,7 @@ BELOW (full width):
   <Button outline onClick={navigate("/paket")}>Lihat katalog paket</Button>
 </section>
 ```
+
 **Error shell:** same structure, H1 "Gagal memuat paket", retry button.
 
 ---
@@ -465,13 +485,16 @@ BELOW (full width):
 ## 16. Global CTA / Footer Gating — Reset Semantics
 
 ### 16.1 The problem (two sides)
+
 1. Today `layout-wrapper.tsx` shows chrome immediately on `/paket/:id`:
+
 ```ts
 const showChrome =
   pathname === "/paket" ? catalogEnded
   : pathname.startsWith("/galeri") ? galeriReady
   : true                                    // ← /paket/:id lands here → CTA/footer flash during loading
 ```
+
 2. Cross-route: `/paket/1` settles → `ready=true` → navigate `/paket/2` → the NEW id's query is loading, but the stale `ready=true` would flash CTA/footer before the new page settles **unless the gate resets deterministically**.
 
 ### 16.2 Store + reset semantics (`src/store/detail-store.ts` — new)
@@ -502,15 +525,15 @@ useEffect(() => { setReady(settled) }, [settled, setReady])
 
 State-by-state table:
 
-| Scenario | `query.isLoading` | Effect (1) | Effect (2) | Final `ready` | Why correct |
-|---|---|---|---|---|---|
-| Initial mount, valid id, fetching | true | false | skip | **false** | skeleton visible, chrome off |
-| Settle success | false | — | true | **true** | content visible → chrome ok |
-| 404 / API error | false | — | true | **true** | terminal page → footer escape hatch |
-| Invalid id (`enabled:false`) | false | false | true (same commit) | **true** | terminal not-found, no request |
-| `/paket/1` → `/paket/2`, 2 not cached | true | false | skip | **false** | skeleton, chrome off |
-| `/paket/2` cache-hit (back-nav) | false | false | true (same commit) | **true** | content instantly visible |
-| Background refetch on cache hit | false | — | true | **true** | content visible, keep chrome |
+| Scenario                              | `query.isLoading` | Effect (1) | Effect (2)         | Final `ready` | Why correct                         |
+| ------------------------------------- | ----------------- | ---------- | ------------------ | ------------- | ----------------------------------- |
+| Initial mount, valid id, fetching     | true              | false      | skip               | **false**     | skeleton visible, chrome off        |
+| Settle success                        | false             | —          | true               | **true**      | content visible → chrome ok         |
+| 404 / API error                       | false             | —          | true               | **true**      | terminal page → footer escape hatch |
+| Invalid id (`enabled:false`)          | false             | false      | true (same commit) | **true**      | terminal not-found, no request      |
+| `/paket/1` → `/paket/2`, 2 not cached | true              | false      | skip               | **false**     | skeleton, chrome off                |
+| `/paket/2` cache-hit (back-nav)       | false             | false      | true (same commit) | **true**      | content instantly visible           |
+| Background refetch on cache hit       | false             | —          | true               | **true**      | content visible, keep chrome        |
 
 - Both effects run in the same commit; the reset effect runs first, so a same-commit ungate is safe (final value wins).
 - **No timers, no delays** — pure route/query state.
@@ -545,6 +568,7 @@ src/pages/paket/paket-detail.tsx        # thin shell: useParams → <PaketDetail
         ├── <DetailMenu paket>               # menu_utama + menu_tambahan (conditional)
         └── <DetailFacilities paket>         # fasilitas + catatan_alergen (conditional)
 ```
+
 - `detail-block.tsx`: chrome-gate effects, state routing, grouped reveal, `useSeo`. No business logic in JSX.
 - Summary's three motion groups (#1 identity, #2 price/terms, #3 CTA/meta) are explicit `motion.div`s with `data-*` handles — grouped, not per-node (§21).
 - Mirrors the paket block convention: orchestrator + `components/` + `hooks/` + `types/`.
@@ -553,19 +577,19 @@ src/pages/paket/paket-detail.tsx        # thin shell: useParams → <PaketDetail
 
 ## 18. Reusable Components (borrow — do not re-create)
 
-| Need | Reuse | Notes |
-|---|---|---|
-| Price/terms | local `formatIDR` (Intl, id-ID) | repo convention: one-liner per consumer, no shared module |
-| Category badge | `getCategoryIcon` / `getCategoryColor` / `getCategoryLabel` (`paket-kategori-utils.ts.ts`) | colors/icons only — **not** `PaketKategoriOptions.image` (broken path) |
-| CTA | `OriginButton` | exact `catalog-header.tsx` props |
-| Images | `MediaItem` | + optional `alt` prop (custom-ui fragment — edit allowed) |
-| Skeleton | shadcn `Skeleton` | |
-| Buttons/Badge/Separator | shadcn fragments | |
-| Motion | `MotionConfig`, `useReducedMotion`, luxury-ease constants, (optional) `BlurReveal` | no GSAP |
-| Lightbox | `GlobalImageModal` + `useImageModalStore` | real API §12 |
-| Sticky | CSS-native `lg:sticky lg:top-24 lg:self-start` | NO `useHeaderOffset` for the panel (§10.2) |
-| SEO | `useSeo` | |
-| Scroll reset | global `ScrollToTop` | |
+| Need                    | Reuse                                                                                      | Notes                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Price/terms             | local `formatIDR` (Intl, id-ID)                                                            | repo convention: one-liner per consumer, no shared module              |
+| Category badge          | `getCategoryIcon` / `getCategoryColor` / `getCategoryLabel` (`paket-kategori-utils.ts.ts`) | colors/icons only — **not** `PaketKategoriOptions.image` (broken path) |
+| CTA                     | `OriginButton`                                                                             | exact `catalog-header.tsx` props                                       |
+| Images                  | `MediaItem`                                                                                | + optional `alt` prop (custom-ui fragment — edit allowed)              |
+| Skeleton                | shadcn `Skeleton`                                                                          |                                                                        |
+| Buttons/Badge/Separator | shadcn fragments                                                                           |                                                                        |
+| Motion                  | `MotionConfig`, `useReducedMotion`, luxury-ease constants, (optional) `BlurReveal`         | no GSAP                                                                |
+| Lightbox                | `GlobalImageModal` + `useImageModalStore`                                                  | real API §12                                                           |
+| Sticky                  | CSS-native `lg:sticky lg:top-24 lg:self-start`                                             | NO `useHeaderOffset` for the panel (§10.2)                             |
+| SEO                     | `useSeo`                                                                                   |                                                                        |
+| Scroll reset            | global `ScrollToTop`                                                                       |                                                                        |
 
 ---
 
@@ -588,6 +612,7 @@ Detail needs exactly: **`Badge`, `Button` (+ `buttonVariants`), `Separator`, `Sk
 ## 21. Animation Strategy — Grouped, Premium, Minimal
 
 ### 21.1 Gallery reveal (requirement §5)
+
 Single coordinated `motion.div` **wrapping the entire gallery surface** (carousel + thumbs + counter + controls — one node, not per-slide):
 
 ```tsx
@@ -600,15 +625,19 @@ const SHOWN = { opacity: 1, y: 0, filter: "blur(0px)" }
   onAnimationComplete={() => el.style.filter = ""}   // clear blur
 > …gallery… </motion.div>
 ```
+
 - opacity `0→1`, blur `10→0`, translateY `24→0`, luxury ease, **no bounce, no scale** (brief §5: "elegant easing, no exaggerated scale").
 
 ### 21.2 Summary rail — grouped groups, tight stagger
+
 Three `motion.div` groups (identity / price-terms / CTA-meta) with a **parent** stagger 0.08–0.1, same tween as above — each group animated as one node. **Explicitly NOT** per-icon, per-badge, per-line, or per-menu-item animation.
 
 ### 21.3 Lower sections
+
 One subtle `whileInView` per section (Menu, Facilities): `{ opacity: 0 → 1, y: 16 → 0 }`, 0.6s, luxury ease, `viewport={{ once: true }}`. No blur below the fold (perf).
 
 ### 21.4 Reduced motion & rules
+
 - `MotionConfig reducedMotion="user"` at the block root (galeri precedent) collapses transforms/filter to opacity.
 - **Framer Motion only.** GSAP is **intentionally not used** (no scroll-driven/timeline interaction exists here; brief §19 — don't add GSAP just because it's installed). GSAP stays for scroll-pinned sections elsewhere (hero/ordering).
 - One signature moment per surface (design.md §7); sections declare, never cascade.
@@ -628,17 +657,17 @@ One subtle `whileInView` per section (Menu, Facilities): `{ opacity: 0 → 1, y:
 
 ## 23. Accessibility Strategy
 
-| Area | Plan |
-|---|---|
-| Semantics | one `h1` (paket name); `h2` per section; `aria-labelledby` on sections; breadcrumb (if rendered) in `<nav aria-label="Breadcrumb">` |
-| Images | `MediaItem` gains optional `alt` (default keeps `src`); detail passes `alt={nama_paket}` on main + thumbs, `alt=""` (`aria-hidden`) on decorative thumbs |
-| Carousel | keyboard already wired (`handleKeyDown`: U/D vertical, L/R horizontal) — keep after refactor; `SliderPrevButton`/`SliderNextButton` labeled `aria-label="Sebelumnya"/"Berikutnya"`; counter `aria-live="polite"`; ThumbsSlider buttons `aria-label="Slide N"` + `aria-current` on active; dots already labeled |
-| Fullscreen | accessible trigger (`aria-label` e.g. "Perbesar gambar"), focusable, Enter/Space works (OriginButton/Button) |
-| Lightbox | already compliant (dialog, ESC, arrows, scroll-lock) — reuse as-is; focus returns naturally on close |
-| Focus-visible | `focus-visible:ring-2 ring-ring` on all controls (tokens) |
-| Touch | all interactive targets ≥44×44 (CTA `h-12` pill, icon buttons `size-11`) |
-| Reduced motion | §21.4; `MotionConfig reducedMotion="user"` |
-| Contrast | semantic tokens only; muted text on background ≥ AA (site standard) |
+| Area           | Plan                                                                                                                                                                                                                                                                                                           |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Semantics      | one `h1` (paket name); `h2` per section; `aria-labelledby` on sections; breadcrumb (if rendered) in `<nav aria-label="Breadcrumb">`                                                                                                                                                                            |
+| Images         | `MediaItem` gains optional `alt` (default keeps `src`); detail passes `alt={nama_paket}` on main + thumbs, `alt=""` (`aria-hidden`) on decorative thumbs                                                                                                                                                       |
+| Carousel       | keyboard already wired (`handleKeyDown`: U/D vertical, L/R horizontal) — keep after refactor; `SliderPrevButton`/`SliderNextButton` labeled `aria-label="Sebelumnya"/"Berikutnya"`; counter `aria-live="polite"`; ThumbsSlider buttons `aria-label="Slide N"` + `aria-current` on active; dots already labeled |
+| Fullscreen     | accessible trigger (`aria-label` e.g. "Perbesar gambar"), focusable, Enter/Space works (OriginButton/Button)                                                                                                                                                                                                   |
+| Lightbox       | already compliant (dialog, ESC, arrows, scroll-lock) — reuse as-is; focus returns naturally on close                                                                                                                                                                                                           |
+| Focus-visible  | `focus-visible:ring-2 ring-ring` on all controls (tokens)                                                                                                                                                                                                                                                      |
+| Touch          | all interactive targets ≥44×44 (CTA `h-12` pill, icon buttons `size-11`)                                                                                                                                                                                                                                       |
+| Reduced motion | §21.4; `MotionConfig reducedMotion="user"`                                                                                                                                                                                                                                                                     |
+| Contrast       | semantic tokens only; muted text on background ≥ AA (site standard)                                                                                                                                                                                                                                            |
 
 ---
 
@@ -678,6 +707,7 @@ export interface DetailViewModel {
 }
 export function toDetailViewModel(paket: Paket): DetailViewModel { … }
 ```
+
 - All formatting/output decisions live here; components only consume the VM (`paket` prop is not passed raw into presentational components — only the VM + `id` are).
 - Keeps "API typed → VM normalized → declarative UI" and keeps business logic out of JSX (brief §14).
 
@@ -686,54 +716,58 @@ export function toDetailViewModel(paket: Paket): DetailViewModel { … }
 ## 26. File Change Plan (validation pass adds 2 files)
 
 ### CREATE
-| File | Why |
-|---|---|
-| `src/store/detail-store.ts` | chrome gate store (§16) |
-| `frontend/docs/paket-detail-page-plan.md` | this contract (updated) |
-| `design-system/pages/detail.md` | page override (mirror `catalog.md` brevity) — generated during Phase 1 |
-| `block/detail/components/detail-gallery.tsx` | gallery surface: carousel wiring + modal scope + index sync + fallback (§11–12) |
-| `block/detail/components/detail-summary.tsx` | identity/price-terms/CTA/meta groups (§9) |
-| `block/detail/components/detail-menu.tsx` | Menu Utama + Tambahan |
-| `block/detail/components/detail-facilities.tsx` | fasilitas + alergen |
-| `block/detail/components/detail-skeleton.tsx` | 1:1 skeleton (§14) |
-| `block/detail/components/detail-not-found.tsx` | 404/invalid (§15) |
-| `block/detail/components/detail-error.tsx` | retry (§15) |
-| `block/detail/utils/detail-view-model.ts` | single transform layer (§25) |
+
+| File                                            | Why                                                                             |
+| ----------------------------------------------- | ------------------------------------------------------------------------------- |
+| `src/store/detail-store.ts`                     | chrome gate store (§16)                                                         |
+| `frontend/docs/paket-detail-page-plan.md`       | this contract (updated)                                                         |
+| `design-system/pages/detail.md`                 | page override (mirror `catalog.md` brevity) — generated during Phase 1          |
+| `block/detail/components/detail-gallery.tsx`    | gallery surface: carousel wiring + modal scope + index sync + fallback (§11–12) |
+| `block/detail/components/detail-summary.tsx`    | identity/price-terms/CTA/meta groups (§9)                                       |
+| `block/detail/components/detail-menu.tsx`       | Menu Utama + Tambahan                                                           |
+| `block/detail/components/detail-facilities.tsx` | fasilitas + alergen                                                             |
+| `block/detail/components/detail-skeleton.tsx`   | 1:1 skeleton (§14)                                                              |
+| `block/detail/components/detail-not-found.tsx`  | 404/invalid (§15)                                                               |
+| `block/detail/components/detail-error.tsx`      | retry (§15)                                                                     |
+| `block/detail/utils/detail-view-model.ts`       | single transform layer (§25)                                                    |
 
 ### MODIFY
-| File | Why |
-|---|---|
-| `block/detail/detail-block.tsx` | **rewrite** (orchestrator + gate effects + grouped reveal + `useSeo`) |
-| `block/detail/hooks/use-detail-query.ts` | key `["paket","detail",id]`, `enabled` id-guard, `isNotFound` classification |
-| `block/detail/components/image-carousel.tsx` | tokens-only, alt passthrough, no-rtl vertical, a11y labels (§11.1) |
-| `block/detail/components/paket-images-carousel.tsx` | gallery prop + alt, controls, counter, fullscreen, modal hook, dedupe, fallback (§11.2–11.4); export `PaketImagesCarousel` |
-| `block/paket/types/paket-types.ts` | §7.2 nullability + timestamp strings (contract-true) |
-| `src/pages/paket/paket-detail.tsx` | pass `id`, keep required-id redirect, thin shell |
-| `src/components/provider/layout-wrapper.tsx` | detail branch in `showChrome` (§16.4) |
-| `src/components/ui/fragments/custom-ui/media-item.tsx` | add optional `alt` prop (custom-ui fragment — allowed; default keeps `src` alt to avoid breaking existing callers) |
+
+| File                                                   | Why                                                                                                                        |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `block/detail/detail-block.tsx`                        | **rewrite** (orchestrator + gate effects + grouped reveal + `useSeo`)                                                      |
+| `block/detail/hooks/use-detail-query.ts`               | key `["paket","detail",id]`, `enabled` id-guard, `isNotFound` classification                                               |
+| `block/detail/components/image-carousel.tsx`           | tokens-only, alt passthrough, no-rtl vertical, a11y labels (§11.1)                                                         |
+| `block/detail/components/paket-images-carousel.tsx`    | gallery prop + alt, controls, counter, fullscreen, modal hook, dedupe, fallback (§11.2–11.4); export `PaketImagesCarousel` |
+| `block/paket/types/paket-types.ts`                     | §7.2 nullability + timestamp strings (contract-true)                                                                       |
+| `src/pages/paket/paket-detail.tsx`                     | pass `id`, keep required-id redirect, thin shell                                                                           |
+| `src/components/provider/layout-wrapper.tsx`           | detail branch in `showChrome` (§16.4)                                                                                      |
+| `src/components/ui/fragments/custom-ui/media-item.tsx` | add optional `alt` prop (custom-ui fragment — allowed; default keeps `src` alt to avoid breaking existing callers)         |
 
 ### DELETE
+
 None (the prototype body is replaced in place; nothing else is dead).
 
 ### KEEP
+
 `types/detail-types.ts`, `MediaItem`, `GlobalImageModal` + store, `useSeo`, `useHeaderOffset` (unused by detail — kept for catalog), `PaketKategoriOptions`/utils (icons/colors only), shadcn fragments, motion primitives, `PaketCard` link.
 
 ---
 
 ## 27. Dependencies / Library Compatibility
 
-| Sundress prototype | Exists? | Verdict |
-|---|---|---|
-| `lucide-react` | ❌ | **Remove** → Hugeicons |
-| `@inertiajs/react` | ❌ | **Remove** → react-router |
-| embla-carousel | ✅ `embla-carousel-react` v8 | **Keep** (reuse in `image-carousel.tsx`) |
-| framer-motion | ✅ | **Keep** (grouped reveals) |
-| TanStack Query | ✅ | **Keep** |
-| shadcn/Radix | ✅ | **Keep** |
-| `@/lib/actions/*`, `@/config/enums/*`, `@/lib/utils/products/*`, `@/lib/validations/index.t` | ❌ | **Remove** (Sundress-only) |
-| `@/hooks/use-worldMax`, `use-initials` | ❌ | **Remove** |
-| `Avatar`, `Accordion`, `Tabs` | exist/unused | **Not needed** |
-| New packages | — | **None** |
+| Sundress prototype                                                                           | Exists?                      | Verdict                                  |
+| -------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------- |
+| `lucide-react`                                                                               | ❌                           | **Remove** → Hugeicons                   |
+| `@inertiajs/react`                                                                           | ❌                           | **Remove** → react-router                |
+| embla-carousel                                                                               | ✅ `embla-carousel-react` v8 | **Keep** (reuse in `image-carousel.tsx`) |
+| framer-motion                                                                                | ✅                           | **Keep** (grouped reveals)               |
+| TanStack Query                                                                               | ✅                           | **Keep**                                 |
+| shadcn/Radix                                                                                 | ✅                           | **Keep**                                 |
+| `@/lib/actions/*`, `@/config/enums/*`, `@/lib/utils/products/*`, `@/lib/validations/index.t` | ❌                           | **Remove** (Sundress-only)               |
+| `@/hooks/use-worldMax`, `use-initials`                                                       | ❌                           | **Remove**                               |
+| `Avatar`, `Accordion`, `Tabs`                                                                | exist/unused                 | **Not needed**                           |
+| New packages                                                                                 | —                            | **None**                                 |
 
 ---
 
@@ -761,7 +795,7 @@ None (the prototype body is replaced in place; nothing else is dead).
 - [ ] Gallery desktop: vertical thumb rail sync, prev/next, counter, fullscreen; mobile: swipe + dots, no cramped rail.
 - [ ] Gallery → modal opens at current index; modal scope = this package only; modal prev/next wrap; close returns carousel at same index.
 - [ ] Empty gallery → brand-asset fallback slide (no broken images, still accessible).
-- [ ] WhatsApp CTA: canonical `wa.me/6287870306031`, prefilled honest message, new tab with `noopener`.
+- [ ] WhatsApp CTA: canonical `wa.me/628561155113`, prefilled honest message, new tab with `noopener`.
 - [ ] Price honesty: `Rp 25.000 / porsi · Min. 10 porsi` (Tumpeng Mini); no invented totals as authoritative.
 - [ ] All 15 API fields classified (§6/§7) — no meaningful data omitted, no `-`/`N/A`.
 - [ ] `typecheck`, `lint`, `lint:design` clean; no lucide; tokens only; no new deps; no backend changes.
@@ -773,18 +807,18 @@ None (the prototype body is replaced in place; nothing else is dead).
 
 ## 30. Risks / Trade-offs
 
-| Risk | Mitigation |
-|---|---|
-| Gallery Embla orientation (`rtl` vertical) | removed (`no rtl`) — verify in-browser at Phase 4 |
-| Image URLs failing (Cloudinary/seeding) | brand-asset fallback (§11.4); empty-state panel defensive |
-| `harga_per_porsi` 0/NaN (hand-entered admin rows) | `formatIDR` guard → `"—"`, terms row hidden |
-| Convert-to-decimal string drift (`"22000.00"`) | `Number()` in VM only |
-| Stale chrome gate across detail routes | §16.3 reset effect (deterministic, path-scoped) — flagged explicitly |
-| **WhatsApp duplication (3 local copies)** | **verified identical number**; detail adds **no 4th number/value** — same const, same value; consolidation to a shared config = follow-up refactor, out of scope |
-| Skeleton flash vs 1:1 | single responsive skeleton; cache hits skip skeleton |
-| "Kalkulator Porsi" expectation (sitemap §3.1) | deferred — MVP = WhatsApp CTA with truthful message; calculator (UX-only preview) when client asks, server still owns totals |
-| Missing `categories/` asset dir (`PaketKategoriOptions.image` dead) | **do not rely on it** (admin/POS still references it — separate bug already on the books); detail uses §11.4 fallback |
-| `MediaItem.alt` addition | additive optional prop, default unchanged → zero breakage |
+| Risk                                                                | Mitigation                                                                                                                                                       |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gallery Embla orientation (`rtl` vertical)                          | removed (`no rtl`) — verify in-browser at Phase 4                                                                                                                |
+| Image URLs failing (Cloudinary/seeding)                             | brand-asset fallback (§11.4); empty-state panel defensive                                                                                                        |
+| `harga_per_porsi` 0/NaN (hand-entered admin rows)                   | `formatIDR` guard → `"—"`, terms row hidden                                                                                                                      |
+| Convert-to-decimal string drift (`"22000.00"`)                      | `Number()` in VM only                                                                                                                                            |
+| Stale chrome gate across detail routes                              | §16.3 reset effect (deterministic, path-scoped) — flagged explicitly                                                                                             |
+| **WhatsApp duplication (3 local copies)**                           | **verified identical number**; detail adds **no 4th number/value** — same const, same value; consolidation to a shared config = follow-up refactor, out of scope |
+| Skeleton flash vs 1:1                                               | single responsive skeleton; cache hits skip skeleton                                                                                                             |
+| "Kalkulator Porsi" expectation (sitemap §3.1)                       | deferred — MVP = WhatsApp CTA with truthful message; calculator (UX-only preview) when client asks, server still owns totals                                     |
+| Missing `categories/` asset dir (`PaketKategoriOptions.image` dead) | **do not rely on it** (admin/POS still references it — separate bug already on the books); detail uses §11.4 fallback                                            |
+| `MediaItem.alt` addition                                            | additive optional prop, default unchanged → zero breakage                                                                                                        |
 
 ---
 
@@ -808,7 +842,7 @@ LayoutWrapper.showChrome += `isDetail ? detailReady` (§16.4).
 
 Data: GET /api/v1/paket/{paket} (public, no auth) → PaketResource (15 fields, honest nullability)
     → use-detail-query → toDetailViewModel (single transform, §25) → declarative JSX.
-Canonical WhatsApp: https://wa.me/6287870306031 (§13.1, verified 3× in code).
+Canonical WhatsApp: https://wa.me/628561155113 (§13.1, verified 3× in code).
 No backend changes. No new npm deps. No second lightbox. Framer only.
 ```
 
@@ -841,4 +875,4 @@ No backend changes. No new npm deps. No second lightbox. Framer only.
 
 ---
 
-*End of implementation contract. Stop — do not modify production code in this pass.*
+_End of implementation contract. Stop — do not modify production code in this pass._

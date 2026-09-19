@@ -110,10 +110,11 @@ function CTABlock() {
               aria-hidden="true"
               className="h-[2px] w-full flex-1 rounded-full bg-primary"
             />
+            {/* STEP 3 benchmark: 0.3 trigger depth, same as all sections. */}
             <BlurReveal
               blur={6}
               stagger={0.08}
-              amount={0.6}
+              amount={0.3}
               className="flex w-fit text-[10px] tracking-[0.2em] lg:text-xs"
             >
               Let's Celebrate Love
@@ -134,7 +135,7 @@ function CTABlock() {
                 duration={1}
                 stagger={0.15}
                 trigger="scroll"
-                scrollStart="top 80%"
+                scrollStart="top 70%"
               />
             </span>
           </h1>
@@ -145,7 +146,7 @@ function CTABlock() {
             blur={6}
             stagger={0.12}
             scale={0.95}
-            amount={0.6}
+            amount={0.3}
             className="inline-block"
           >
             <OriginButton

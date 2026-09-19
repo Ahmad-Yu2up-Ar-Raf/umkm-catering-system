@@ -10,6 +10,7 @@ import { useDetailStore } from "@/store/detail-store"
 import { useGaleriStore } from "@/store/galeri-store"
 import CTABlock from "../ui/core/layout/cta-block"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { LenisGsapSync } from "./lenis-gsap-sync"
 import { ScrollToTop } from "./scroll-to-top"
 import { RouteSeoResolver } from "./route-seo-resolver"
 import { SiteHeader } from "../ui/core/layout/nav/site-header"
@@ -50,7 +51,10 @@ export function LayoutWrapper() {
         : true
 
   return (
-    <ReactLenis root>
+    // autoRaf:false — the GSAP ticker drives Lenis via <LenisGsapSync/> (single
+    // driver; leaving autoRaf on would double-step the scroll loop).
+    <ReactLenis root options={{ autoRaf: false }}>
+      <LenisGsapSync />
       <div className="bg-background">
         {/* Global scroll restoration — resets to the top on every route change
           (Lenis-aware, so the next page never renders at the old scroll depth). */}
@@ -67,7 +71,7 @@ export function LayoutWrapper() {
         <div
           className={cn(
             "relative z-10 w-full overflow-x-hidden bg-background md:overflow-visible",
-            pathname !== "/" && 'overflow-visible'
+            pathname !== "/" && "overflow-visible"
           )}
         >
           <div
@@ -77,13 +81,12 @@ export function LayoutWrapper() {
           >
             <Outlet />
             {preloaderDone && showChrome && <CTABlock />}
-            {pathname == "/" && (
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-linear-to-t from-background/0 via-background/80 to-background md:hidden" />
-            )}
-
-            <div className="pointer-events-none fixed inset-0 top-0 hidden h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:inline md:h-50" />
           </div>
         </div>
+
+        {/* Fixed Fade Overlay di Paling Bawah Layar (Viewport Bottom) */}
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-20 h-28 bg-linear-to-t from-background via-background/70 to-transparent md:h-40" />
+
         {preloaderDone && showChrome && <SiteFooter />}
       </div>
     </ReactLenis>

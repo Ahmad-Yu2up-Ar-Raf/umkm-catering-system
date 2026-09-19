@@ -12,6 +12,7 @@ import { NavBody, NavItems, Navbar } from "./components/navbar"
 
 import { cn } from "@/lib/utils"
 import { scrollToHash } from "@/lib/hash-scroll"
+import { preloadRouteChunk } from "@/router/route-preload"
 
 import { Link, useLocation, useNavigate } from "react-router"
 import { WhatsappIcon } from "@hugeicons/core-free-icons"
@@ -30,6 +31,7 @@ const WHATSAPP_CONTACT_HREF = getWhatsAppLink(
  *  testimoni / faq / kontak). */
 const NAV_ITEMS = [
   { name: "Profil", link: "/#profil" },
+  { name: "Pemesanan", link: "/#cara-pesan" },
   { name: "Paket", link: "/paket" },
   { name: "Galeri", link: "/galeri" },
   { name: "FAQ", link: "/#faq" },
@@ -161,6 +163,10 @@ function MobileBar({
                   <Link
                     to={item.link}
                     onClick={(e) => onNavigate(e, item.link)}
+                    // STEP 4: touch has no hover — start the chunk fetch at
+                    // touchstart so the lazy() on navigation dedupes to warm.
+                    onTouchStart={() => preloadRouteChunk(item.link)}
+                    onFocus={() => preloadRouteChunk(item.link)}
                     className="block rounded-lg px-4 py-2.5 text-sm text-foreground/80 transition-colors hover:bg-muted hover:text-foreground"
                   >
                     {item.name}

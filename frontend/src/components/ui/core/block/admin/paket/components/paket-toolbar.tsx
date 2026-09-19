@@ -105,6 +105,24 @@ export function PaketToolbar({
           </Button>
         </div>
       </div>
+
+      <div className="md:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={onExport}
+          disabled={isExporting}
+          className="w-full"
+        >
+          {isExporting ? (
+            <Spinner className="mr-2 size-4" />
+          ) : (
+            <HugeiconsIcon icon={Download01Icon} className="mr-2 size-4" />
+          )}
+          {isExporting ? "Mengekspor…" : "Export"}
+        </Button>
+      </div>
     </div>
   )
 }

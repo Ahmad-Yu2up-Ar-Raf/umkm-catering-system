@@ -334,6 +334,21 @@
   contain-intrinsic-size: auto 500px;
 }
 
+/* Phase 11 prevention: native scroll-offset fallback for section anchors.
+   Lenis jumps compute the -96px header clearance in JS; these rules cover the
+   no-JS / delayed-JS path (native anchor jumps, find-in-page) with the same
+   96px clearance so no target ever hides under the sticky header. */
+html {
+  scroll-padding-top: 96px;
+}
+#hero,
+#profil,
+#cara-pesan,
+#testimoni,
+#faq {
+  scroll-margin-top: 96px;
+}
+
 /* --- OVERRIDE SONNER UI --- */
 /* Paksa Sonner untuk menggunakan variabel OKLCH milikmu */
 

@@ -18,11 +18,45 @@ import type Lenis from "lenis"
 const HEADER_OFFSET = -96
 
 /** The element Lenis should actually scroll TO for a `#section` target.
- *  A pinned section (#cara-pesan) lives inside a `.pin-spacer`; scrolling to
- *  the SPACER's top enters the pin at step 01 (its natural start), while the
- *  section's own rect only resolves after the pin has fully released. */
+ *  If a GSAP `.pin-spacer` wraps the target (legacy pin architecture),
+ *  scrolling to the SPACER's top enters at the natural start; otherwise the
+ *  element itself (e.g. `#cara-pesan` now lives on the outer sticky wrapper,
+ *  whose top IS the story start). */
 function resolveScrollTarget(targetEl: HTMLElement): HTMLElement {
   return targetEl.closest<HTMLElement>(".pin-spacer") ?? targetEl
+}
+
+/**
+ * Resolve once every image rendered ABOVE `target` has decoded (or the
+ * timeout elapses, whichever first). Only above-target images can push the
+ * target down — awaiting below-fold lazy images would hang until scrolled
+ * to, so they are excluded by measurement. Uses addEventListener (never
+ * clobbers img.onload), resolves broken images via the error path, and
+ * treats already-decode-complete images as settled.
+ */
+export function waitForImagesAbove(
+  target: HTMLElement,
+  timeoutMs = 1200
+): Promise<void> {
+  const targetTop =
+    target.getBoundingClientRect().top + window.scrollY
+  const pending: Promise<void>[] = []
+  for (const img of Array.from(document.images)) {
+    const imgTop = img.getBoundingClientRect().top + window.scrollY
+    if (imgTop >= targetTop) continue
+    if (img.complete && img.naturalWidth > 0) continue
+    pending.push(
+      new Promise<void>((resolve) => {
+        img.addEventListener("load", () => resolve(), { once: true })
+        img.addEventListener("error", () => resolve(), { once: true })
+      })
+    )
+  }
+  if (pending.length === 0) return Promise.resolve()
+  return Promise.race([
+    Promise.all(pending).then(() => undefined),
+    new Promise<void>((resolve) => window.setTimeout(resolve, timeoutMs)),
+  ])
 }
 
 /**

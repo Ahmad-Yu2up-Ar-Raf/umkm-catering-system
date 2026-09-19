@@ -62,7 +62,9 @@ export function WordReveal({
   play = true,
   blur,
   trigger = "mount",
-  scrollStart = "top 80%",
+  // STEP 4 benchmark: fires when the header top reaches 70% viewport depth
+  // (genuinely visible) — "top 80%" played while still peeking below the fold.
+  scrollStart = "top 70%",
 }: WordRevealProps) {
   const reduced = useReducedMotion()
   const rootRef = useRef<HTMLSpanElement>(null)

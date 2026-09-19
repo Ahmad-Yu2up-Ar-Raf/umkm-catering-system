@@ -5,6 +5,15 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/provider/theme-provider.tsx"
 
+// STEP 5 prevention: native scroll restoration fights Lenis on back/forward
+// and fires the browser's own hash jump before React mounts (wrong offset, no
+// header compensation). Manual = our gates own every scroll position.
+try {
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual"
+} catch {
+  /* no-op — non-standard environment */
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>

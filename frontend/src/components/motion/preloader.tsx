@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
@@ -42,9 +42,39 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const streakRef = useRef<HTMLSpanElement>(null)
 
+  // STEP 1 font gate (SSR-like ready state for a Vite SPA): the shell paints
+  // immediately (solid muted surface — the user never sees blank), but the
+  // reveal timeline does NOT start until the webfonts are parsed. Fontsource
+  // ships font-display:swap, so without this gate Fraunces swaps MID-tween
+  // ("font berubah sesaat"). The 2.5s timeout guarantees slow/offline fonts
+  // can never hang the app — worst case the gate degrades to previous behavior.
+  const [fontsReady, setFontsReady] = useState(
+    () =>
+      typeof document !== "undefined" &&
+      !!document.fonts &&
+      document.fonts.status === "loaded"
+  )
+  useEffect(() => {
+    if (fontsReady) return
+    let cancelled = false
+    const timer = window.setTimeout(() => {
+      if (!cancelled) setFontsReady(true)
+    }, 2500)
+    document.fonts?.ready.then(() => {
+      if (!cancelled) {
+        window.clearTimeout(timer)
+        setFontsReady(true)
+      }
+    })
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [fontsReady])
+
   useGSAP(
     () => {
-      if (reduced || !rootRef.current) return
+      if (reduced || !rootRef.current || !fontsReady) return
 
       const words = rootRef.current.querySelectorAll<HTMLElement>("[data-pw]")
       // Eyebrow hairlines — BOTH expand width 0 → 100% in perfect sync (one
@@ -124,7 +154,7 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
           "-=0.15"
         )
     },
-    { scope: rootRef }
+    { scope: rootRef, dependencies: [fontsReady] }
   )
 
   if (reduced) return null
@@ -135,7 +165,15 @@ export function Preloader({ onComplete }: { onComplete?: () => void }) {
       aria-hidden="true"
       className="preloader-shell pointer-events-none fixed inset-0 z-[9999] flex items-center justify-center bg-muted"
     >
-      <div className="flex w-full flex-col items-center gap-0 px-6 pb-24 text-center">
+      {/* Invisible until the font gate passes: no static unstyled flash, no
+          FOUT — the shell reads as a solid brand surface, then the timeline
+          plays once with final metrics. */}
+      <div
+        className={cn(
+          "flex w-full flex-col items-center gap-0 px-6 pb-24 text-center",
+          !fontsReady && "invisible"
+        )}
+      >
         {/* Eyebrow — exact Hero composition: hairline — label — hairline. */}
         <div
           ref={eyebrowRef}

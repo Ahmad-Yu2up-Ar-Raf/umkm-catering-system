@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Add01Icon, Download01Icon, Message01Icon } from "@hugeicons/core-free-icons"
+import { Message01Icon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
 import { FloatingActionMenu } from "@/components/ui/fragments/custom-ui/floating-action-menu"
@@ -169,25 +169,8 @@ function MasterTestimoniBlock() {
       />
 
       <FloatingActionMenu
-        options={[
-          {
-            label: "Tambah Testimoni",
-            icon: Add01Icon,
-            onClick: () => setCreateOpen(true),
-          },
-          {
-            label: "Export",
-            icon: Download01Icon,
-            onClick: () =>
-              runExport({
-                visibility,
-                search,
-                sort_by: sortBy,
-                sort_dir: sortDir,
-              }),
-            disabled: isExporting,
-          },
-        ]}
+        onCreate={() => setCreateOpen(true)}
+        label="Tambah Testimoni"
       />
 
       <div

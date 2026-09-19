@@ -18,13 +18,17 @@ import OrderingMobileTimeline from "./components/ordering-mobile-timeline"
  * Interaction adapted from tiskacatering.com/#perjalanan-kami, re-skinned into
  * Catering Nusantara's warm cream/amber tokens.
  *
- * Motion architecture (GSAP ScrollTrigger, `prefers-reduced-motion` → static):
+ * Motion architecture (native sticky + GSAP scrub, `prefers-reduced-motion` →
+ *  fully static):
  *  - ENTRY: as the section scrolls in, the header (word-blur primitives) then
- *    the step stage → Polaroid → footer nav rise/fade in with a stagger —
- *    before the pin engages. No group sits statically on first sight.
- *  - PIN: the section is pinned for `PIN_END` (~2600px) with `scrub: true`
- *    (1:1 — Lenis supplies the smoothing, so no magnetic lag). No snap. Each
- *    step spans 0.57 timeline units: a 0.45s transition, then a 0.12-unit
+ *    the step stage → Polaroid → footer nav rise/fade in with a stagger.
+ *    No group sits statically on first sight.
+ *  - STICK (no GSAP pin): the section is `md:sticky top-0 h-screen` inside a
+ *    `md:h-[calc(100vh+PIN_END)]` wrapper — the browser owns the stick natively
+ *    (Lenis-flawless 60fps, zero pin-spacer math, zero entry/exit jumps), while
+ *    ONE scrubbed timeline (`scrub: 0.8`, trigger = wrapper, `top top` →
+ *    `bottom bottom`) drives the step choreography. No snap, no pin transforms.
+ *    Each step spans 0.57 timeline units: a 0.45s transition, then a 0.12-unit
  *    micro-pause — a tiny breath, never a scroll dead zone.
  *  - STEP CHUNKS: every actor of a step — era out/in, Polaroid out/in — sits at
  *    the SAME timeline position `p` with the SAME 0.45s duration. The Polaroids
@@ -38,8 +42,9 @@ import OrderingMobileTimeline from "./components/ordering-mobile-timeline"
  *  - IDLE: a dedicated `data-idle-float` wrapper (separate from the scroll-flip
  *    and the entrance wrappers) bobs the Polaroid continuously (±15px, ±1.5°).
  */
-/** Pinned scroll distance (~430px per step) — padding for standard wheels. */
-const PIN_END = 3000
+/** Sticky travel distance (~430px per step, 7 steps ≈ 3000px incl. padding
+ *  for standard wheels) — materialized below as `md:h-[calc(100vh+3000px)]`
+ *  (one viewport of stick + 3000px of travel). */
 
 /** Timeline units — every step chunk shares these so all actors stay coupled.
  *  Each step spans SEG (0.57) units: the 0.45s transition, then a 0.12-unit
@@ -60,6 +65,9 @@ const STEP_TRIGGER = ORDER_STEPS.map((_, i) =>
 
 function OrderingBlock() {
   const sectionRef = useRef<HTMLElement>(null)
+  // Scrub trigger anchor: a plain in-flow div that GSAP never styles, so
+  // start/end markers can't drift. The section sticks natively inside it.
+  const pinWrapRef = useRef<HTMLDivElement>(null)
   const floatRef = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
   // The desktop-only matchMedia. Held in a ref so strict-mode remounts / route
@@ -75,7 +83,7 @@ function OrderingBlock() {
 
   useGSAP(
     () => {
-      if (reduced || !sectionRef.current) return
+      if (reduced || !sectionRef.current || !pinWrapRef.current) return
 
       // Desktop/tablet ONLY (≥768px). On mobile the ordering section is a plain
       // vertical-scroll timeline — no pin, no scroll-hijacking on touch.
@@ -114,14 +122,19 @@ function OrderingBlock() {
         gsap.set(photos, { rotationY: -90, autoAlpha: 0 })
         gsap.set(photos[0], { rotationY: 0, autoAlpha: 1 })
 
-        // ── PINNED scrub timeline — `scrub: 0.8` interpolates the ~100px jumps
+        // ── STICKY scrub timeline — `scrub: 0.8` interpolates the ~100px jumps
         // of a standard mouse wheel so a fast tick never teleports past a step.
+        // Phase 9 architecture: NO GSAP pin. The browser sticks the section
+        // natively (see JSX); GSAP only scrubs opacity/transforms against the
+        // wrapper's travel (`top top` → `bottom bottom`). No pin-spacer is ever
+        // created, so anchor jumps, refresh storms, and entry/exit jumps have
+        // no mechanism left to occur. No `snap`, no `anticipatePin` (both were
+        // pin-only mitigations — deleted with the pin).
         const tl = gsap.timeline({
           scrollTrigger: {
-            trigger: sectionRef.current,
+            trigger: pinWrapRef.current,
             start: "top top",
-            end: `+=${PIN_END}`,
-            pin: true,
+            end: "bottom bottom",
             scrub: 0.8,
             onUpdate: (self) => {
               // Light the numeral at ~60% through the incoming transition. The
@@ -203,15 +216,35 @@ function OrderingBlock() {
         )
       })
     },
-    { scope: sectionRef }
+    { scope: pinWrapRef }
   )
+
+  // Sticky travel: the wrapper must be exactly viewport + PIN_END so the
+  // scrub maps 1:1 onto the old pin distance (identical step pacing). Applied
+  // on md+ only when animating — mobile keeps natural height, reduced-motion
+  // keeps a static single screen (no empty scroll desert).
+  const stickWrapClass = reduced
+    ? "relative w-full"
+    : "relative w-full md:h-[calc(100vh+3000px)]" // = 100vh + PIN_END
+  const stickSectionClass = reduced
+    ? ""
+    : "md:sticky md:top-0"
 
   return (
     <MotionConfig reducedMotion="user">
+      {/* Sticky architecture: plain in-flow wrapper (the scrub trigger) owns
+          the travel height; the section sticks natively inside it. Opaque
+          bg-background + isolate: zero bleed-through from sections above.
+          STEP 4: the anchor id lives on this OUTERMOST wrapper — measuring the
+          inner sticky node would read its stuck (fixed-like) position instead
+          of the story start. Wrapper top == story start, always. */}
+      <div ref={pinWrapRef} data-pin-wrap id="cara-pesan" className={stickWrapClass}>
       <section
         ref={sectionRef}
-        id="cara-pesan"
-        className="relative isolate flex flex-col justify-center overflow-hidden pt-15 pb-20 text-foreground md:h-screen md:py-0"
+        className={cn(
+          "relative isolate flex flex-col justify-center overflow-hidden bg-background pt-15 pb-20 text-foreground md:h-screen md:py-0",
+          stickSectionClass
+        )}
       >
         {/* Warm amber glow from the upper-right — token-driven, never raw. */}
         {/* <div
@@ -249,7 +282,7 @@ function OrderingBlock() {
                       duration={0.8}
                       stagger={0.07}
                       trigger="scroll"
-                      scrollStart="top 85%"
+                      scrollStart="top 70%"
                     />
                   </span>
                   <span className="block font-accent text-primary italic">
@@ -259,7 +292,7 @@ function OrderingBlock() {
                       duration={0.8}
                       stagger={0.07}
                       trigger="scroll"
-                      scrollStart="top 85%"
+                      scrollStart="top 70%"
                     />
                   </span>
                 </h2>
@@ -383,6 +416,7 @@ function OrderingBlock() {
           </div>
         </div>
       </section>
+      </div>
     </MotionConfig>
   )
 }

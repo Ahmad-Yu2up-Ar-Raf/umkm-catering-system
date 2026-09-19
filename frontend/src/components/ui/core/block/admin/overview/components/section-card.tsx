@@ -38,7 +38,7 @@ export function SectionCards({ dataCards }: componentsProps) {
               <HugeiconsIcon
                 icon={card.icon}
                 strokeWidth={2}
-                className="size-6 md:size-8"
+                className="size-5 md:size-8"
               />
             </div>
             <CardHeader className="w-full p-0">

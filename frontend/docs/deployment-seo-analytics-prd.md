@@ -1,19 +1,20 @@
 <!-- Context Anchor & Monorepo Topology -->
+
 > **Scope:** Frontend Deployment + SEO + Analytics PRD · **Monorepo Root:** `../../`
 >
 > [Global Context](../../docs/project-context.md) · [Monorepo Architecture](../../docs/architecture.md) · [Frontend Architecture](./architecture.md) · [Design Tokens](./design.md) · [Backend API Specs](../../backend/docs/api-collection.md)
 
 # PRD — Frontend Deployment, SEO Architecture & Analytics Integration
 
-| Field | Value |
-|---|---|
-| Status | **PLANNING — approved for Phase 1 execution, no code mutated yet** |
-| Target domain | `https://cateringnusantara.vercel.app` |
-| Deploy root | `frontend/` (monorepo sibling: `backend/` = Laravel API at `catering.smkpesat.sch.id`) |
-| Stack | Vite 8 · React 19 · TypeScript (strict) · Tailwind CSS v4 · shadcn/ui · React Router 8 · TanStack Query/Form · Zustand · Zod · Ky · GSAP · Framer Motion · Lenis · Unpic |
-| Analytics | PostHog US Cloud (Project `605827`) · GA4 (property to be created) |
-| Owner accounts | `yusufzolldyck@gmail.com` / GitHub `Ahmad-Yu2up-Ar-Raf` |
-| Evidence date | 2026-09-13 (repo scan: `package.json`, `vite.config.ts`, `index.html`, `src/router/*`, `src/hooks/use-seo.ts`, `public/robots.txt`, `public/sitemap.xml`, `docs/architecture.md`, `docs/seo/7 SEO Competitive Landscape`) |
+| Field          | Value                                                                                                                                                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Status         | **PLANNING — approved for Phase 1 execution, no code mutated yet**                                                                                                                                                        |
+| Target domain  | `https://cateringnusantara.vercel.app`                                                                                                                                                                                    |
+| Deploy root    | `frontend/` (monorepo sibling: `backend/` = Laravel API at `catering.smkpesat.sch.id`)                                                                                                                                    |
+| Stack          | Vite 8 · React 19 · TypeScript (strict) · Tailwind CSS v4 · shadcn/ui · React Router 8 · TanStack Query/Form · Zustand · Zod · Ky · GSAP · Framer Motion · Lenis · Unpic                                                  |
+| Analytics      | PostHog US Cloud (Project `605827`) · GA4 (property to be created)                                                                                                                                                        |
+| Owner accounts | `yusufzolldyck@gmail.com` / GitHub `Ahmad-Yu2up-Ar-Raf`                                                                                                                                                                   |
+| Evidence date  | 2026-09-13 (repo scan: `package.json`, `vite.config.ts`, `index.html`, `src/router/*`, `src/hooks/use-seo.ts`, `public/robots.txt`, `public/sitemap.xml`, `docs/architecture.md`, `docs/seo/7 SEO Competitive Landscape`) |
 
 > **Scope limit of this document:** planning + audit only. Phase 1 code changes
 > (`vercel.json`, sitemap rewrite, asset fixes, admin lazy-split, `posthog-js`
@@ -72,31 +73,31 @@ limits. All findings are file-anchored.
 
 ### Critical
 
-| # | Finding | Evidence | Impact | Fix (Phase 1) |
-|---|---|---|---|---|
-| C1 | Sitemap URLs 404 | `public/sitemap.xml:9-56` (`/menu`, `/menu/*` ×4, `/profil`, `/cara-pemesanan`, `/kontak`, `/faq`) vs `src/router/index.tsx:21-98` (real: `/`, `/paket`, `/paket/:id`, `/galeri`, `/galeri/:kategori`, `/login`, `/dashboard/*`) | Index bloat + crawl-budget waste; GSC exclusion errors on first submit | Rewrite sitemap to real routes (§5.2) |
-| C2 | Sitemap missing real routes | `/paket`, `/paket/:id`, `/galeri/:kategori`, `/login` absent from sitemap | Key transactional pages undiscoverable via sitemap | Same rewrite |
-| C3 | CSR-only SEO ceiling | Per-route meta is JS-injected (`src/hooks/use-seo.ts:31-63`); only homepage tags are in `index.html` | Per Dec-2025 Google JS-SEO guidance: canonical conflicts, `noindex`-in-raw-HTML, and JS-injected Product/Article markup face delayed processing | Strengthen head writer + per-route JSON-LD (§6.3); prerendering deferred to Phase 2 |
+| #   | Finding                     | Evidence                                                                                                                                                                                                                         | Impact                                                                                                                                          | Fix (Phase 1)                                                                       |
+| --- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| C1  | Sitemap URLs 404            | `public/sitemap.xml:9-56` (`/menu`, `/menu/*` ×4, `/profil`, `/cara-pemesanan`, `/kontak`, `/faq`) vs `src/router/index.tsx:21-98` (real: `/`, `/paket`, `/paket/:id`, `/galeri`, `/galeri/:kategori`, `/login`, `/dashboard/*`) | Index bloat + crawl-budget waste; GSC exclusion errors on first submit                                                                          | Rewrite sitemap to real routes (§5.2)                                               |
+| C2  | Sitemap missing real routes | `/paket`, `/paket/:id`, `/galeri/:kategori`, `/login` absent from sitemap                                                                                                                                                        | Key transactional pages undiscoverable via sitemap                                                                                              | Same rewrite                                                                        |
+| C3  | CSR-only SEO ceiling        | Per-route meta is JS-injected (`src/hooks/use-seo.ts:31-63`); only homepage tags are in `index.html`                                                                                                                             | Per Dec-2025 Google JS-SEO guidance: canonical conflicts, `noindex`-in-raw-HTML, and JS-injected Product/Article markup face delayed processing | Strengthen head writer + per-route JSON-LD (§6.3); prerendering deferred to Phase 2 |
 
 ### High
 
-| # | Finding | Evidence | Impact | Fix (Phase 1) |
-|---|---|---|---|---|
-| H1 | Favicon/manifest/logo 404s | `index.html:9-22` → `/assets/ui/*` (no such dir); `public/assets/logo/site.webmanifest:11-20` → `/assets/ui/web-app-manifest-*` (files live under `/assets/logo/`) | Wasted crawl budget, broken PWA installability, broken unfurls | Repoint to `assets/logo/*` |
-| H2 | JSON-LD `image` missing | `index.html:78` → `…/assets/ui/logo.png` (no `logo.png` on disk) | Rich-result image ineligible | Point at existing banner or add logo |
-| H3 | Category images 404 | `src/components/ui/core/block/paket/config/paket-kategori-enum.ts:38,47,56,65` → `/assets/images/categories/*.png` (no `categories/` dir; disk has `banners/ about/ lifestyle/ ordering/ patern/ textures/ products/`) | Broken catalog imagery if rendered | Repoint or add assets |
-| H4 | No per-route structured data | Only homepage has JSON-LD; no `BreadcrumbList`, `Product`/`Offer`, gallery `ImageObject` | No rich results beyond homepage | Add per-route JSON-LD (§6.3) |
-| H5 | Dead/partial SEO entries | `route-seo-resolver.tsx:44-48` defines `/kontak` (no such route); `:26` matches `/paket/\d+` while router uses `:id` slugs | Non-numeric slugs fall back to generic copy; dead entry confuses maintainers | Slug-safe matcher + `noindex` support |
-| H6 | Official-sitemap pages lack routes | `docs/architecture.md` §2 requires About, How to Order, Contact, FAQ, Testimonials as pages; router has none (they are home-page sections, `home-page.tsx:204-210`) | Competitor-owned keyword pages (Niezer `/catering-bogor/`, Jagarasa blog) uncontested by us | **Deferred to Phase 2** (needs copy + routes) |
+| #   | Finding                            | Evidence                                                                                                                                                                                                               | Impact                                                                                      | Fix (Phase 1)                                 |
+| --- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| H1  | Favicon/manifest/logo 404s         | `index.html:9-22` → `/assets/ui/*` (no such dir); `public/assets/logo/site.webmanifest:11-20` → `/assets/ui/web-app-manifest-*` (files live under `/assets/logo/`)                                                     | Wasted crawl budget, broken PWA installability, broken unfurls                              | Repoint to `assets/logo/*`                    |
+| H2  | JSON-LD `image` missing            | `index.html:78` → `…/assets/ui/logo.png` (no `logo.png` on disk)                                                                                                                                                       | Rich-result image ineligible                                                                | Point at existing banner or add logo          |
+| H3  | Category images 404                | `src/components/ui/core/block/paket/config/paket-kategori-enum.ts:38,47,56,65` → `/assets/images/categories/*.png` (no `categories/` dir; disk has `banners/ about/ lifestyle/ ordering/ patern/ textures/ products/`) | Broken catalog imagery if rendered                                                          | Repoint or add assets                         |
+| H4  | No per-route structured data       | Only homepage has JSON-LD; no `BreadcrumbList`, `Product`/`Offer`, gallery `ImageObject`                                                                                                                               | No rich results beyond homepage                                                             | Add per-route JSON-LD (§6.3)                  |
+| H5  | Dead/partial SEO entries           | `route-seo-resolver.tsx:44-48` defines `/kontak` (no such route); `:26` matches `/paket/\d+` while router uses `:id` slugs                                                                                             | Non-numeric slugs fall back to generic copy; dead entry confuses maintainers                | Slug-safe matcher + `noindex` support         |
+| H6  | Official-sitemap pages lack routes | `docs/architecture.md` §2 requires About, How to Order, Contact, FAQ, Testimonials as pages; router has none (they are home-page sections, `home-page.tsx:204-210`)                                                    | Competitor-owned keyword pages (Niezer `/catering-bogor/`, Jagarasa blog) uncontested by us | **Deferred to Phase 2** (needs copy + routes) |
 
 ### Medium — Core Web Vitals risks
 
-| # | Finding | Evidence | Target | Fix |
-|---|---|---|---|---|
-| M1 | Fonts block LCP text | Fontsource via CSS `@import` (`src/index.css:6-9`); no `display=swap` handling visible; no `<link rel=preload>` in `index.html` | LCP ≤ 2.5s | `preload` + `display=swap` handling (§5.4) |
-| M2 | Admin JS ships to public | Eager admin imports `router/index.tsx:4,10-13` pull `recharts` into landing bundle | Reduce landing JS | `React.lazy` admin routes (§5.4) |
-| M3 | Motion globals | Framer Motion imported directly in ~30 files (1 uses `LazyMotion`); Lenis wraps all routes incl. admin (`layout-wrapper.tsx:53`); `ScrollTrigger.refresh()` on every home mount | INP ≤ 200ms | Lean-motion path for below-fold blocks (Phase 2) |
-| M4 | Image leaks | Unpic core good (`media-item.tsx`); 2 raw `<img>` bypasses (parallax hero, scroll visual); relative path bug (`auth-layout.tsx:99` missing leading `/`); video `preload="auto"` | CLS ≤ 0.1, LCP | Unpic-ify 2 files, fix path, `preload="metadata"` |
+| #   | Finding                  | Evidence                                                                                                                                                                        | Target            | Fix                                               |
+| --- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------------------------- |
+| M1  | Fonts block LCP text     | Fontsource via CSS `@import` (`src/index.css:6-9`); no `display=swap` handling visible; no `<link rel=preload>` in `index.html`                                                 | LCP ≤ 2.5s        | `preload` + `display=swap` handling (§5.4)        |
+| M2  | Admin JS ships to public | Eager admin imports `router/index.tsx:4,10-13` pull `recharts` into landing bundle                                                                                              | Reduce landing JS | `React.lazy` admin routes (§5.4)                  |
+| M3  | Motion globals           | Framer Motion imported directly in ~30 files (1 uses `LazyMotion`); Lenis wraps all routes incl. admin (`layout-wrapper.tsx:53`); `ScrollTrigger.refresh()` on every home mount | INP ≤ 200ms       | Lean-motion path for below-fold blocks (Phase 2)  |
+| M4  | Image leaks              | Unpic core good (`media-item.tsx`); 2 raw `<img>` bypasses (parallax hero, scroll visual); relative path bug (`auth-layout.tsx:99` missing leading `/`); video `preload="auto"` | CLS ≤ 0.1, LCP    | Unpic-ify 2 files, fix path, `preload="metadata"` |
 
 ### Low / hygiene
 
@@ -115,26 +116,26 @@ Monorepo root `C:\Dev\Web\catering`; **deploy root = `frontend`**.
 
 ### 3.1 Dashboard settings (Settings → General / Build)
 
-| Setting | Value |
-|---|---|
-| Root Directory | `frontend` |
-| Framework Preset | Vite |
-| Build Command | `npm run build` (= `tsc -b && vite build`) |
-| Output Directory | `dist` |
-| Install Command | `npm ci` (default) |
-| Node.js Version | 22.x (Vite 8 requires Node ≥ 20.19; pin 22 LTS) |
+| Setting          | Value                                           |
+| ---------------- | ----------------------------------------------- |
+| Root Directory   | `frontend`                                      |
+| Framework Preset | Vite                                            |
+| Build Command    | `npm run build` (= `tsc -b && vite build`)      |
+| Output Directory | `dist`                                          |
+| Install Command  | `npm ci` (default)                              |
+| Node.js Version  | 22.x (Vite 8 requires Node ≥ 20.19; pin 22 LTS) |
 
 ### 3.2 Environment variables (Production + Preview)
 
-| Var | Value | Notes |
-|---|---|---|
-| `VITE_API_URL` | `https://<backend-public-host>/api/v1/` | **Required.** Never ship the LAN default. `src/api/client.ts` fallback is a hardcoded LAN IP — must be overridden in every Vercel env |
-| `VITE_BUSINESS_NUMBER` | `6287870306031` | WhatsApp CTAs |
-| `VITE_APP_NAME` | `Nusantara` | |
-| `VITE_POSTHOG_KEY` | `phc_ssE5XMyPsNRbCwLzCrqGSdMXXg5xecSJVrnmA8BwQQok` | Public-safe key; env-gated init (§4.1) |
-| `VITE_POSTHOG_HOST` | `https://us.i.posthog.com` | US Cloud |
-| `VITE_GA_ID` | `G-XXXXXXXXXX` | After GA4 property creation (§4.2) |
-| `VITE_SITE_URL` | `https://cateringnusantara.vercel.app` | Canonical/OG base; replaces hardcoded `BASE_URL` in `use-seo.ts:4` |
+| Var                    | Value                                              | Notes                                                                                                                                 |
+| ---------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_API_URL`         | `https://<backend-public-host>/api/v1/`            | **Required.** Never ship the LAN default. `src/api/client.ts` fallback is a hardcoded LAN IP — must be overridden in every Vercel env |
+| `VITE_BUSINESS_NUMBER` | `628561155113`                                     | WhatsApp CTAs                                                                                                                         |
+| `VITE_APP_NAME`        | `Nusantara`                                        |                                                                                                                                       |
+| `VITE_POSTHOG_KEY`     | `phc_ssE5XMyPsNRbCwLzCrqGSdMXXg5xecSJVrnmA8BwQQok` | Public-safe key; env-gated init (§4.1)                                                                                                |
+| `VITE_POSTHOG_HOST`    | `https://us.i.posthog.com`                         | US Cloud                                                                                                                              |
+| `VITE_GA_ID`           | `G-XXXXXXXXXX`                                     | After GA4 property creation (§4.2)                                                                                                    |
+| `VITE_SITE_URL`        | `https://cateringnusantara.vercel.app`             | Canonical/OG base; replaces hardcoded `BASE_URL` in `use-seo.ts:4`                                                                    |
 
 ### 3.3 `frontend/vercel.json` (to CREATE in Phase 1)
 
@@ -150,7 +151,12 @@ Monorepo root `C:\Dev\Web\catering`; **deploy root = `frontend`**.
   "headers": [
     {
       "source": "/assets/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
     },
     {
       "source": "/(.*)",
@@ -217,15 +223,15 @@ Realtime shows pageviews → re-verify on Production.
 Market: Jagarasa owns organic (`cateringbogor.or.id` + blog network);
 Zahwa wins local pack with 4 reviews (optimization > volume — an open gap).
 
-| Cluster | Intent | Landing route |
-|---|---|---|
-| `catering bogor` (head) | commercial | `/` (H1, NAP, reviews, geo) |
-| `catering tumpeng bogor` / `tumpeng mini bogor` | transactional, weakest competition | `/paket` filtered view + 1 flagship `/paket/:id` |
-| `snack box bogor`, `nasi box bogor` | transactional | `/paket` category anchors |
-| `catering kantor bogor` (corporate) | B2B, unowned | Phase 2 static page |
-| `catering ulang tahun bogor` | event | Phase 2 static page |
-| `catering murah bogor`, `catering halal bogor` | price/trust | Price transparency + trust signals on `/` + detail |
-| Sub-markets: Cibinong, Sentul, Cileungsi, Depok border | local | `areaServed` expansion + location copy (no doorways; >60% unique rule) |
+| Cluster                                                | Intent                             | Landing route                                                          |
+| ------------------------------------------------------ | ---------------------------------- | ---------------------------------------------------------------------- |
+| `catering bogor` (head)                                | commercial                         | `/` (H1, NAP, reviews, geo)                                            |
+| `catering tumpeng bogor` / `tumpeng mini bogor`        | transactional, weakest competition | `/paket` filtered view + 1 flagship `/paket/:id`                       |
+| `snack box bogor`, `nasi box bogor`                    | transactional                      | `/paket` category anchors                                              |
+| `catering kantor bogor` (corporate)                    | B2B, unowned                       | Phase 2 static page                                                    |
+| `catering ulang tahun bogor`                           | event                              | Phase 2 static page                                                    |
+| `catering murah bogor`, `catering halal bogor`         | price/trust                        | Price transparency + trust signals on `/` + detail                     |
+| Sub-markets: Cibinong, Sentul, Cileungsi, Depok border | local                              | `areaServed` expansion + location copy (no doorways; >60% unique rule) |
 
 Also cover the `katering` (K) spelling variant in copy.
 
@@ -254,19 +260,19 @@ beats volume), Tier-1 citations, Chamber/BBB signals.
 
 ## 6. Explicit Action Plan — 11 Phase 1 File Changes
 
-| # | File | Action |
-|---|---|---|
-| 1 | `frontend/vercel.json` | CREATE — rewrites + cache/security headers (§3.3) |
-| 2 | `frontend/public/sitemap.xml` | REWRITE — real routes, real `<lastmod>`, drop priority/changefreq |
-| 3 | `frontend/index.html` | FIX favicon/manifest/logo → `assets/logo/*`; fix JSON-LD `image`; add `og:image:width/height/alt`; font `preload` + `display=swap` |
-| 4 | `frontend/src/router/index.tsx` | `React.lazy` + `Suspense` for admin routes (stop recharts leak) |
-| 5 | `frontend/package.json` | ADD `posthog-js`; REMOVE `@react-pdf/renderer` |
-| 6 | `frontend/src/lib/posthog.ts` | CREATE — env-gated init |
-| 7 | `frontend/src/main.tsx` + `route-seo-resolver.tsx` | Deferred analytics init + SPA pageviews (PostHog + GA4) |
-| 8 | `frontend/src/hooks/use-seo.ts` + `route-seo-resolver.tsx` | Slug matcher fix, `noindex` + per-route image support |
-| 9 | `…/paket/config/paket-kategori-enum.ts` + `auth-layout.tsx` | Fix image paths (categories dir, leading `/`) |
-| 10 | `…/fragments/custom-ui/media-item.tsx` (+ 2 raw-`<img>` files) | Video `preload="metadata"`; Unpic-ify bypasses |
-| 11 | Vercel dashboard + GA4 + backend CORS | CONFIG — env vars (§3.2), GA4 property, `FRONTEND_URL` |
+| #   | File                                                           | Action                                                                                                                             |
+| --- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `frontend/vercel.json`                                         | CREATE — rewrites + cache/security headers (§3.3)                                                                                  |
+| 2   | `frontend/public/sitemap.xml`                                  | REWRITE — real routes, real `<lastmod>`, drop priority/changefreq                                                                  |
+| 3   | `frontend/index.html`                                          | FIX favicon/manifest/logo → `assets/logo/*`; fix JSON-LD `image`; add `og:image:width/height/alt`; font `preload` + `display=swap` |
+| 4   | `frontend/src/router/index.tsx`                                | `React.lazy` + `Suspense` for admin routes (stop recharts leak)                                                                    |
+| 5   | `frontend/package.json`                                        | ADD `posthog-js`; REMOVE `@react-pdf/renderer`                                                                                     |
+| 6   | `frontend/src/lib/posthog.ts`                                  | CREATE — env-gated init                                                                                                            |
+| 7   | `frontend/src/main.tsx` + `route-seo-resolver.tsx`             | Deferred analytics init + SPA pageviews (PostHog + GA4)                                                                            |
+| 8   | `frontend/src/hooks/use-seo.ts` + `route-seo-resolver.tsx`     | Slug matcher fix, `noindex` + per-route image support                                                                              |
+| 9   | `…/paket/config/paket-kategori-enum.ts` + `auth-layout.tsx`    | Fix image paths (categories dir, leading `/`)                                                                                      |
+| 10  | `…/fragments/custom-ui/media-item.tsx` (+ 2 raw-`<img>` files) | Video `preload="metadata"`; Unpic-ify bypasses                                                                                     |
+| 11  | Vercel dashboard + GA4 + backend CORS                          | CONFIG — env vars (§3.2), GA4 property, `FRONTEND_URL`                                                                             |
 
 Plus step 0: triage + commit the dirty tree before any of the above deploys.
 
@@ -279,4 +285,4 @@ Plus step 0: triage + commit the dirty tree before any of the above deploys.
 3. Confirm the public backend host for `VITE_API_URL` (is `catering.smkpesat.sch.id` the API origin)?
 4. GA4 account confirmation under `yusufzolldyck@gmail.com`?
 
-*Next prompt on approval: execute Phase 1 items 0–11 with `typecheck` + `lint` + local `build` verification and a Vercel Preview checklist.*
+_Next prompt on approval: execute Phase 1 items 0–11 with `typecheck` + `lint` + local `build` verification and a Vercel Preview checklist._

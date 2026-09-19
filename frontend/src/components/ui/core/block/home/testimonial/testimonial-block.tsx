@@ -261,7 +261,13 @@ function TestimonialBlock() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   // Once the content is genuinely in view — the "magical first load" gate.
-  const revealed = useInView(contentRef, { once: true, amount: 0.35 })
+  // STEP 3 benchmark: same 0.3 trigger depth as every section reveal, plus the
+  // contracted viewport margin so the tall section can't fire off-screen.
+  const revealed = useInView(contentRef, {
+    once: true,
+    amount: 0.3,
+    margin: "-100px 0px",
+  })
 
   // Live slides with static fallback (never blank on error/empty).
   const { data: liveSlides } = usePublicTestimonials()
@@ -278,11 +284,15 @@ function TestimonialBlock() {
 
   return (
     <MotionConfig reducedMotion="user">
+      {/* STEP 4 containment: IO-driven reveals only inside (useInView gate),
+          no ScrollTrigger measurement — safe to skip off-screen layout/paint.
+          Ordering (pin) and mengapa (GSAP triggers) are deliberately excluded:
+          content-visibility would corrupt their measured positions. */}
       <section
         id="testimoni"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
-        className="relative overflow-hidden bg-secondary/60 px-5 py-20 md:py-27 md:px-10"
+        className="relative overflow-hidden bg-secondary/60 px-5 py-20 md:py-27 md:px-10 cv-auto"
       >
         {/* Warm gold glow from the top — token-driven (primary amber at 9%),
             never a raw color. */}

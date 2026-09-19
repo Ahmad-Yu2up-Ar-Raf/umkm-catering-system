@@ -367,11 +367,11 @@ export function GlobalImageModal() {
             size="icon"
             aria-label="Tutup"
             onClick={close}
-            className="pointer-events-auto absolute top-4 right-4 z-[80] flex size-10 md:size-12 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none"
+            className="pointer-events-auto absolute top-4 right-4 z-[80] flex size-9 md:size-12 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none"
           >
             <HugeiconsIcon
               icon={Cancel01Icon}
-              className="pointer-events-none size-5"
+              className="pointer-events-none size-4"
             />
           </Button>
 
@@ -403,11 +403,11 @@ export function GlobalImageModal() {
                   e.stopPropagation()
                   prev()
                 }}
-                className="pointer-events-auto absolute top-1/2 left-3 z-[80] flex size-10 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:left-6 md:size-12"
+                className="pointer-events-auto absolute top-1/2 left-3 z-[80] flex size-9 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:left-6 md:size-12"
               >
                 <HugeiconsIcon
                   icon={ChevronLeft}
-                  className="pointer-events-none  size-5"
+                  className="pointer-events-none  size-4"
                 />
               </Button>
               <Button
@@ -419,11 +419,11 @@ export function GlobalImageModal() {
                   e.stopPropagation()
                   next()
                 }}
-                className="pointer-events-auto absolute top-1/2 right-3 z-[80] flex size-10 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:right-6 md:size-12"
+                className="pointer-events-auto absolute top-1/2 right-3 z-[80] flex size-9 -translate-y-1/2 touch-manipulation items-center justify-center rounded-full border border-white/20 bg-black/40 p-0 text-white backdrop-blur-md transition-colors duration-300 select-none hover:border-amber-400/70 hover:bg-black/60 hover:text-amber-400 focus-visible:ring-2 focus-visible:ring-amber-400/60 focus-visible:outline-none md:right-6 md:size-12"
               >
                 <HugeiconsIcon
                   icon={ChevronRight}
-                  className="pointer-events-none  size-5"
+                  className="pointer-events-none  size-4"
                 />
               </Button>
             </>

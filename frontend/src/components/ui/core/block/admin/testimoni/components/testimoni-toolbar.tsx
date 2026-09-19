@@ -44,7 +44,7 @@ export function TestimoniToolbar({
           className="w-full xl:max-w-xs"
         />
 
-        <div className="grid md:w-fit w-full grid-cols-2 gap-2 md:flex">
+        <div className="grid md:w-fit w-full grid-cols-1 gap-2 md:flex">
           <MultiSelectFilter
             options={[...TESTIMONI_VISIBILITY_OPTIONS]}
             value={visibility}
@@ -87,6 +87,24 @@ export function TestimoniToolbar({
             Tambah Testimoni
           </Button>
         </div>
+      </div>
+
+      <div className="md:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={onExport}
+          disabled={isExporting}
+          className="w-full"
+        >
+          {isExporting ? (
+            <Spinner className="mr-2 size-4" />
+          ) : (
+            <HugeiconsIcon icon={Download01Icon} className="mr-2 size-4" />
+          )}
+          {isExporting ? "Mengekspor…" : "Export"}
+        </Button>
       </div>
     </div>
   )

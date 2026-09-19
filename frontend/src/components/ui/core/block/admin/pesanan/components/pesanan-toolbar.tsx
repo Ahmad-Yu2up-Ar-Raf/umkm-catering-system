@@ -39,7 +39,7 @@ export function PesananToolbar({
   isExporting,
 }: PesananToolbarProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <div className="flex flex-1 flex-wrap items-center gap-3">
         <SearchBar
           search={search}
@@ -94,6 +94,24 @@ export function PesananToolbar({
         <Button onClick={onAdd} className="w-full md:w-fit" size="lg">
           <HugeiconsIcon icon={PlusSignIcon} className="mr-2 size-4" />
           Tambah Pesanan
+        </Button>
+      </div>
+
+      <div className="md:hidden">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          className="w-full"
+          onClick={onExport}
+          disabled={isExporting}
+        >
+          {isExporting ? (
+            <Spinner className="mr-2 size-4" />
+          ) : (
+            <HugeiconsIcon icon={Download01Icon} className="mr-2 size-4" />
+          )}
+          {isExporting ? "Mengekspor…" : "Export"}
         </Button>
       </div>
     </div>

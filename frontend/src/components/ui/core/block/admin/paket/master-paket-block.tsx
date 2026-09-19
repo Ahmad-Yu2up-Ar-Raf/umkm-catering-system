@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { toast } from "sonner"
-import { Add01Icon, Download01Icon, SpoonAndForkIcon } from "@hugeicons/core-free-icons"
+import { SpoonAndForkIcon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
 import { FloatingActionMenu } from "@/components/ui/fragments/custom-ui/floating-action-menu"
@@ -188,26 +188,8 @@ function MasterPaketBlock() {
       />
 
       <FloatingActionMenu
-        options={[
-          {
-            label: "Tambah Paket",
-            icon: Add01Icon,
-            onClick: () => setCreateOpen(true),
-          },
-          {
-            label: "Export",
-            icon: Download01Icon,
-            onClick: () =>
-              runExport({
-                kategori_paket: kategoriPaket,
-                kategori_acara: kategoriAcara,
-                search,
-                sort_by: sortBy,
-                sort_dir: sortDir,
-              }),
-            disabled: isExporting,
-          },
-        ]}
+        onCreate={() => setCreateOpen(true)}
+        label="Tambah Paket"
       />
 
       <div

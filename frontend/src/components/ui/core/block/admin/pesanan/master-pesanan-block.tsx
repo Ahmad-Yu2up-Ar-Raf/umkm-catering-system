@@ -1,11 +1,7 @@
 "use client"
 
 import React, { Suspense, useState } from "react"
-import {
-  Download01Icon,
-  PlusSignIcon,
-  ShoppingCart01Icon,
-} from "@hugeicons/core-free-icons"
+import { ShoppingCart01Icon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
 import { FloatingActionMenu } from "@/components/ui/fragments/custom-ui/floating-action-menu"
@@ -330,26 +326,8 @@ function MasterPesananBlock() {
       />
 
       <FloatingActionMenu
-        options={[
-          {
-            label: "Tambah Pesanan",
-            icon: PlusSignIcon,
-            onClick: () => setCreateOpen(true),
-          },
-          {
-            label: "Export",
-            icon: Download01Icon,
-            onClick: () =>
-              runExport({
-                status_pesanan: statuses,
-                metode_pembayaran: metodePembayaran,
-                search,
-                sort_by: sortBy,
-                sort_dir: sortDir,
-              }),
-            disabled: isExporting,
-          },
-        ]}
+        onCreate={() => setCreateOpen(true)}
+        label="Tambah Pesanan"
       />
 
       <div

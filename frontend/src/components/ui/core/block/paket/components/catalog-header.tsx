@@ -41,7 +41,7 @@ export function CatalogHeader() {
 
         <p
           data-catalog-reveal
-          className="max-w-xl text-base text-muted-foreground md:text-lg"
+          className="max-w-xl text-sm sm:text-base text-muted-foreground md:text-lg"
         >
           Nasi box, prasmanan, snack, hingga tumpeng dengan cita rasa rumahan.
           Konsultasi dan pemesanan langsung via WhatsApp.

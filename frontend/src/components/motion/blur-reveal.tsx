@@ -30,6 +30,7 @@ function BlurWord({
   scale,
   onMount,
   amount,
+  viewportMargin,
 }: {
   children: ReactNode
   className?: string
@@ -40,6 +41,7 @@ function BlurWord({
   scale: number
   onMount: boolean
   amount: number
+  viewportMargin?: string
 }) {
   const ref = useRef<HTMLSpanElement>(null)
 
@@ -61,7 +63,10 @@ function BlurWord({
       initial={base}
       {...(onMount
         ? { animate: target }
-        : { whileInView: target, viewport: { once: true, amount } })}
+        : {
+            whileInView: target,
+            viewport: { once: true, amount, margin: viewportMargin ?? "-100px 0px" },
+          })}
       transition={{ duration, ease: LUXURY_EASE, delay }}
       onAnimationComplete={() => {
         // Drop the filter (and will-change) so no blur layer is retained.
@@ -90,7 +95,20 @@ type BlurRevealProps = {
   scale?: number
   /** Animate on mount (menus, dialogs) instead of scroll-into-view. */
   onMount?: boolean
+  /**
+   * Intersection ratio that fires the reveal (default 0.3 — the site-wide
+   * benchmark: fires once a readable third is visible, so text never plays
+   * while still below the fold. Matches about/faq/testimonial/CTA).
+   */
   amount?: number
+  /**
+   * Viewport root margin (default `"-100px 0px"` = contracted 100px top and
+   * bottom). A pure ratio misfires on tall wrappers — 30% of a 2000px section
+   * triggers with the content still off-screen. The pixel contraction
+   * guarantees the leaf is genuinely approaching visibility before the tween
+   * starts, uniformly for every consumer.
+   */
+  viewportMargin?: string
 }
 
 /**
@@ -117,7 +135,8 @@ export function BlurReveal({
   blur = 8,
   scale = 1,
   onMount = false,
-  amount = 0.2,
+  amount = 0.3,
+  viewportMargin = "-100px 0px",
 }: BlurRevealProps) {
   const words = typeof children === "string" ? children.split(" ") : null
   // Cap the blur radius ONCE per reveal — ≤4px on phones where blur layers
@@ -143,6 +162,7 @@ export function BlurReveal({
           scale={scale}
           onMount={onMount}
           amount={amount}
+          viewportMargin={viewportMargin}
         >
           {children}
         </BlurWord>
@@ -181,7 +201,10 @@ export function BlurReveal({
       initial="hidden"
       {...(onMount
         ? { animate: "show" }
-        : { whileInView: "show", viewport: { once: true, amount } })}
+        : {
+            whileInView: "show",
+            viewport: { once: true, amount, margin: viewportMargin },
+          })}
       onAnimationComplete={() => {
         const el = containerRef.current
         el?.style.removeProperty("filter")

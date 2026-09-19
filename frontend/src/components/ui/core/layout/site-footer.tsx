@@ -24,8 +24,8 @@ const footerColumns = [
       { name: "Catering Bogor", to: "/paket" },
       { name: "Area Sentul & Depok", to: "/paket" },
       { name: "Jakarta & Bekasi", to: "/paket" },
-      { name: "Konsultasi Menu", to: "https://wa.me/6287870306031" },
-      { name: "Custom Order", to: "https://wa.me/6287870306031" },
+      { name: "Konsultasi Menu", to: "https://wa.me/628561155113" },
+      { name: "Custom Order", to: "https://wa.me/628561155113" },
     ],
   },
   {
@@ -34,7 +34,7 @@ const footerColumns = [
       { name: "Tentang Kami", to: "/#profil" },
       { name: "FAQ & Ketentuan", to: "/#faq" },
       { name: "Cara Pemesanan", to: "/#cara-pesan" },
-      { name: "Hubungi WhatsApp", to: "https://wa.me/6287870306031" },
+      { name: "Hubungi WhatsApp", to: "https://wa.me/628561155113" },
     ],
   },
 ]
@@ -107,8 +107,8 @@ export default function SiteFooter({ className, ...props }: StickyFooterProps) {
 
           {/* Judul besar tengah */}
           <BlurReveal amount={0.3} duration={1} delay={0.3} stagger={0.1}>
-            <div className="flex h-fit w-full items-center justify-center text-center lg:ml-[-15px]">
-              <h1 className="relative h-25 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[22lvw] tracking-[-0.10em] text-transparent select-none lg:h-75 lg:text-[15.4em]">
+            <div className="flex h-fit w-full items-center justify-center text-center lg:ml-[-14px]">
+              <h1 className="relative h-25 bg-linear-to-b from-yellow-950/35 to-background bg-clip-text text-center text-[23lvw] tracking-[-0.10em] text-transparent select-none lg:h-75 lg:text-[15.4em]">
                 Nusantara
               </h1>
             </div>
