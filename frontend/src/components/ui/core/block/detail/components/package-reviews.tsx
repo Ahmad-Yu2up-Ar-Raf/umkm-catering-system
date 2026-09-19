@@ -168,7 +168,7 @@ export function PackageReviews({ paketId, vm }: { paketId: number; vm: DetailVie
                 <CarouselPrevious className="static inset-auto my-0 hidden translate-none md:flex" />
                 <CarouselNext className="static inset-auto my-0 hidden translate-none md:flex" />
               </div>
-              <Button onClick={() => setFormOpen(true)}>
+              <Button onClick={() => setFormOpen(true)} className="">
               <HugeiconsIcon icon={MessageAdd01Icon} className="mr-2 size-4" />
               Tulis Ulasan
             </Button>

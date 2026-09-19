@@ -10,20 +10,33 @@ import { useDetailStore } from "@/store/detail-store"
 import { useGaleriStore } from "@/store/galeri-store"
 import CTABlock from "../ui/core/layout/cta-block"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { LenisGsapSync } from "./lenis-gsap-sync"
 import { ScrollToTop } from "./scroll-to-top"
 import { RouteSeoResolver } from "./route-seo-resolver"
 import { SiteHeader } from "../ui/core/layout/nav/site-header"
 
 export function LayoutWrapper() {
+  // Chrome (header + footer) is NOT mounted until the preloader finishes, so
+  // the Hero — never the footer — is the first thing rendered after the curtain
+  // lifts.
   const preloaderDone = usePreloaderStore((s) => s.done)
   const isMobile = useIsMobile()
   const { pathname } = useLocation()
 
+  // On /paket, the CTA band + footer stay hidden until the infinite catalog
+  // reaches its end (`useCatalogStore.ended`), so they never appear while the
+  // grid is still scrollable. On /galeri (+ /galeri/:kategori) they defer
+  // until the gallery query reaches its terminal state
+  // (`useGaleriStore.ready`) — the masonry's last page is loaded before the
+  // footer enters. On /paket/:id they defer until the detail query settles
+  // (`useDetailStore.ready` — reset by the block on every id change, so a
+  // stale flag never flashes chrome under the next paket's skeleton).
+  // Everywhere else they render as usual.
   const catalogEnded = useCatalogStore((s) => s.ended)
   const detailReady = useDetailStore((s) => s.ready)
   const galeriReady = useGaleriStore((s) => s.ready)
 
+  // Segment-based distinction (not `startsWith("/paket/")`): also survives a
+  // trailing-slash `/paket/` without misrouting it into the detail branch.
   const segments = pathname.split("/").filter(Boolean)
   const isCatalogPaket = segments[0] === "paket" && segments.length === 1
   const isDetailPaket = segments[0] === "paket" && segments.length > 1
@@ -36,22 +49,25 @@ export function LayoutWrapper() {
         ? galeriReady
         : true
 
-  // Penentu kondisi route homepage
-  const isHome = pathname === "/"
-
   return (
-    <ReactLenis root options={{ autoRaf: false }}>
-      <LenisGsapSync />
+    <ReactLenis root>
       <div className="bg-background">
+        {/* Global scroll restoration — resets to the top on every route change
+          (Lenis-aware, so the next page never renders at the old scroll depth). */}
         <ScrollToTop />
+        {/* Route-level SEO defaults — runs before the page mounts so stale
+          title/description/canonical from the previous route never linger. */}
         <RouteSeoResolver />
         {!isMobile && <SiteBorder />}
         {preloaderDone && <SiteHeader />}
-
+        {/* Add padding-bottom on mobile to account for fixed navbar */}
+        {/* Main content sits ABOVE the sticky footer's fixed inner (z-stacking),
+          so the Hero — not the footer — is what the user sees after the
+          preloader lifts. */}
         <div
           className={cn(
             "relative z-10 w-full overflow-x-hidden bg-background md:overflow-visible",
-            !isHome && "overflow-visible"
+            pathname !== "/" && 'overflow-visible'
           )}
         >
           <div
@@ -61,24 +77,13 @@ export function LayoutWrapper() {
           >
             <Outlet />
             {preloaderDone && showChrome && <CTABlock />}
+            {pathname == "/" && (
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-linear-to-t from-background/0 via-background/80 to-background md:hidden" />
+            )}
+
+            <div className="pointer-events-none fixed inset-0 top-0 hidden h-150 bg-linear-to-t from-background/0 via-background/0 to-background md:inline md:h-50" />
           </div>
         </div>
-
-        {/*
-          Dinamis Fade Overlay:
-          - Halaman "/" (Home) : Overlay di BAWAH (bottom-0) dengan gradien bottom-up.
-          - Halaman selain "/" : Overlay di ATAS (top-0) dengan gradien top-down.
-        */}
-        <div
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none fixed inset-x-0 z-20 transition-all duration-300",
-            isHome
-              ? "top-0 h-24 bg-linear-to-b from-background via-background/80 to-transparent md:h-28"
-              : "bottom-0 h-32 bg-linear-to-t from-background via-background/80 to-transparent md:h-40"
-          )}
-        />
-
         {preloaderDone && showChrome && <SiteFooter />}
       </div>
     </ReactLenis>
