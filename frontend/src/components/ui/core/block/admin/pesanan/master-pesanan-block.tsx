@@ -1,6 +1,6 @@
 "use client"
 
-import React, { Suspense, useState } from "react"
+import { useEffect, useState } from "react"
 import { ShoppingCart01Icon } from "@hugeicons/core-free-icons"
 import HeaderDashboard from "@/components/ui/fragments/custom-ui/typograhy/header"
 import { DataTablePagination } from "@/components/ui/fragments/custom-ui/table/data-table-pagination"
@@ -13,9 +13,7 @@ import {
   usePesananBulkUpdateMutation,
   usePesananDeleteMutation,
 } from "./hooks/use-pesanan-mutations"
-import { useStruk } from "./hooks/use-struk-query"
 import { DataTableSkeleton } from "@/components/ui/fragments/custom-ui/table/data-table-skeleton"
-import { Skeleton } from "@/components/ui/fragments/shadcn-ui/skeleton"
 import type {
   MetodePembayaran,
   Pesanan,
@@ -33,24 +31,24 @@ import { toast } from "sonner"
 import { playDownload, playError } from "@/lib/audio-feedback"
 import { pesananService } from "@/services/pesanan-service"
 import { useExportExcel } from "@/hooks/use-export-excel"
-import { InvoicePesananDocument } from "@/components/pdf/invoice-pesanan-document"
 import {
-  buildInvoiceRenderOptions,
-  loadInvoiceFonts,
-} from "@/components/pdf/invoice-render-config"
+  downloadStrukPdf,
+  previewStrukInNewTab,
+  warmInvoiceEngine,
+} from "@/components/pdf/invoice-pdf"
 import { PesananTableActionBar } from "./components/pesanan-table-action-bar"
-
-const InvoicePreviewDialog = React.lazy(() =>
-  import("@/components/pdf/invoice-preview-dialog").then((m) => ({
-    default: m.InvoicePreviewDialog,
-  }))
-)
 
 /**
  * Master Pesanan — the admin MDM block.
  */
 function MasterPesananBlock() {
   const isMobile = useIsMobile()
+
+  // Pre-warm the PDF engine (fonts, Takumi chunk, logo) so the first
+  // preview/download click only pays for the struk fetch + render.
+  useEffect(() => {
+    warmInvoiceEngine()
+  }, [])
 
   const [searchInput, setSearchInput] = useState("")
   const search = useDebouncedValue(searchInput.trim(), 350)
@@ -80,7 +78,6 @@ function MasterPesananBlock() {
   const [createOpen, setCreateOpen] = useState(false)
   const [updateTarget, setUpdateTarget] = useState<Pesanan | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Pesanan | null>(null)
-  const [strukTarget, setStrukTarget] = useState<Pesanan | null>(null)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false)
 
@@ -161,8 +158,18 @@ function MasterPesananBlock() {
     )
   }
 
-  const handleStruk = (pesanan: Pesanan) => {
-    setStrukTarget(pesanan)
+  const handleStruk = async (pesanan: Pesanan) => {
+    const toastId = `preview-${pesanan.id}`
+    toast.loading("Menyiapkan pratinjau...", { id: toastId })
+    try {
+      const res = await pesananService.struk(pesanan.id)
+      await previewStrukInNewTab(res.data)
+      toast.dismiss(toastId)
+    } catch (e) {
+      console.error("Gagal generate PDF:", e)
+      toast.error("Gagal menyiapkan pratinjau.", { id: toastId })
+      playError()
+    }
   }
 
   const handleDownload = async (pesanan: Pesanan) => {
@@ -170,61 +177,12 @@ function MasterPesananBlock() {
     toast.loading("Menyiapkan download...", { id: toastId })
     try {
       const res = await pesananService.struk(pesanan.id)
-      const struk = res.data
-
-      const [{ render }, fonts] = await Promise.all([
-        import("takumi-pdf"),
-        loadInvoiceFonts(),
-      ])
-
-      const bytes = await render(
-        <InvoicePesananDocument data={struk} />,
-        buildInvoiceRenderOptions(struk, fonts)
-      )
-
-      const blob = new Blob([bytes as unknown as ArrayBuffer], {
-        type: "application/pdf",
-      })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement("a")
-      a.href = url
-      // Fall back to the pesanan id (not jumlah_paket, which is a quantity
-      // and makes for a confusing filename) if nomor_struk is missing.
-      const fileLabel = struk.nomor_struk
-        ? String(struk.nomor_struk)
-        : `pesanan-${pesanan.id}`
-      a.download = `Invoice-${fileLabel}-${String(struk.created_at).slice(0, 10)}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      await downloadStrukPdf(res.data, pesanan.id)
       toast.success("Download berhasil", { id: toastId })
       playDownload()
     } catch (e) {
-      console.error("=== takumi-pdf render failure, full dump ===")
-      console.error("typeof e:", typeof e)
-      console.error("instanceof Error:", e instanceof Error)
-      if (e instanceof Error) {
-        console.error("message:", e.message)
-        console.error("name:", e.name)
-        console.error("stack:", e.stack)
-        console.error("cause:", (e as { cause?: unknown }).cause)
-      }
-      try {
-        console.error(
-          "own properties:",
-          JSON.stringify(e, Object.getOwnPropertyNames(e as object), 2)
-        )
-      } catch {
-        console.error("could not stringify error object; raw dump:", e)
-      }
-      console.error(
-        "constructor name:",
-        (e as { constructor?: { name?: string } })?.constructor?.name
-      )
-
-      // Catatan: Ganti setError dengan fungsi state error di masing-masing file (jika ada)
       console.error("Gagal generate PDF:", e)
+      toast.error("Gagal generate PDF.", { id: toastId })
       playError()
     }
   }
@@ -241,51 +199,6 @@ function MasterPesananBlock() {
   const hasActiveFilters =
     searchInput !== "" || statuses.length > 0 || metodePembayaran.length > 0
 
-  const {
-    data: strukData,
-    isLoading: strukLoading,
-    isError: isStrukError,
-    error: strukError,
-    refetch: refetchStruk,
-  } = useStruk(strukTarget?.id ?? null)
-
-  const strukDialog = strukTarget ? (
-    <Suspense
-      fallback={
-        <div className="flex h-[85vh] max-w-3xl flex-col gap-4 p-6">
-          <Skeleton className="h-6 w-48" />
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-48 w-full" />
-        </div>
-      }
-    >
-      {isStrukError ? (
-        <div className="flex h-[85vh] max-w-3xl flex-col items-center justify-center gap-3 p-6">
-          <p className="text-sm text-destructive">
-            Gagal memuat struk:{" "}
-            {String((strukError as Error)?.message ?? "unknown error")}
-          </p>
-          <button
-            onClick={() => refetchStruk()}
-            className="rounded-md border px-3 py-1.5 text-sm"
-          >
-            Coba lagi
-          </button>
-        </div>
-      ) : (
-        <InvoicePreviewDialog
-          data={strukData ?? null}
-          open={!!strukTarget}
-          onOpenChange={(next: boolean) => {
-            if (!next) setStrukTarget(null)
-          }}
-          isLoading={strukLoading}
-          onRefresh={() => refetchStruk()}
-        />
-      )}
-    </Suspense>
-  ) : null
-
   return (
     <div
       className={cn(
@@ -296,7 +209,7 @@ function MasterPesananBlock() {
       <HeaderDashboard
         Icon={ShoppingCart01Icon}
         Title="Daftar Pesanan"
-        Deskrpsi="Kelola data pesanan catering — buat, edit, hapus, cetak struk."
+        Deskrpsi="Kelola data pesanan catering — buat, edit, hapus, unduh invoice."
       />
 
       <PesananToolbar
@@ -413,8 +326,6 @@ function MasterPesananBlock() {
         isPending={isDeleting}
         onConfirm={handleDelete}
       />
-
-      {strukDialog}
 
       {selectedIds.length > 0 && (
         <PesananTableActionBar

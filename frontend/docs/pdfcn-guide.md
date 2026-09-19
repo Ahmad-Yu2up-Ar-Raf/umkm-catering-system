@@ -1,0 +1,118 @@
+# pdfcn
+
+> A collection of beautifully designed, accessible, and customizable PDF components. Built on Takumi and Forme. Works with shadcn/ui. Use this index to discover the available documentation pages, markdown mirrors, and registry resources before browsing.
+
+## Documentation
+
+- Overview
+  - [Introduction](https://www.pdfcn.dev/docs.md): Copy-paste PDF components for React. Built on Takumi and Forme, works with the shadcn CLI.
+  - [Installation](https://www.pdfcn.dev/docs/installation.md): Install PDF components, blocks, and themes from the registry.
+  - [MCP](https://www.pdfcn.dev/docs/mcp.md): Learn how to use the shadcn MCP (Model Context Protocol) server with pdfcn.
+  - [Registry](https://www.pdfcn.dev/docs/registry.md): Learn how to use the pdfcn registry with the shadcn CLI.
+- Themes
+  - [Themes](https://www.pdfcn.dev/docs/themes.md): Pre-built theme presets for styling your PDF components.
+
+  - **Separator**
+  - [Professional](https://www.pdfcn.dev/docs/themes/professional.md): Serif headings, refined zinc/slate palette, formal document feel.
+  - [Modern](https://www.pdfcn.dev/docs/themes/modern.md): All-Helvetica typography, slate-cool neutrals with subtle violet accent.
+  - [Minimal](https://www.pdfcn.dev/docs/themes/minimal.md): Courier headings, zinc neutrals, maximum whitespace.
+  - [Executive](https://www.pdfcn.dev/docs/themes/executive.md): Deep navy palette, Merriweather serif headings, premium boardroom aesthetic.
+  - [Corporate](https://www.pdfcn.dev/docs/themes/corporate.md): Blue-gray palette, Lato sans-serif, structured and dependable.
+  - [Elegant](https://www.pdfcn.dev/docs/themes/elegant.md): Warm cream whites, amber/gold accent, classic editorial combination.
+  - [Vivid](https://www.pdfcn.dev/docs/themes/vivid.md): Deep violet palette, Nunito rounded sans-serif, playful but professional.
+  - [Forest](https://www.pdfcn.dev/docs/themes/forest.md): Natural deep greens, Merriweather headings, earthy and trustworthy.
+  - [Blueprint](https://www.pdfcn.dev/docs/themes/blueprint.md): Dark slate with cyan accent, monospace headings, technical precision.
+- Components
+  - [Components](https://www.pdfcn.dev/docs/components.md): Here you can find all the PDF components available in the library.
+  - Takumi
+    - [Takumi](https://www.pdfcn.dev/docs/components/takumi.md): PDF UI primitives for the Takumi base.
+    - [Alert](https://www.pdfcn.dev/docs/components/takumi/alert.md): Alert box with info, success, warning, and error variants.
+    - [Badge](https://www.pdfcn.dev/docs/components/takumi/badge.md): Compact status badge for labels and tags.
+    - [Card](https://www.pdfcn.dev/docs/components/takumi/card.md): Bordered content card with title and body.
+    - [Data Table](https://www.pdfcn.dev/docs/components/takumi/data-table.md): Tabular data with columns and rows.
+    - [Divider](https://www.pdfcn.dev/docs/components/takumi/divider.md): Horizontal rule to separate sections.
+    - [Form](https://www.pdfcn.dev/docs/components/takumi/form.md): Labeled form groups for PDF inputs.
+    - [Graph](https://www.pdfcn.dev/docs/components/takumi/graph.md): Bar, line, and area charts drawn with SVG.
+    - [Heading](https://www.pdfcn.dev/docs/components/takumi/heading.md): Document headings with typographic scale.
+    - [Keep Together](https://www.pdfcn.dev/docs/components/takumi/keep-together.md): Keeps children on the same PDF page.
+    - [Key Value](https://www.pdfcn.dev/docs/components/takumi/key-value.md): Definition list of keys and values.
+    - [Link](https://www.pdfcn.dev/docs/components/takumi/link.md): Clickable link styled for PDF documents.
+    - [List](https://www.pdfcn.dev/docs/components/takumi/list.md): Ordered and unordered lists.
+    - [Page Break](https://www.pdfcn.dev/docs/components/takumi/page-break.md): Forces a page break in the document.
+    - [Page Footer](https://www.pdfcn.dev/docs/components/takumi/page-footer.md): Repeating page footer.
+    - [Page Header](https://www.pdfcn.dev/docs/components/takumi/page-header.md): Repeating page header.
+    - [Page Number](https://www.pdfcn.dev/docs/components/takumi/page-number.md): Current page number marker.
+    - [PDF Image](https://www.pdfcn.dev/docs/components/takumi/pdf-image.md): Embedded image with fit options.
+    - [QR Code](https://www.pdfcn.dev/docs/components/takumi/qrcode.md): QR code generated from a string value.
+    - [Section](https://www.pdfcn.dev/docs/components/takumi/section.md): Section wrapper with optional title.
+    - [Signature](https://www.pdfcn.dev/docs/components/takumi/signature.md): Signature block with name and label.
+    - [Stack](https://www.pdfcn.dev/docs/components/takumi/stack.md): Vertical stack with spacing.
+    - [Table](https://www.pdfcn.dev/docs/components/takumi/table.md): Low-level table primitives.
+    - [Text](https://www.pdfcn.dev/docs/components/takumi/text.md): Body text with typography variants.
+    - [Watermark](https://www.pdfcn.dev/docs/components/takumi/watermark.md): Diagonal or centered watermark overlay.
+  - Forme
+    - [Forme](https://www.pdfcn.dev/docs/components/forme.md): PDF UI primitives for the Forme base.
+    - [Alert](https://www.pdfcn.dev/docs/components/forme/alert.md): Alert box with info, success, warning, and error variants.
+    - [Badge](https://www.pdfcn.dev/docs/components/forme/badge.md): Compact status badge for labels and tags.
+    - [Card](https://www.pdfcn.dev/docs/components/forme/card.md): Bordered content card with title and body.
+    - [Data Table](https://www.pdfcn.dev/docs/components/forme/data-table.md): Tabular data with columns and rows.
+    - [Divider](https://www.pdfcn.dev/docs/components/forme/divider.md): Horizontal rule to separate sections.
+    - [Form](https://www.pdfcn.dev/docs/components/forme/form.md): Labeled form groups for PDF inputs.
+    - [Graph](https://www.pdfcn.dev/docs/components/forme/graph.md): Bar, line, and area charts drawn with SVG.
+    - [Heading](https://www.pdfcn.dev/docs/components/forme/heading.md): Document headings with typographic scale.
+    - [Keep Together](https://www.pdfcn.dev/docs/components/forme/keep-together.md): Keeps children on the same PDF page.
+    - [Key Value](https://www.pdfcn.dev/docs/components/forme/key-value.md): Definition list of keys and values.
+    - [Link](https://www.pdfcn.dev/docs/components/forme/link.md): Clickable link styled for PDF documents.
+    - [List](https://www.pdfcn.dev/docs/components/forme/list.md): Ordered and unordered lists.
+    - [Page Break](https://www.pdfcn.dev/docs/components/forme/page-break.md): Forces a page break in the document.
+    - [Page Footer](https://www.pdfcn.dev/docs/components/forme/page-footer.md): Repeating page footer.
+    - [Page Header](https://www.pdfcn.dev/docs/components/forme/page-header.md): Repeating page header.
+    - [Page Number](https://www.pdfcn.dev/docs/components/forme/page-number.md): Current page number marker.
+    - [PDF Image](https://www.pdfcn.dev/docs/components/forme/pdf-image.md): Embedded image with fit options.
+    - [QR Code](https://www.pdfcn.dev/docs/components/forme/qrcode.md): QR code generated from a string value.
+    - [Section](https://www.pdfcn.dev/docs/components/forme/section.md): Section wrapper with optional title.
+    - [Signature](https://www.pdfcn.dev/docs/components/forme/signature.md): Signature block with name and label.
+    - [Stack](https://www.pdfcn.dev/docs/components/forme/stack.md): Vertical stack with spacing.
+    - [Table](https://www.pdfcn.dev/docs/components/forme/table.md): Low-level table primitives.
+    - [Text](https://www.pdfcn.dev/docs/components/forme/text.md): Body text with typography variants.
+    - [Watermark](https://www.pdfcn.dev/docs/components/forme/watermark.md): Diagonal or centered watermark overlay.
+- Blocks
+  - [Blocks](https://www.pdfcn.dev/docs/blocks.md): Pre-built invoices and reports composed from pdfcn components.
+  - Takumi
+    - [Takumi](https://www.pdfcn.dev/docs/blocks/takumi.md): Invoice and report templates for the Takumi base.
+    - [Invoice Classic](https://www.pdfcn.dev/docs/blocks/takumi/invoice-classic.md): Classic invoice document template.
+    - [Invoice Consultant](https://www.pdfcn.dev/docs/blocks/takumi/invoice-consultant.md): Consultant-style invoice template.
+    - [Invoice Corporate](https://www.pdfcn.dev/docs/blocks/takumi/invoice-corporate.md): Corporate invoice document template.
+    - [Invoice Creative](https://www.pdfcn.dev/docs/blocks/takumi/invoice-creative.md): Creative invoice document template.
+    - [Invoice Minimal](https://www.pdfcn.dev/docs/blocks/takumi/invoice-minimal.md): Minimal invoice document template.
+    - [Invoice Modern](https://www.pdfcn.dev/docs/blocks/takumi/invoice-modern.md): Modern invoice document template.
+    - [Report Financial](https://www.pdfcn.dev/docs/blocks/takumi/report-financial.md): Financial report document template.
+    - [Report Marketing](https://www.pdfcn.dev/docs/blocks/takumi/report-marketing.md): Marketing report document template.
+    - [Report Operations](https://www.pdfcn.dev/docs/blocks/takumi/report-operations.md): Operations report document template.
+    - [Report Security](https://www.pdfcn.dev/docs/blocks/takumi/report-security.md): Security report document template.
+  - Forme
+    - [Forme](https://www.pdfcn.dev/docs/blocks/forme.md): Invoice and report templates for the Forme base.
+    - [Invoice Classic](https://www.pdfcn.dev/docs/blocks/forme/invoice-classic.md): Classic invoice document template.
+    - [Invoice Consultant](https://www.pdfcn.dev/docs/blocks/forme/invoice-consultant.md): Consultant-style invoice template.
+    - [Invoice Corporate](https://www.pdfcn.dev/docs/blocks/forme/invoice-corporate.md): Corporate invoice document template.
+    - [Invoice Creative](https://www.pdfcn.dev/docs/blocks/forme/invoice-creative.md): Creative invoice document template.
+    - [Invoice Minimal](https://www.pdfcn.dev/docs/blocks/forme/invoice-minimal.md): Minimal invoice document template.
+    - [Invoice Modern](https://www.pdfcn.dev/docs/blocks/forme/invoice-modern.md): Modern invoice document template.
+    - [Report Financial](https://www.pdfcn.dev/docs/blocks/forme/report-financial.md): Financial report document template.
+    - [Report Marketing](https://www.pdfcn.dev/docs/blocks/forme/report-marketing.md): Marketing report document template.
+    - [Report Operations](https://www.pdfcn.dev/docs/blocks/forme/report-operations.md): Operations report document template.
+    - [Report Security](https://www.pdfcn.dev/docs/blocks/forme/report-security.md): Security report document template.
+- Theming
+  - Takumi
+    - [Theming](https://www.pdfcn.dev/docs/theming/takumi.md): Configure PDF themes, colors, typography, and spacing for Takumi.
+  - Forme
+    - [Theming](https://www.pdfcn.dev/docs/theming/forme.md): Configure PDF themes, colors, typography, and spacing for Forme.
+
+## Machine-readable Resources
+
+- [Full documentation](https://www.pdfcn.dev/llms-full.txt)
+- [Homepage markdown](https://www.pdfcn.dev/llms.md/content.md)
+- [OpenAPI description](https://www.pdfcn.dev/openapi.json)
+- [API catalog](https://www.pdfcn.dev/.well-known/api-catalog)
+- [Agent skill](https://www.pdfcn.dev/.well-known/agent-skills/site-skill.md)
+- [shadcn MCP server documentation](https://ui.shadcn.com/docs/mcp)
