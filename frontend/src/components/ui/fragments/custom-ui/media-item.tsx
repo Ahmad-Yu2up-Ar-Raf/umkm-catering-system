@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react"
 import { Image } from "@unpic/react"
 
 import { cn } from "@/lib/utils"
+import { LOCAL_IMAGE_VARIANTS } from "@/lib/local-image-variants"
 import { Spinner } from "../shadcn-ui/spinner"
 import { Image01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -252,6 +253,60 @@ const MediaItem = ({
     )
   }
 
+  // Manifest-driven next-gen path: local assets with generated `.webp`/`.avif`
+  // siblings (see scripts/optimize-images.mjs) render as `<picture>` so the
+  // browser picks the cheapest candidate. @unpic can't transform local files,
+  // so without this every local PNG/JPG ships at full megabytes. Cloudinary
+  // URLs keep the @unpic path below (f_auto,q_auto already optimal).
+  // Loading discipline is identical on both paths: eager/high ONLY when
+  // `priority` (the route LCP), otherwise lazy + async decode.
+  const localVariants = webViewLink.startsWith("/assets/")
+    ? LOCAL_IMAGE_VARIANTS[webViewLink]
+    : undefined
+  const loadingAttr = priority ? "eager" : "lazy"
+  const fetchPriorityAttr = priority ? "high" : "auto"
+
+  const renderLocalPicture = () => {
+    if (!localVariants || (!localVariants.avifSrcSet && !localVariants.webpSrcSet))
+      return null
+    return (
+      <picture
+        className={cn(
+          "h-full w-full overflow-hidden object-cover",
+          imageClassName
+        )}
+      >
+        {localVariants.avifSrcSet && (
+          <source srcSet={localVariants.avifSrcSet} sizes={sizes} type="image/avif" />
+        )}
+        {localVariants.webpSrcSet && (
+          <source srcSet={localVariants.webpSrcSet} sizes={sizes} type="image/webp" />
+        )}
+        <img
+          src={optimizedSrc}
+          alt={alt ?? webViewLink}
+          onError={handleImageError}
+          className={cn(
+            "h-full w-full overflow-hidden object-cover",
+            imageClassName
+          )}
+          style={{ objectFit }}
+          onClick={onClick}
+          role="img"
+          loading={loadingAttr}
+          fetchPriority={fetchPriorityAttr}
+          decoding="async"
+          onLoad={handleImageLoad}
+          {...(layout === "fullWidth"
+            ? {}
+            : { width, height })}
+        />
+      </picture>
+    )
+  }
+
+  const localPicture = renderLocalPicture()
+
   return (
     <div
       className={cn(
@@ -260,6 +315,7 @@ const MediaItem = ({
       )}
       style={style}
     >
+      {localPicture ?? (
       <Image
         src={optimizedSrc}
         alt={alt ?? webViewLink}
@@ -275,12 +331,13 @@ const MediaItem = ({
         objectFit={objectFit}
         unstyled={unstyled}
         role="img"
-        loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "auto"}
+        loading={loadingAttr}
+        fetchPriority={fetchPriorityAttr}
         decoding="async"
         onLoad={handleImageLoad}
         sizes={sizes}
       />
+      )}
       {!imageLoaded && !errored && (loading ?? (
         <div className="absolute inset-0 flex items-center justify-center bg-accent-foreground">
           <Spinner className="h-6 w-6 rounded-xl text-accent" />

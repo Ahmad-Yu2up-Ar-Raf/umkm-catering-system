@@ -228,6 +228,13 @@ export function GalleryGrid({
           <div className="flex items-start gap-4">
             {columns.map((col, columnIndex) =>
               renderColumnNodes(
+                // STEP 3/5: per-card whileInView is KEPT deliberately —
+                // infinite-scroll appends need per-item one-shot reveals (a
+                // column-level variant tree would mount page-2+ cards already
+                // "shown", popping them in with no entrance). IOs are
+                // browser-native, fire once, ~zero cost. The real GPU tax was
+                // the permanent `will-change-transform` layer on every card —
+                // removed: promotion now lives only for the 0.5s tween itself.
                 col.map((item) => {
                   const index = items.indexOf(item)
                   return (
@@ -237,7 +244,6 @@ export function GalleryGrid({
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, amount: 0.05 }}
                       transition={reveal}
-                      className="will-change-transform"
                     >
                       <GalleryCard
                         item={item}

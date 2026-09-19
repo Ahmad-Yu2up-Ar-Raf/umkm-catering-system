@@ -1,47 +1,43 @@
-# Mobile Performance Analysis Report - Catering Nusantara
-**Target Audience:** AI Developer Agent (Opencode)
-**Objective:** Resolve critical performance bottlenecks (Score < 60) across all pages on Mobile viewports.
+# File: mobile-analysis-report-cateringnusantara.md
+# Mobile Performance Analysis & Remediation Report - Catering Nusantara
+**Target Audience:** OpenCode Autonomous AI Agent / Lead Engineer
+**Objective:** Resolve critical sub-90 performance bottlenecks, targeting a 100/100 Lighthouse score across all mobile viewports.
+**Current State:** Critical Failure. Average scores hover around 60. The `/galeri` route scores 60, and the `/paket` route drops to a severe 46.
 
-## 1. Homepage (`/`)
-**Current Score:** 43/100 | **LCP:** 45.4s | **TBT:** 570ms | **Total Payload:** ~12.5 MB
+## 1. Executive Summary: The Mobile Bottleneck
+Mobile CPUs and GPUs lack the processing power to handle the simultaneous execution of complex React hydration, massive raw image decoding, and staggered animation sequences. The current architecture forces the mobile browser to download up to 12.5 MB of data while concurrently running expensive DOM calculations. To achieve a 100/100 score, the AI agent must shift from a "load everything" approach to strict **lazy-evaluation and prioritized asset delivery**.
 
-### Critical Insights & Bottlenecks:
-* **Enormous Network Payload:** The total page weight is an unacceptable 12.5 MB[cite: 37]. A single image (`banners/hero-banner-tumpeng.png`) is 3.2 MB, and the first-party payload is 7.7 MB[cite: 37].
-* **LCP Lazy-Loading Violation:** The hero LCP image contains `loading="lazy"`, forcing the browser to delay fetching the most critical visual element[cite: 37].
-* **Unused JavaScript & Main Thread Blocking:** Scripts from PostHog (`posthog.com`) and massive vendor bundles (`/assets/vendor-mo...`) are blocking the main thread for over 2.8 seconds[cite: 37].
-* **Uncomposited Animations:** Tailwind CSS animations are triggering layout shifts. Animating properties other than `transform` or `opacity` is causing layout thrashing[cite: 37].
+## 2. Route-by-Route Deep Analysis & Action Plan
 
-### Required Actions (Homepage):
-1. **Cloudinary Optimization:** Ensure ALL Cloudinary image URLs include `q_auto,f_auto`. Replace `.png` extensions in the URL with automatic format delivery.
-2. **Fix LCP Image Priority:** On the Hero image, strictly set `loading="eager"` (or omit the loading attribute) and add `fetchpriority="high"`.
-3. **Defer Third-Party Scripts:** Move PostHog initialization to a Web Worker (using `@builder.io/partytown`) or strictly defer it until after page hydration.
+### A. Homepage (`/`) - Score: ~60 (Previous 43)
+**Critical Insights:**
+*   **The LCP Paradox:** The hero image (`hero-banner-tumpeng.png`) previously exceeded 3.2 MB and was incorrectly marked with `loading="lazy"`[cite: 54]. This fundamentally breaks the Largest Contentful Paint (LCP) metric.
+*   **Main Thread Asphyxiation:** Third-party scripts (e.g., PostHog) and massive React vendor chunks block the main thread for over 2.8 seconds during initial load[cite: 54].
+*   **GPU Compositing Crash:** Heavy animation libraries (GSAP/Framer) are applying CSS `filter: blur()` and complex transforms to multiple elements simultaneously. On mobile, this causes severe frame drops and layout thrashing.
+
+**Mandatory AI Agent Actions:**
+1.  **Strict LCP Preloading:** The AI must implement `<link rel="preload" href="..." as="image">` in the `<head>` specifically for the mobile-sized hero image.
+2.  **Implement `<picture>` Tags:** Replace the `<img>` tag in the hero section with a `<picture>` element providing WebP/AVIF sources tailored for `<768px` screens.
+3.  **Animation Gating (MatchMedia):** Implement `gsap.matchMedia()`. For screens `<768px`, strip away `filter: blur()` entirely. Fall back to simple `opacity` and `transform: translateY` to prevent mobile GPU thermal throttling.
+
+### B. Gallery Page (`/galeri` & `/galeri/semua`) - Score: 60
+**Critical Insights:**
+*   **DOM Node Explosion:** The gallery is rendering the entire dataset into the DOM concurrently. Mobile browsers struggle to calculate layout and paint for more than 1,500 DOM nodes.
+*   **Unoptimized Payloads:** Individual gallery assets previously reached up to 4.05 MB (`corporate-lunch-box...png`)[cite: 54]. Loading dozens of these destroys mobile bandwidth.
+
+**Mandatory AI Agent Actions:**
+1.  **Virtualization / Pagination:** The AI must implement `react-window` or an Intersection Observer to only mount gallery `<Card>` components when they are within 200px of the viewport.
+2.  **Cloudinary `f_auto,q_auto` Enforcement:** Ensure the image utility function maps all gallery URLs to `w_400,c_fill,q_auto,f_auto` to ensure mobile devices only download ~30kb WebP images instead of massive PNGs.
+3.  **CSS Containment:** Apply `content-visibility: auto; contain-intrinsic-size: 300px;` to all gallery grid items. This tells the mobile browser to skip rendering calculations for items off-screen.
+
+### C. Package Pages (`/paket` & `/paket/15`) - Score: 46
+**Critical Insights:**
+*   **Synchronous Layout Thrashing:** JavaScript (React `useLayoutEffect` or Alpine hooks) is reading geometric properties (e.g., `getBoundingClientRect()`) immediately after writing styles[cite: 54]. This triggers forced reflows costing ~258ms per frame.
+*   **Render-Blocking Typography:** Custom fonts (`fraunces.woff2`) block text rendering, causing a "Flash of Invisible Text" (FOIT) that delays First Contentful Paint (FCP)[cite: 54].
+
+**Mandatory AI Agent Actions:**
+1.  **Font Optimization:** Add `<link rel="preload" href="/assets/fraunces.woff2" as="font" type="font/woff2" crossorigin>` to `index.html`. Ensure CSS utilizes `font-display: swap`.
+2.  **Debounce Resize/Scroll Events:** The AI must wrap any scroll or resize listeners in a debounce utility (requestAnimationFrame). Never read/write to the DOM in the same synchronous pass.
+3.  **Defer Below-the-Fold Packages:** Any package pricing tables or detailed lists below the initial screen must be wrapped in a lazy-loaded component (`React.lazy`).
 
 ---
-
-## 2. Gallery Pages (`/galeri` & `/galeri/semua`)
-**Current Score:** 56-58/100 | **LCP:** 23.6s - 25.0s | **TBT:** 150ms | **Total Payload:** ~8.6 MB
-
-### Critical Insights & Bottlenecks:
-* **Massive Unoptimized Images:** The image `corporate-lunch-box-overhead-lifestyle.png` is 4.05 MB[cite: 36]. Images are missing proper modern formats like WebP/AVIF[cite: 35, 36].
-* **Render-Blocking CSS/JS:** The initial CSS bundle (`/assets/index-C15u...css`) and vendor JS are blocking the First Contentful Paint (FCP) by ~300ms[cite: 35, 36].
-* **DOM Size & Depth:** The `/galeri` page is rendering too many DOM nodes concurrently instead of virtualizing the gallery grid[cite: 36].
-
-### Required Actions (Gallery):
-1. **Implement Next.js Image Component (or equivalent):** Use `<Image />` with `sizes` attributes properly configured (e.g., `sizes="(max-width: 640px) 100vw, 50vw"`). This forces Cloudinary to serve smaller resolutions for mobile viewports[cite: 35].
-2. **Lazy Load Below-the-Fold Images:** ALL gallery images *except* the first 2-4 visible images must strictly use `loading="lazy"`. 
-3. **Pagination / Infinite Scroll:** Do not render all gallery items at once. Implement intersection observers to load images only when they enter the viewport.
-
----
-
-## 3. Package Detail Pages (`/paket` & `/paket/15`)
-**Current Score:** 46/100 | **LCP:** 24.1s | **TBT:** 470ms
-
-### Critical Insights & Bottlenecks:
-* **Forced Synchronous Layout:** JavaScript is requesting geometric properties (like `offsetWidth`) right after styles are invalidated, causing forced reflows that take up to 258ms on the main thread[cite: 38].
-* **Legacy JavaScript:** Polyfills and legacy JS are being served to modern browsers, wasting ~17 KB of critical parsing time[cite: 38].
-* **Render-Blocking Fonts & Assets:** `fraunces.woff2` is being fetched late in the critical request chain, maxing out at 1,680ms[cite: 38].
-
-### Required Actions (Package):
-1. **Font Preloading:** Add `<link rel="preload" href="/assets/fraunces.woff2" as="font" type="font/woff2" crossorigin>` to the document head[cite: 38]. Ensure `font-display: swap` is used in CSS.
-2. **Avoid Layout Thrashing:** Review React `useEffect` or Alpine.js hooks. Do not read DOM measurements (like `getBoundingClientRect()`) and write styles in the same synchronous frame.
-3. **Bundle Modernization:** Ensure the bundler (Vite/Next) target is set to `esnext` or modern browsers to drop unnecessary polyfills.

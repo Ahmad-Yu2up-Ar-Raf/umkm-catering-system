@@ -1,31 +1,39 @@
-# Desktop Performance Analysis Report - Catering Nusantara
-**Target Audience:** AI Developer Agent (Opencode)
-**Objective:** Standardize and optimize Desktop Core Web Vitals based on the shared codebase bottlenecks.
+# File: desktop-analysis-report-cateringnusantara.md
+# Desktop Performance Analysis & Remediation Report - Catering Nusantara
+**Target Audience:** OpenCode Autonomous AI Agent / Lead Engineer
+**Objective:** Harden the Desktop architecture to maintain and lock the 96/100 peak performance while resolving underlying fragility and layout shifts.
+**Current State:** Peak score of 96 on `/`, but structurally fragile. High risk of regression due to unoptimized grid rendering and third-party script bloat.
 
-*Note: While Desktop CPUs and network connections typically yield higher baseline scores than Mobile, the architectural bottlenecks remain identical and will severely penalize the Desktop LCP and CLS if left unaddressed.*
+## 1. Executive Summary: The Desktop Fragility
+While desktop environments benefit from high-tier CPUs and gigabit network connections, a score of 96 is a false positive if the underlying architecture relies on brute force. The current codebase suffers from missing layout boundaries (causing CLS), massive vendor bundles, and inefficient raster delivery[cite: 53]. If a desktop user simulates a "Fast 3G" connection or uses a lower-end laptop, the score will immediately collapse. 
 
-## Global Desktop Architecture Bottlenecks
+## 2. Desktop-Specific Architectural Fixes
 
-### 1. The Cloudinary Transformation Gap
-The most critical failure point across the entire application is how images are fetched from the Cloudinary CDN. The desktop layouts render larger grid areas, which exacerbates the payload size.
-* **The Issue:** Raw `.png` and `.jpg` files are being fetched without size bounding or format negotiation.
-* **Best Practice Fix:** 
-  The AI Agent must rewrite the image utility/loader to guarantee the following URL structure:
-  `https://res.cloudinary.com/[cloud_name]/image/upload/f_auto,q_auto,w_[width]/v[version]/[public_id]`
-  - `f_auto`: Automatically delivers AVIF or WebP based on the browser.
-  - `q_auto`: Intelligent quality compression.
-  - `w_[width]`: Never serve a 4000px image inside a 600px desktop grid column.
+### A. The Cloudinary Transformation Gap & Responsive Grids
+Desktop layouts utilize multi-column grids (e.g., 3-column or 4-column layouts on `/paket` and `/galeri`). 
+*   **The Flaw:** Raw images are being fetched without size bounding[cite: 53]. While a desktop screen is 1920px wide, an image inside a 3-column grid only needs to be ~450px wide. 
+*   **The AI Action:** The AI Agent must rewrite the `<Image>` component to inject dynamic Cloudinary parameters based on the container size.
+    *   *Implementation:* `https://res.cloudinary.com/[id]/image/upload/f_auto,q_auto,w_600/v1/[img]`
+    *   *Requirement:* Ensure all `<img>` tags utilize the `srcSet` attribute to explicitly define desktop-tier resolutions (`1024w`, `1440w`, `1920w`) so the browser can negotiate the optimal file.
 
-### 2. Next.js / React Hydration Overhead
-* **The Issue:** The main thread is blocked by large React vendor chunks (`vendor-mo.js`). The desktop viewport is processing complex DOM trees (especially on the `/galeri/semua` route) simultaneously.
-* **Best Practice Fix:**
-  - **Dynamic Imports (`next/dynamic` or `React.lazy`):** Any component below the desktop viewport (like footers, heavy carousels, or Modals) MUST be dynamically imported.
-  - **Third-Party Script Optimization:** SurveyJS and PostHog are severely penalizing the Time to Interactive (TTI). Use the `next/script` component with `strategy="lazyOnload"` or `strategy="worker"` for these tools.
+### B. Cumulative Layout Shift (CLS) Eradication
+Because desktop connections pull multiple images concurrently for grid layouts, unequal loading times cause subsequent content (like footers or text blocks) to violently shift downward once the images render.
+*   **The Flaw:** Images lack hardcoded dimensional reservations[cite: 53].
+*   **The AI Action:** 
+    *   Every single image container must utilize Tailwind's aspect ratio utilities (e.g., `aspect-video`, `aspect-[4/3]`, `aspect-square`).
+    *   Inject explicit `width` and `height` properties matching the intrinsic ratio directly into the HTML `<img>` tag to force the browser to pre-allocate exact pixel blocks before the network request finishes.
 
-### 3. Cumulative Layout Shift (CLS) on Desktop Grid
-* **The Issue:** Because desktop uses a wider grid, images arriving late cause the rest of the layout to jump.
-* **Best Practice Fix:** Every single `<img>` tag or Cloudinary component must have explicit `width` and `height` attributes defined in the HTML (or use Tailwind's `aspect-ratio` utility `aspect-video`, `aspect-square`) to reserve the exact layout space before the image downloads.
+### C. Vite/Next.js Code Splitting & Vendor Bloat
+Desktop environments process the entire JavaScript payload much faster, but parsing heavy vendor libraries (like GSAP, React-DOM, and analytics) still penalizes the Time to Interactive (TTI).
+*   **The Flaw:** All UI components, including heavy Modals, SurveyJS, and Carousels, are bundled into the primary `vendor` chunk[cite: 53].
+*   **The AI Action:**
+    *   **Manual Chunking:** In `vite.config.ts`, the AI must configure `manualChunks` to split `gsap`, `framer-motion`, and `react-vendor` into isolated `.js` files.
+    *   **Component Lazy Loading:** The AI must wrap the Footer, heavy Modal overlays, and off-screen sections in `React.lazy()` or Next.js `dynamic()`.
 
-### 4. CSS Uncomposited Animations
-* **The Issue:** Hover effects on desktop (like hovering over package cards) are triggering layout recalculations.
-* **Best Practice Fix:** Audit Tailwind classes. Replace any animations that modify `margin`, `padding`, `width`, or `height` with `transform: translate()` and `transform: scale()`.
+### D. ScrollTrigger & CSS Animation Compositing
+Desktop users experience the site with a mouse, making hover states and scroll-linked animations highly scrutinized.
+*   **The Flaw:** Hover effects on package cards are triggering layout recalculations (animating `margin`, `padding`, or `border-width`), which run synchronously on the CPU[cite: 53].
+*   **The AI Action:**
+    *   Audit all Tailwind `hover:` classes. Strip any property that alters the document flow.
+    *   Strictly enforce `transform: scale(1.05)` and `translate` for hover states. 
+    *   For GSAP `ScrollTrigger`, the AI must ensure `ScrollTrigger.refresh()` is not thrashing on window resize, which commonly occurs when desktop users snap windows. Implement a 200ms debounce on all resize events.

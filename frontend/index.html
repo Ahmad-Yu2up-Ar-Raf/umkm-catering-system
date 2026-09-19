@@ -40,6 +40,21 @@
       imagesizes="100vw"
     />
 
+    <!-- STEP 4 typography: Fraunces latin subset (hero H1 face, 35.8 KB).
+         Filename is the @fontsource-variable/fraunces content hash — stable
+         across our builds (font bytes never change); re-verify with
+         `ls dist/assets/fraunces-latin-wght-normal-*.woff2` if the font
+         package is ever upgraded. Single font preload: each extra preload
+         competes with the LCP image. font-display:swap (Fontsource default)
+         guarantees no invisible-text flash even on a preload miss. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/assets/fraunces-latin-wght-normal-ukD16Tqj.woff2"
+    />
+
     <!-- SEO: Primary -->
     <title>
       Katering Bogor | Nasi Box, Prasmanan & Tumpeng Mini | Catering Nusantara
