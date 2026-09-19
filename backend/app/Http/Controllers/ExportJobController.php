@@ -31,14 +31,18 @@ class ExportJobController extends Controller
 
         $filters = $request->except(['module']);
         $job = new GenerateExportJob($token, $module, $filters);
+        $t0 = microtime(true);
         try {
-            $small = $job->estimatedRows() <= GenerateExportJob::SYNC_ROW_THRESHOLD;
+            $count = $job->estimatedRows();
         } catch (\Throwable $e) {
-            $small = false;
+            $count = PHP_INT_MAX;
         }
+        $countMs = (int) round((microtime(true) - $t0) * 1000);
+        $small = $count <= GenerateExportJob::SYNC_ROW_THRESHOLD;
         if ($small) {
             // ponytail: tiny exports skip the queue — no pickup latency, immune
             // to dead workers. 202 shape unchanged: first poll already sees ready/failed.
+            $job->total = $count;
             try {
                 $job->handle();
             } catch (\Throwable $e) {
@@ -47,7 +51,7 @@ class ExportJobController extends Controller
         } else {
             GenerateExportJob::dispatch($token, $module, $filters);
         }
-        Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small]);
+        Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small, 'rows' => $small ? $count : null, 'count_ms' => $countMs, 'total_ms' => (int) round((microtime(true) - $t0) * 1000)]);
 
         return response()->json([
             'status' => true,

@@ -11,4 +11,7 @@ supervise_worker() {
     done
 }
 supervise_worker &
-exec php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=7860
+# ponytail: pin concurrency for the shared-CPU Space (defaults spawn 2xCPU threads
+# that thrash on WAN-bound workloads) and recycle workers to cap slow leaks.
+echo "[octane] starting FrankenPHP worker mode --workers=2 --max-requests=500"
+exec php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=7860 --workers=2 --max-requests=500

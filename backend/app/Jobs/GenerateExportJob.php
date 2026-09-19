@@ -38,6 +38,9 @@ class GenerateExportJob implements ShouldQueue
     /** @var int max seconds the worker may spend on one export */
     public $timeout = 240;
 
+    /** Row total supplied by the controller fast-path so run() never COUNTs twice. */
+    public ?int $total = null;
+
     /** @var int never retry a heavy export blindly — surface failure instead */
     public $tries = 1;
 
@@ -68,8 +71,8 @@ class GenerateExportJob implements ShouldQueue
 
     private function run(): void
     {
+        $t0 = microtime(true);
         $this->heartbeat(0);
-        set_time_limit(0);
 
         [$headers, $widths, $title, $query, $mapper] = $this->build();
 
@@ -110,9 +113,11 @@ class GenerateExportJob implements ShouldQueue
                 new BorderPart(Border::RIGHT, 'CBD5E1', Border::WIDTH_THIN, Border::STYLE_SOLID)
             ));
 
-        // One cheap COUNT for progress + a hard cap (fail fast with a useful
-        // message instead of OOMing the worker on unbounded datasets).
-        $total = (clone $query)->count();
+        // COUNT once for progress + hard cap. The controller fast-path already
+        // paid it (see $this->total) — never pay a second COUNT on the same filters.
+        // NOTE: no set_time_limit(0) here on purpose — sync builds stay under
+        // Octane max_execution_time (30s); queued builds answer to worker/job timeouts.
+        $total = $this->total ?? (clone $query)->count();
         if ($total > 100000) {
             throw new \RuntimeException("Dataset terlalu besar ({$total} baris) — persempit filter lalu ulangi");
         }
@@ -147,6 +152,7 @@ class GenerateExportJob implements ShouldQueue
             'filename' => ExcelExportService::filename($this->module),
             'download_url' => "/api/v1/admin/exports/{$this->token}/download",
         ], 3600);
+        Log::info('EXPORT DONE', ['module' => $this->module, 'token' => $this->token, 'rows' => $written, 'ms' => (int) round((microtime(true) - $t0) * 1000)]);
     }
 
     public function failed(\Throwable $e): void
@@ -200,7 +206,9 @@ class GenerateExportJob implements ShouldQueue
     private function paket(): array
     {
         $f = $this->filters;
-        $query = Paket::query()->with('images')->withCount('pesanan');
+        // ponytail: project only mapped columns (+sort keys) — SELECT * drags
+        // JSON/text over Neon latency per row; constrain the images eager load too.
+        $query = Paket::query()->select(['id', 'nama_paket', 'kategori_paket', 'kategori_acara', 'harga_per_porsi', 'min_order', 'kapasitas_produksi', 'thumbnail', 'deskripsi', 'menu_utama', 'menu_tambahan', 'fasilitas_termasuk', 'is_best_seller', 'created_at'])->with('images:id,paket_id,image_url')->withCount('pesanan');
         if (! empty($f['search'])) {
             $s = $f['search'];
             $query->where(fn ($q) => $q->where('nama_paket', 'like', "%{$s}%")->orWhere('deskripsi', 'like', "%{$s}%"));
@@ -247,7 +255,8 @@ class GenerateExportJob implements ShouldQueue
     private function galeri(): array
     {
         $f = $this->filters;
-        $query = Galeri::query();
+        // ponytail: project only mapped columns (+sort keys), same as pesanan/paket.
+        $query = Galeri::query()->select(['id', 'nama_acara', 'kategori_acara', 'deskripsi_acara', 'gambar_acara', 'tanggal_acara', 'lokasi', 'jumlah_tamu', 'is_featured', 'created_at']);
         if (! empty($f['search'])) {
             $s = $f['search'];
             $query->where(fn ($q) => $q->where('nama_acara', 'like', "%{$s}%")->orWhere('deskripsi_acara', 'like', "%{$s}%")->orWhere('lokasi', 'like', "%{$s}%"));
@@ -330,7 +339,8 @@ class GenerateExportJob implements ShouldQueue
     private function testimoni(): array
     {
         $f = $this->filters;
-        $query = Testimoni::query()->with('paket:id,nama_paket,thumbnail,harga_per_porsi');
+        // ponytail: project only mapped columns (+sort keys, +paket_id for the relation).
+        $query = Testimoni::query()->select(['id', 'nama', 'pesanan', 'acara', 'lokasi', 'paket_id', 'rating', 'visibility', 'tanggal_acara', 'created_at', 'updated_at'])->with('paket:id,nama_paket,thumbnail,harga_per_porsi');
         if (! empty($f['search'])) {
             $s = $f['search'];
             $query->where(fn ($q) => $q->where('nama', 'like', "%{$s}%")->orWhere('acara', 'like', "%{$s}%")->orWhere('lokasi', 'like', "%{$s}%"));
