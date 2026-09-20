@@ -28,8 +28,11 @@ const PENDING_SILENCE_MS = 30_000
 /**
  * Fail-fast circuit breaker: `processing` with no row progress for >45s means
  * the job stalled (DB hang, OOM, lost heartbeat) — terminate now.
+ * Heartbeats younger than HEARTBEAT_FRESH_MS prove liveness even when rows
+ * advance slowly (long image rows), so a live-but-slow worker is never killed.
  */
 const PROCESSING_STALL_MS = 45_000
+const HEARTBEAT_FRESH_MS = 60_000
 /**
  * Absolute backstop: 6 min. Must exceed the job budget ($timeout 240s) so a
  * healthy-but-slow export is never killed client-side first. Every stuck case
@@ -46,6 +49,7 @@ interface ExportPollState {
   stale?: boolean
   rows?: number
   total?: number
+  heartbeat_at?: string
 }
 
 function httpStatusOf(err: unknown): number | null {
@@ -94,11 +98,19 @@ async function pollExportBlob(
   }
   // True once silence exceeds the fail-fast budget. Evaluated BEFORE sleeping
   // (backoff must not delay detection) and again after every poll.
+  const heartbeatFresh = (state: ExportPollState, at: number): boolean => {
+    if (typeof state.heartbeat_at !== "string") return false
+    const beat = Date.parse(state.heartbeat_at)
+    if (Number.isNaN(beat)) return false
+    return at - beat < HEARTBEAT_FRESH_MS
+  }
   const breakerTripped = (state: ExportPollState | null, at: number): boolean => {
     if (state === null) return false
     if (state.status === "processing") {
       const rows = typeof state.rows === "number" ? state.rows : lastRows
       if (rows > lastRows) return false
+      // Slow but alive (fresh heartbeat, e.g. mid long image row) ≠ dead.
+      if (heartbeatFresh(state, at)) return false
       return at - lastProgressAt > PROCESSING_STALL_MS
     }
     // `pending` (or unknown status) that never advances: worker never picked up.

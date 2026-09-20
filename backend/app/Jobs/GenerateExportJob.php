@@ -139,9 +139,10 @@ class GenerateExportJob implements ShouldQueue
         }
         $this->heartbeat(0, $total);
 
-        // Small datasets with image columns embed true in-memory thumbnails;
-        // everything else streams at O(1) memory with HYPERLINK text.
-        if ($imageCols !== [] && $total <= self::IMAGE_EMBED_MAX_ROWS) {
+        // Small datasets with image columns embed true thumbnails — but ONLY
+        // when the temp dir is verifiably writable. Otherwise fall through to
+        // the streaming path (HYPERLINK text) instead of dying on first write.
+        if ($imageCols !== [] && $total <= self::IMAGE_EMBED_MAX_ROWS && $this->ensureTempDir()) {
             $this->writeWithDrawings($path, $title, $headers, $widths, $query, $mapper, $imageCols, $total, $t0);
             return;
         }
@@ -225,6 +226,27 @@ class GenerateExportJob implements ShouldQueue
     /** Micro-thumbs are KBs; anything larger is rejected, never buffered. */
     private const IMAGE_MAX_BYTES = 1024 * 1024;
 
+    /**
+     * Ensure the image temp dir exists AND is writable (HF containers vary).
+     * Returns false instead of throwing so run() can degrade to the streaming
+     * path — an unwritable temp must never become a hung export.
+     */
+    private function ensureTempDir(): bool
+    {
+        try {
+            Storage::disk('local')->makeDirectory('temp');
+            $dir = Storage::disk('local')->path('temp');
+            if (! is_dir($dir) || ! is_writable($dir)) {
+                Log::error('EXPORT TEMP DIR UNWRITABLE', ['dir' => $dir]);
+                return false;
+            }
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('EXPORT TEMP DIR FAILED', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+
     /** Cheap COUNT so the controller can fast-path tiny exports synchronously. */
     public function estimatedRows(): int
     {
@@ -271,8 +293,12 @@ class GenerateExportJob implements ShouldQueue
     {
         $tmp = null;
         try {
+            // THE choke point: fetch the CDN micro-thumb, never the multi-MB
+            // original (full originals caused the timeouts, 1MB rejections and
+            // pixelation reports). Non-Cloudinary URLs pass through untouched.
+            $url = $this->thumbnailUrl($url);
             $tmp = Storage::disk('local')->path('temp/export_img_'.uniqid().'.jpg');
-            $res = Http::connectTimeout(2)->timeout(self::IMAGE_TIMEOUT_S)->sink($tmp)->get($url);
+            $res = Http::withHeaders(['User-Agent' => 'Mozilla/5.0 (compatible; CateringApp-Export/1.0)'])->connectTimeout(2)->timeout(self::IMAGE_TIMEOUT_S)->sink($tmp)->get($url);
             if (! $res->successful()) {
                 Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'http_'.$res->status()]);
                 @unlink($tmp);
@@ -294,6 +320,7 @@ class GenerateExportJob implements ShouldQueue
                 @unlink($tmp);
                 return null;
             }
+            Log::info('EXPORT IMAGE OK', ['url' => $url, 'bytes' => $size]);
             return $tmp;
         } catch (\Throwable $e) {
             Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'transfer_error', 'error' => $e->getMessage()]);
@@ -410,24 +437,32 @@ class GenerateExportJob implements ShouldQueue
                             continue;
                         }
                         $dx = 4;
+                        $embedded = 0;
                         foreach ($files as $tmp) {
-                            $size = @getimagesize($tmp);
-                            $scaledW = $size !== false && $size[1] > 0 ? (int) round(80 * $size[0] / $size[1]) : 80;
-                            $drawing = new Drawing();
-                            $drawing->setName('thumb');
-                            $drawing->setDescription('thumbnail');
-                            $drawing->setPath($tmp);
-                            $drawing->setHeight(80);
-                            $drawing->setCoordinates($coord);
-                            $drawing->setOffsetX($dx);
-                            $drawing->setOffsetY(4);
-                            $drawing->setWorksheet($sheet);
+                            try {
+                                $size = @getimagesize($tmp);
+                                $scaledW = $size !== false && $size[1] > 0 ? (int) round(80 * $size[0] / $size[1]) : 80;
+                                $drawing = new Drawing();
+                                $drawing->setName('thumb');
+                                $drawing->setDescription('thumbnail');
+                                $drawing->setPath($tmp);
+                                $drawing->setHeight(80);
+                                $drawing->setCoordinates($coord);
+                                $drawing->setOffsetX($dx);
+                                $drawing->setOffsetY(4);
+                                $drawing->setWorksheet($sheet);
+                            } catch (\Throwable $e) {
+                                Log::error('Export Drawing Error '.$coord.': '.$e->getMessage());
+                                continue;
+                            }
                             $dx += $scaledW + 6;
+                            $embedded++;
                             $hasImage = true;
                         }
-                        $missing = count($urlsByCol[$idx]) - count($files);
-                        if ($missing > 0) {
-                            $sheet->setCellValueExplicit($coord, '+'.$missing.' lainnya', DataType::TYPE_STRING);
+                        if ($embedded === 0) {
+                            $sheet->setCellValueExplicit($coord, '[IMAGE EXPORT FAILED]', DataType::TYPE_STRING);
+                        } elseif ($embedded < count($urlsByCol[$idx])) {
+                            $sheet->setCellValueExplicit($coord, '+'.$embedded.' dari '.count($urlsByCol[$idx]), DataType::TYPE_STRING);
                         }
                     }
                     if ($hasImage) {
