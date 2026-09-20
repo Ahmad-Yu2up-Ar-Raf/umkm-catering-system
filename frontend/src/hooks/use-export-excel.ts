@@ -60,8 +60,10 @@ async function pollExportBlob(
 ): Promise<Blob> {
   let token: string
   try {
+    // Small exports build inline (incl. thumbnail downloads) inside the POST —
+    // needs longer than the global 30s ky timeout, same 120s as the download.
     const queued = await api
-      .post(`admin/exports/${module}`, { json: params })
+      .post(`admin/exports/${module}`, { json: params, timeout: 120_000 })
       .json<{ data: { token: string } }>()
     token = queued.data.token
   } catch (err) {

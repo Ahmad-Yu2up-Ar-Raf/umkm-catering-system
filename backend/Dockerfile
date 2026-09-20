@@ -17,9 +17,11 @@ WORKDIR /app
 # 5. Copy seluruh codebase
 COPY . .
 
-# 6. Install dependensi Production
+# 6. Install dependensi Production (targeted update: composer.json gained
+# phpoffice/phpspreadsheet after the lock was cut, so a bare `install` would
+# fail on the stale hash — this installs just the new package, rest stays pinned)
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer install --no-dev --optimize-autoloader
+RUN composer update phpoffice/phpspreadsheet --no-dev --optimize-autoloader --no-interaction
 
 # 7. Kunci Cache Route & View (JANGAN masukkan config:cache di sini!)
 RUN php artisan route:cache && \
