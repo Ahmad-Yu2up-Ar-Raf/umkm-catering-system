@@ -29,8 +29,6 @@ class ExportJobController extends Controller
         abort_unless(in_array($module, self::MODULES, true), 422, 'Unknown export module');
 
         $token = (string) Str::uuid();
-        Cache::put("exports:{$token}", ['status' => 'pending', 'heartbeat_at' => now()->toIso8601String()], 3600);
-
         $filters = $request->except(['module']);
         $job = new GenerateExportJob($token, $module, $filters);
         $t0 = microtime(true);
@@ -40,6 +38,15 @@ class ExportJobController extends Controller
             $count = PHP_INT_MAX;
         }
         $countMs = (int) round((microtime(true) - $t0) * 1000);
+        // Seed BEFORE dispatch so the first poll (even before worker pickup)
+        // sees a valid pending state with live rows/total for the toast.
+        // $count is already known here — no extra query.
+        Cache::put("exports:{$token}", [
+            'status' => 'pending',
+            'rows' => 0,
+            'total' => $count === PHP_INT_MAX ? null : $count,
+            'heartbeat_at' => now()->toIso8601String(),
+        ], 3600);
         // Images ALWAYS queue: pooled fetching inside the HTTP worker trips the
         // 30s Octane cap even at 53 rows. Text-only exports sync up to a safe
         // threshold (pure OpenSpout streaming, ~seconds) and queue above it.
