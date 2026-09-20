@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 3. Install ekstensi PHP (Wajib ada pcntl untuk Octane & zip untuk Composer)
-RUN install-php-extensions pdo pdo_pgsql bcmath opcache pcntl zip
+RUN install-php-extensions pdo pdo_pgsql bcmath opcache pcntl zip gd
 
 # 4. Ambil Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
