@@ -144,10 +144,13 @@ class GenerateExportJob implements ShouldQueue
         // chunk(100) — NOT cursor(): Eloquent cursor() never calls
         // eagerLoadRelations(), silently turning every with() into per-row lazy
         // queries (N+1 full WAN round-trips against Neon). chunk() terminates in
-        // get(), so eager loads fire exactly once per small chunk. Heartbeat
-        // every 100 rows measures liveness, not chunk latency.
+        // get(), so eager loads fire exactly once per small chunk.
+        // Dynamic heartbeat cadence: a fixed %N gate never fires below N rows,
+        // starving the progress UI on small datasets. File cache makes frequent
+        // writes cheap; a silent UI is worse than extra cache puts.
+        $every = $total <= 50 ? 1 : ($total <= 500 ? 10 : 25);
         $written = 0;
-        $query->chunk(100, function ($models) use ($mapper, $imageCols, $dataStyle, $writer, $total, &$written) {
+        $query->chunk(100, function ($models) use ($mapper, $imageCols, $dataStyle, $writer, $total, $every, &$written) {
             foreach ($models as $model) {
                 $values = $this->formatImageCells(($mapper)($model), $imageCols);
                 $row = Row::fromValues($values, $dataStyle);
@@ -160,9 +163,7 @@ class GenerateExportJob implements ShouldQueue
                 $row->setHeight(max(20, $maxLines * 18));
                 $writer->addRow($row);
                 $written++;
-                // Every 25 rows (not 100): file cache makes this cheap, and the
-                // frontend toast renders live `rows/total` progress from it.
-                if ($written % 25 === 0) {
+                if ($written % $every === 0) {
                     $this->heartbeat($written, $total);
                 }
             }
@@ -360,21 +361,30 @@ class GenerateExportJob implements ShouldQueue
                     }
                     $gdByCol = [];
                     $failedByCol = [];
-                    if ($jobs !== []) {
-                        // Vendor-proven: default pool() returns Throwables as values,
-                        // never throws — per-item instanceof check is sufficient.
-                        $responses = Http::pool(fn (Pool $pool) => array_map(
-                            fn (array $j) => $pool->timeout(self::IMAGE_TIMEOUT_S)->get($this->thumbnailUrl($j['url'])),
-                            $jobs
-                        ));
-                        foreach ($jobs as $i => $j) {
-                            $gd = $this->storeImageResource($responses[$i] ?? null, $j['url']);
-                            if ($gd === null) {
-                                $failedByCol[$j['col']][] = $j['url'];
-                                continue;
+                    try {
+                        if ($jobs !== []) {
+                            // Vendor-proven: default pool() returns Throwables as values,
+                            // never throws — per-item instanceof check is sufficient.
+                            $responses = Http::pool(fn (Pool $pool) => array_map(
+                                fn (array $j) => $pool->timeout(self::IMAGE_TIMEOUT_S)->get($this->thumbnailUrl($j['url'])),
+                                $jobs
+                            ));
+                            foreach ($jobs as $i => $j) {
+                                $gd = $this->storeImageResource($responses[$i] ?? null, $j['url']);
+                                if ($gd === null) {
+                                    $failedByCol[$j['col']][] = $j['url'];
+                                    continue;
+                                }
+                                $resources[] = $gd;
+                                $gdByCol[$j['col']][] = $gd;
                             }
-                            $resources[] = $gd;
-                            $gdByCol[$j['col']][] = $gd;
+                        }
+                    } catch (\Throwable $e) {
+                        // One poison row must not fail the other 199: fall back
+                        // every image cell on this row to URL text and continue.
+                        Log::warning('EXPORT ROW IMAGES SKIPPED', ['row' => $rowNum, 'error' => $e->getMessage()]);
+                        foreach ($urlsByCol as $idx => $urls) {
+                            $failedByCol[$idx] = $urls;
                         }
                     }
                     $hasImage = false;

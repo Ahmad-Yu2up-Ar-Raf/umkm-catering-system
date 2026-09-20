@@ -84,11 +84,11 @@ class ExportJobController extends Controller
             return response()->json(['status' => false, 'message' => 'Export not found or expired', 'data' => null], 404);
         }
 
-        // Dead-worker detection: `processing` must heartbeat every 100 rows,
-        // so 300s of silence means death. `pending` means queued behind the
-        // single worker — allow a wide backstop (900s) before crying stale,
-        // otherwise a second queued export false-positives while worker is busy.
-        // Primary fail-fast lives client-side (30s pending / 45s no-progress).
+        // Dead-worker detection: `processing` heartbeats on a dynamic cadence
+        // (every row ≤50 rows, sparser above), so 300s of silence means death.
+        // `pending` gets a wide backstop (900s) so a second queued export behind
+        // the single worker doesn't false-positive. Primary fail-fast lives
+        // client-side (30s pending / 45s no-progress).
         $staleAfter = ($state['status'] ?? null) === 'pending' ? 900 : 300;
         if (in_array($state['status'] ?? null, ['pending', 'processing'], true)) {
             $beat = isset($state['heartbeat_at']) ? strtotime($state['heartbeat_at']) : false;
