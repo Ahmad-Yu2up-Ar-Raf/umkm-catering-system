@@ -184,9 +184,12 @@ export function useExportExcel({ filename, fetchBlob, asyncModule }: UseExportEx
       try {
         const blob = asyncModule
           ? await pollExportBlob(asyncModule, params, controller.signal, (rows, total) => {
+              // Live progress on the same toast id (no flicker, no duplicates);
+              // falls back to the static label while rows/total are unknown
+              // (pending phase, sync exports) — never prints NaN/undefined.
               const label =
                 typeof rows === "number" && typeof total === "number" && total > 0
-                  ? `Menyiapkan file Excel… (${rows}/${total} baris)`
+                  ? `Memproses data... (${rows} dari ${total})`
                   : "Menyiapkan file Excel…"
               toast.loading(label, { id })
             })

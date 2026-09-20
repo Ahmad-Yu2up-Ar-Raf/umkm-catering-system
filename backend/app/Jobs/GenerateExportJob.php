@@ -365,10 +365,13 @@ class GenerateExportJob implements ShouldQueue
                         if ($jobs !== []) {
                             // Vendor-proven: default pool() returns Throwables as values,
                             // never throws — per-item instanceof check is sufficient.
-                            $responses = Http::pool(fn (Pool $pool) => array_map(
-                                fn (array $j) => $pool->timeout(self::IMAGE_TIMEOUT_S)->get($this->thumbnailUrl($j['url'])),
-                                $jobs
-                            ));
+                        $responses = Http::pool(fn (Pool $pool) => array_map(
+                            // Belt and suspenders: total timeout bounds the whole
+                            // transfer, connectTimeout bounds DNS/TLS stalls that
+                            // total-timeout accounting can miss on pooled handles.
+                            fn (array $j) => $pool->connectTimeout(2)->timeout(self::IMAGE_TIMEOUT_S)->get($this->thumbnailUrl($j['url'])),
+                            $jobs
+                        ));
                             foreach ($jobs as $i => $j) {
                                 $gd = $this->storeImageResource($responses[$i] ?? null, $j['url']);
                                 if ($gd === null) {
