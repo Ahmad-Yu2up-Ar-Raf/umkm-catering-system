@@ -17,6 +17,8 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use OpenSpout\Common\Entity\Cell;
+use OpenSpout\Common\Entity\Cell\FormulaCell;
 use OpenSpout\Common\Entity\Row;
 use OpenSpout\Common\Entity\Style\Border;
 use OpenSpout\Common\Entity\Style\BorderPart;
@@ -125,27 +127,37 @@ class GenerateExportJob implements ShouldQueue
         }
         $this->heartbeat(0, $total);
 
-        // cursor() streams without OFFSET pagination: constant memory and no
-        // linearly-slower deep pages on remote Postgres. Heartbeat every 100
+        // chunk() — NOT cursor(): Eloquent cursor() never calls
+        // eagerLoadRelations(), silently turning every with() into per-row lazy
+        // queries (N+1 full WAN round-trips against Neon). chunk() terminates in
+        // get(), so eager loads fire exactly once per chunk. Heartbeat every 100
         // rows measures liveness, not chunk latency.
         $written = 0;
-        foreach ($query->cursor() as $model) {
-            [$values, $hasImage] = $this->formatImageCells(($mapper)($model), $imageCols);
-            $row = Row::fromValues($values, $dataStyle);
-            $maxLines = 1;
-            foreach ($values as $cell) {
-                if (is_string($cell)) {
-                    $maxLines = max($maxLines, substr_count($cell, "\n") + 1);
+        $query->chunk(1000, function ($models) use ($mapper, $imageCols, $dataStyle, $writer, $total, &$written) {
+            foreach ($models as $model) {
+                [$values, $hasImage] = $this->formatImageCells(($mapper)($model), $imageCols);
+                $cells = [];
+                foreach ($values as $v) {
+                    $cells[] = is_string($v) && isset($v[0]) && $v[0] === '='
+                        ? new FormulaCell($v, null)
+                        : Cell::fromValue($v);
+                }
+                $row = new Row($cells, $dataStyle);
+                $maxLines = 1;
+                foreach ($values as $cell) {
+                    if (is_string($cell)) {
+                        $maxLines = max($maxLines, substr_count($cell, "\n") + 1);
+                    }
+                }
+                // Preview rows get room to render; text rows size to content.
+                $row->setHeight($hasImage ? 62.0 : max(20, $maxLines * 18));
+                $writer->addRow($row);
+                $written++;
+                if ($written % 100 === 0) {
+                    $this->heartbeat($written, $total);
                 }
             }
-            // Preview rows get room to render; text rows size to content.
-            $row->setHeight($hasImage ? 62.0 : max(20, $maxLines * 18));
-            $writer->addRow($row);
-            $written++;
-            if ($written % 100 === 0) {
-                $this->heartbeat($written, $total);
-            }
-        }
+        });
 
         $writer->close();
 
@@ -201,7 +213,9 @@ class GenerateExportJob implements ShouldQueue
             return 'N/A';
         }
         $escaped = str_replace('"', '""', $this->thumbnailUrl($s));
-        return '=IMAGE("'.$escaped.'","Preview")';
+        // Single-argument form only: a 2nd string arg breaks Google Sheets
+        // (mode must be an integer) and makes Excel prepend @ (#NAME?).
+        return '=IMAGE("'.$escaped.'")';
     }
 
     /**
@@ -309,28 +323,37 @@ class GenerateExportJob implements ShouldQueue
         $query->orderBy($sortBy, $sortDir);
 
         return [
-            ['Nama Paket', 'Kategori Paket', 'Kategori Acara', 'Harga / Porsi', 'Min. Order', 'Kapasitas', 'Gambar Thumbnail', 'Galeri Foto', 'Menu Utama', 'Menu Tambahan', 'Fasilitas', 'Deskripsi', 'Best Seller', 'Terjual', 'Dibuat'],
-            [24, 14, 14, 14, 12, 12, 32, 40, 28, 28, 28, 32, 11, 10, 18],
+            ['Nama Paket', 'Kategori Paket', 'Kategori Acara', 'Harga / Porsi', 'Min. Order', 'Kapasitas', 'Gambar Thumbnail', 'Galeri 1', 'Galeri 2', 'Galeri 3', 'Galeri 4', 'Galeri 5', 'Menu Utama', 'Menu Tambahan', 'Fasilitas', 'Deskripsi', 'Best Seller', 'Terjual', 'Dibuat'],
+            [24, 14, 14, 14, 12, 12, 32, 20, 20, 20, 20, 20, 28, 28, 28, 32, 11, 10, 18],
             'LAPORAN DATA PAKET',
             $query,
-            fn (Paket $p) => [
-                ExcelExportService::text($p->nama_paket),
-                ExcelExportService::text($p->kategori_paket instanceof \BackedEnum ? $p->kategori_paket->value : $p->kategori_paket),
-                ExcelExportService::text($p->kategori_acara instanceof \BackedEnum ? $p->kategori_acara->value : $p->kategori_acara),
-                ExcelExportService::idr($p->harga_per_porsi),
-                ExcelExportService::text($p->min_order),
-                ExcelExportService::text($p->kapasitas_produksi),
-                $p->thumbnail,
-                $p->images->pluck('image_url')->all(),
-                ExcelExportService::orderedList($p->menu_utama),
-                ExcelExportService::orderedList($p->menu_tambahan),
-                ExcelExportService::orderedList($p->fasilitas_termasuk),
-                ExcelExportService::text($p->deskripsi),
-                ExcelExportService::boolLabel($p->is_best_seller),
-                ExcelExportService::text($p->pesanan_count ?? 0),
-                ExcelExportService::datetime($p->created_at),
-            ],
-            [6 => 'single', 7 => 'gallery'],
+            function (Paket $p) {
+                // One cell = one formula: spread the gallery horizontally so every
+                // preview renders (first 5; validation caps input at 8-10 anyway).
+                $imgs = array_values(array_filter(array_map(fn ($u) => trim((string) $u), $p->images->pluck('image_url')->all()), fn ($u) => $u !== ''));
+                return [
+                    ExcelExportService::text($p->nama_paket),
+                    ExcelExportService::text($p->kategori_paket instanceof \BackedEnum ? $p->kategori_paket->value : $p->kategori_paket),
+                    ExcelExportService::text($p->kategori_acara instanceof \BackedEnum ? $p->kategori_acara->value : $p->kategori_acara),
+                    ExcelExportService::idr($p->harga_per_porsi),
+                    ExcelExportService::text($p->min_order),
+                    ExcelExportService::text($p->kapasitas_produksi),
+                    $p->thumbnail,
+                    $imgs[0] ?? null,
+                    $imgs[1] ?? null,
+                    $imgs[2] ?? null,
+                    $imgs[3] ?? null,
+                    $imgs[4] ?? null,
+                    ExcelExportService::orderedList($p->menu_utama),
+                    ExcelExportService::orderedList($p->menu_tambahan),
+                    ExcelExportService::orderedList($p->fasilitas_termasuk),
+                    ExcelExportService::text($p->deskripsi),
+                    ExcelExportService::boolLabel($p->is_best_seller),
+                    ExcelExportService::text($p->pesanan_count ?? 0),
+                    ExcelExportService::datetime($p->created_at),
+                ];
+            },
+            [6 => 'single', 7 => 'single', 8 => 'single', 9 => 'single', 10 => 'single', 11 => 'single'],
         ];
     }
 
