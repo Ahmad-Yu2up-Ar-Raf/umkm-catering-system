@@ -13,8 +13,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Async exports: POST returns 202 + poll URL immediately, the XLSX is built
  * by GenerateExportJob (chunked, off the HTTP worker), then downloaded.
- * Tiny datasets (<= SYNC_ROW_THRESHOLD rows) build inline in store() instead
+ * Tiny TEXT-ONLY datasets (<= TEXT_SYNC_THRESHOLD rows) build inline in store()
  * — same 202 shape, first poll already sees ready/failed, no worker needed.
+ * Image exports always queue: pooled fetching inside the HTTP worker trips the
+ * 30s Octane cap even at 53 rows.
  * The existing sync export endpoints stay untouched for small datasets.
  */
 class ExportJobController extends Controller
@@ -38,10 +40,14 @@ class ExportJobController extends Controller
             $count = PHP_INT_MAX;
         }
         $countMs = (int) round((microtime(true) - $t0) * 1000);
-        $small = $count <= GenerateExportJob::SYNC_ROW_THRESHOLD;
+        // Images ALWAYS queue: pooled fetching inside the HTTP worker trips the
+        // 30s Octane cap even at 53 rows. Text-only exports sync up to a safe
+        // threshold (pure OpenSpout streaming, ~seconds) and queue above it.
+        $images = GenerateExportJob::hasImages($module);
+        $small = ! $images && $count <= GenerateExportJob::TEXT_SYNC_THRESHOLD;
         if ($small) {
-            // ponytail: tiny exports skip the queue — no pickup latency, immune
-            // to dead workers. 202 shape unchanged: first poll already sees ready/failed.
+            // ponytail: tiny text exports skip the queue — no pickup latency,
+            // immune to dead workers. 202 shape unchanged: first poll sees ready/failed.
             $job->total = $count;
             try {
                 $job->handle();
@@ -51,7 +57,7 @@ class ExportJobController extends Controller
         } else {
             GenerateExportJob::dispatch($token, $module, $filters);
         }
-        Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small, 'rows' => $small ? $count : null, 'count_ms' => $countMs, 'total_ms' => (int) round((microtime(true) - $t0) * 1000)]);
+        Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small, 'images' => $images, 'rows' => $small ? $count : null, 'count_ms' => $countMs, 'total_ms' => (int) round((microtime(true) - $t0) * 1000)]);
 
         return response()->json([
             'status' => true,

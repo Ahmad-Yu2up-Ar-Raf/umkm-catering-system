@@ -160,7 +160,9 @@ class GenerateExportJob implements ShouldQueue
                 $row->setHeight(max(20, $maxLines * 18));
                 $writer->addRow($row);
                 $written++;
-                if ($written % 100 === 0) {
+                // Every 25 rows (not 100): file cache makes this cheap, and the
+                // frontend toast renders live `rows/total` progress from it.
+                if ($written % 25 === 0) {
                     $this->heartbeat($written, $total);
                 }
             }
@@ -192,8 +194,18 @@ class GenerateExportJob implements ShouldQueue
         ], 3600);
     }
 
-    /** Rows at or below this skip the queue and build inline in store(). */
-    public const SYNC_ROW_THRESHOLD = 100;
+    /**
+     * Text-only exports at or below this build inline in store(). Image
+     * exports NEVER sync (any pooled fetch on the HTTP worker risks the 30s
+     * Octane cap) — they always queue regardless of row count.
+     */
+    public const TEXT_SYNC_THRESHOLD = 2000;
+
+    /** True when the module renders image columns (must always queue). */
+    public static function hasImages(string $module): bool
+    {
+        return (new self('probe', $module, []))->build()[5] !== [];
+    }
 
     /**
      * Rows at or below this embed thumbnails as in-memory drawings.
@@ -429,7 +441,7 @@ class GenerateExportJob implements ShouldQueue
 
     /**
      * Rewrite a stored Cloudinary original into a tiny CDN thumbnail.
-     * `.../image/upload/v123/a.jpg` → `.../image/upload/c_fill,h_100,w_100,q_auto:low,f_jpg/v123/a.jpg`
+     * `.../image/upload/v123/a.jpg` → `.../image/upload/w_400,h_400,c_fit,q_auto:good,f_jpg/v123/a.jpg`
      * (works with or without the `/v123/` version segment; already-transformed
      * and non-Cloudinary URLs pass through untouched — never stored, only fetched).
      */
@@ -440,9 +452,12 @@ class GenerateExportJob implements ShouldQueue
         if ($pos === false) {
             return $url;
         }
-        // f_jpg (not f_webp): GD decodes JPEG universally; WebP needs a
-        // specially-compiled GD that the production image does not guarantee.
-        $transform = 'c_fill,h_100,w_100,q_auto:low,f_jpg';
+        // 400px fit + good quality (not 100px low): the 80px drawing downscales
+        // from a crisp source instead of upscaling a pixelated one. f_jpg (not
+        // f_webp): GD decodes JPEG universally; WebP needs a specially-compiled
+        // GD that the production image does not guarantee. h_400 bounds portrait
+        // heights (c_fit requires both axes).
+        $transform = 'w_400,h_400,c_fit,q_auto:good,f_jpg';
         $rest = substr($url, $pos + strlen($marker));
         if ($rest === '' || str_starts_with($rest, $transform)) {
             return $url;
