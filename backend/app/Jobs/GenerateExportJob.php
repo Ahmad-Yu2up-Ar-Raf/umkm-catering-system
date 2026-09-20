@@ -14,7 +14,6 @@ use App\Models\Testimoni;
 use App\Services\ExcelExportService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -25,7 +24,7 @@ use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxWriter;
 use OpenSpout\Common\Entity\Style\Border;
 use OpenSpout\Common\Entity\Style\BorderPart;
@@ -44,10 +43,10 @@ class GenerateExportJob implements ShouldQueue
 {
     use Queueable;
 
-    // ponytail: self-times-out below worker --timeout (300) so overruns die
-    // inside handle() → cache `failed`, never SIGKILLed mid-write with no status
+    // 15 min ceiling: image-heavy rows stream to disk (never RAM), so the only
+    // bound needed is wall-clock. Must stay below worker --timeout (1000).
     /** @var int max seconds the worker may spend on one export */
-    public $timeout = 240;
+    public $timeout = 900;
 
     /** Row total supplied by the controller fast-path so run() never COUNTs twice. */
     public ?int $total = null;
@@ -63,9 +62,13 @@ class GenerateExportJob implements ShouldQueue
 
     public function handle(): void
     {
+        // Heavy job: raise the ceiling for this run only, restore after —
+        // ini settings persist in Octane/queue workers, so never leave 1G behind.
+        $prevLimit = ini_get('memory_limit');
+        ini_set('memory_limit', '1G');
         // Fail-safe: ANY throwable becomes a terminal `failed` status so the
-        // frontend never polls forever (covers build() throws, OOM-adjacent
-        // errors, and kills that bypass failed()).
+        // frontend never polls forever (covers build() throws and kills that
+        // bypass failed()). Hard fatals (OOM/SIGKILL) bypass everything by nature.
         try {
             $this->run();
         } catch (\Throwable $e) {
@@ -77,6 +80,8 @@ class GenerateExportJob implements ShouldQueue
             ]);
             Cache::put($this->statusKey(), ['status' => 'failed', 'message' => $e->getMessage()], 3600);
             throw $e;
+        } finally {
+            ini_set('memory_limit', $prevLimit !== false ? $prevLimit : '512M');
         }
     }
 
@@ -215,8 +220,8 @@ class GenerateExportJob implements ShouldQueue
      */
     public const IMAGE_EMBED_MAX_ROWS = 200;
 
-    /** Pooled per-request budget; a row costs ~1 slowest fetch, not N. */
-    private const IMAGE_TIMEOUT_S = 4;
+    /** Per-image transfer budget for sequential temp-file streaming. */
+    private const IMAGE_TIMEOUT_S = 15;
     /** Micro-thumbs are KBs; anything larger is rejected, never buffered. */
     private const IMAGE_MAX_BYTES = 1024 * 1024;
 
@@ -255,44 +260,57 @@ class GenerateExportJob implements ShouldQueue
     }
 
     /**
-     * Decode one pooled download into a GD resource for MemoryDrawing.
+     * Stream one thumbnail straight to a temp file (never RAM): the HTTP body
+     * lands on disk via sink(), so a multi-MB response cannot spike worker
+     * memory — the OOM vector GD decoding created.
      *
-     * @return \GdImage|null resource on success, null on ANY failure — every
-     * failure is logged with URL + reason, callers write 'N/A'/URL text.
+     * @return string|null temp path on success, null on ANY failure — every
+     * failure is logged with URL + reason, callers write fallback text.
      */
-    private function storeImageResource(mixed $res, string $url): ?\GdImage
+    private function downloadToTempFile(string $url): ?string
     {
-        if (! $res instanceof \Illuminate\Http\Client\Response) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'pool_error']);
+        $tmp = null;
+        try {
+            $tmp = Storage::disk('local')->path('temp/export_img_'.uniqid().'.jpg');
+            $res = Http::connectTimeout(2)->timeout(self::IMAGE_TIMEOUT_S)->sink($tmp)->get($url);
+            if (! $res->successful()) {
+                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'http_'.$res->status()]);
+                @unlink($tmp);
+                return null;
+            }
+            if (! str_starts_with((string) $res->header('Content-Type'), 'image/')) {
+                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'non_image_content']);
+                @unlink($tmp);
+                return null;
+            }
+            $size = @filesize($tmp);
+            if ($size === false || $size === 0 || $size > self::IMAGE_MAX_BYTES) {
+                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'empty_or_oversize']);
+                @unlink($tmp);
+                return null;
+            }
+            if (@getimagesize($tmp) === false) {
+                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'corrupt_bytes']);
+                @unlink($tmp);
+                return null;
+            }
+            return $tmp;
+        } catch (\Throwable $e) {
+            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'transfer_error', 'error' => $e->getMessage()]);
+            if (is_string($tmp) && is_file($tmp)) {
+                @unlink($tmp);
+            }
             return null;
         }
-        if (! $res->successful()) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'http_'.$res->status()]);
-            return null;
-        }
-        if (! str_starts_with((string) $res->header('Content-Type'), 'image/')) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'non_image_content']);
-            return null;
-        }
-        $body = $res->body();
-        if ($body === '' || strlen($body) > self::IMAGE_MAX_BYTES) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'empty_or_oversize']);
-            return null;
-        }
-        $gd = @imagecreatefromstring($body);
-        if ($gd === false) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'undecodable_bytes']);
-            return null;
-        }
-        return $gd;
     }
 
     /**
-     * MemoryDrawing path: true embedded thumbnails with ZERO disk I/O.
-     * Each row's images are fetched concurrently (Http::pool — N images cost
-     * ~1 slowest fetch), decoded straight into GD resources, attached as
-     * MemoryDrawings, and destroyed right after save. Octane-safe: no temp
-     * files ever exist, resources are freed in `finally` even on failure.
+     * Temp-file drawing path: true embedded thumbnails with FLAT worker memory.
+     * Each image streams straight to a temp file (never buffered in RAM —
+     * the OOM vector GD decoding created), attaches as a plain Drawing, and
+     * every temp is unlinked in `finally` even on failure. Fetches are
+     * sequential per row with strict timeouts: slower than pooling, but each
+     * failure is isolated and memory never spikes.
      */
     private function writeWithDrawings(
         string $path,
@@ -308,7 +326,8 @@ class GenerateExportJob implements ShouldQueue
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle(substr(preg_replace('/[\\\\\\/\\?\\*\\[\\]:]/', '-', $title) ?? $title, 0, 31) ?: 'Export');
-        $resources = [];
+        Storage::disk('local')->makeDirectory('temp');
+        $garbageFiles = [];
         try {
             $colCount = max(count($headers), 1);
             $lastCol = Coordinate::stringFromColumnIndex($colCount);
@@ -332,7 +351,7 @@ class GenerateExportJob implements ShouldQueue
 
             $written = 0;
             $nochunks = function ($models) use (
-                $mapper, $imageCols, $sheet, $total, &$written, &$resources
+                $mapper, $imageCols, $sheet, $total, &$written, &$garbageFiles
             ) {
                 foreach ($models as $model) {
                     $values = ($mapper)($model);
@@ -348,76 +367,65 @@ class GenerateExportJob implements ShouldQueue
                         );
                     }
                     $urlsByCol = [];
-                    $jobs = [];
                     foreach ($imageCols as $idx => $kind) {
                         $raw = $values[$idx] ?? null;
-                        $urls = $kind === 'gallery' && is_array($raw)
+                        $urlsByCol[$idx] = $kind === 'gallery' && is_array($raw)
                             ? array_values(array_filter(array_map(fn ($u) => trim((string) $u), $raw), fn ($u) => $u !== ''))
                             : (is_string($raw) && trim($raw) !== '' ? [trim($raw)] : []);
-                        $urlsByCol[$idx] = $urls;
-                        foreach ($urls as $url) {
-                            $jobs[] = ['col' => $idx, 'url' => $url];
-                        }
                     }
-                    $gdByCol = [];
+                    $filesByCol = [];
                     $failedByCol = [];
                     try {
-                        if ($jobs !== []) {
-                            // Vendor-proven: default pool() returns Throwables as values,
-                            // never throws — per-item instanceof check is sufficient.
-                        $responses = Http::pool(fn (Pool $pool) => array_map(
-                            // Belt and suspenders: total timeout bounds the whole
-                            // transfer, connectTimeout bounds DNS/TLS stalls that
-                            // total-timeout accounting can miss on pooled handles.
-                            fn (array $j) => $pool->connectTimeout(2)->timeout(self::IMAGE_TIMEOUT_S)->get($this->thumbnailUrl($j['url'])),
-                            $jobs
-                        ));
-                            foreach ($jobs as $i => $j) {
-                                $gd = $this->storeImageResource($responses[$i] ?? null, $j['url']);
-                                if ($gd === null) {
-                                    $failedByCol[$j['col']][] = $j['url'];
+                        foreach ($urlsByCol as $idx => $urls) {
+                            foreach ($urls as $url) {
+                                $tmp = $this->downloadToTempFile($url);
+                                if ($tmp === null) {
+                                    $failedByCol[$idx][] = $url;
                                     continue;
                                 }
-                                $resources[] = $gd;
-                                $gdByCol[$j['col']][] = $gd;
+                                $garbageFiles[] = $tmp;
+                                $filesByCol[$idx][] = $tmp;
                             }
                         }
                     } catch (\Throwable $e) {
                         // One poison row must not fail the other 199: fall back
-                        // every image cell on this row to URL text and continue.
-                        Log::warning('EXPORT ROW IMAGES SKIPPED', ['row' => $rowNum, 'error' => $e->getMessage()]);
+                        // every image cell on this row and continue.
+                        Log::error('Export Image Error Row '.$rowNum.': '.$e->getMessage());
                         foreach ($urlsByCol as $idx => $urls) {
                             $failedByCol[$idx] = $urls;
                         }
+                        $filesByCol = [];
                     }
                     $hasImage = false;
                     foreach ($imageCols as $idx => $kind) {
                         $coord = Coordinate::stringFromColumnIndex($idx + 1).$rowNum;
-                        $gds = $gdByCol[$idx] ?? [];
-                        if ($gds === []) {
+                        $files = $filesByCol[$idx] ?? [];
+                        if ($files === []) {
                             $fb = $failedByCol[$idx] ?? [];
-                            $sheet->setCellValueExplicit($coord, $fb !== [] ? implode('; ', $fb) : 'N/A', DataType::TYPE_STRING);
+                            if ($fb === []) {
+                                $sheet->setCellValueExplicit($coord, 'N/A', DataType::TYPE_STRING);
+                            } else {
+                                $sheet->setCellValueExplicit($coord, '[IMAGE EXPORT FAILED]', DataType::TYPE_STRING);
+                            }
                             continue;
                         }
                         $dx = 4;
-                        foreach ($gds as $gd) {
-                            $gw = imagesx($gd);
-                            $gh = imagesy($gd);
-                            $drawing = new MemoryDrawing();
+                        foreach ($files as $tmp) {
+                            $size = @getimagesize($tmp);
+                            $scaledW = $size !== false && $size[1] > 0 ? (int) round(80 * $size[0] / $size[1]) : 80;
+                            $drawing = new Drawing();
                             $drawing->setName('thumb');
                             $drawing->setDescription('thumbnail');
-                            $drawing->setImageResource($gd);
-                            $drawing->setRenderingFunction(MemoryDrawing::RENDERING_JPEG);
-                            $drawing->setMimeType(MemoryDrawing::MIMETYPE_JPEG);
+                            $drawing->setPath($tmp);
                             $drawing->setHeight(80);
                             $drawing->setCoordinates($coord);
                             $drawing->setOffsetX($dx);
                             $drawing->setOffsetY(4);
                             $drawing->setWorksheet($sheet);
-                            $dx += ($gh > 0 ? (int) round(80 * $gw / $gh) : 80) + 6;
+                            $dx += $scaledW + 6;
                             $hasImage = true;
                         }
-                        $missing = count($urlsByCol[$idx]) - count($gds);
+                        $missing = count($urlsByCol[$idx]) - count($files);
                         if ($missing > 0) {
                             $sheet->setCellValueExplicit($coord, '+'.$missing.' lainnya', DataType::TYPE_STRING);
                         }
@@ -441,9 +449,10 @@ class GenerateExportJob implements ShouldQueue
             ], 3600);
             Log::info('EXPORT DONE', ['module' => $this->module, 'token' => $this->token, 'rows' => $written, 'images' => true, 'ms' => (int) round((microtime(true) - $t0) * 1000)]);
         } finally {
-            foreach ($resources as $gd) {
-                if ($gd instanceof \GdImage) {
-                    @imagedestroy($gd);
+            // Absolute temp cleanup: no orphaned files even when save() throws.
+            foreach ($garbageFiles as $tmp) {
+                if (is_string($tmp) && is_file($tmp)) {
+                    @unlink($tmp);
                 }
             }
             $spreadsheet->disconnectWorksheets();
