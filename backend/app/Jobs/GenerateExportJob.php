@@ -14,6 +14,8 @@ use App\Models\Testimoni;
 use App\Services\ExcelExportService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -240,38 +242,58 @@ class GenerateExportJob implements ShouldQueue
     }
 
     /**
-     * Download a remote image into a verified temp file.
-     *
-     * @return string|null temp path on success, null on ANY failure (timeout,
-     * non-image content-type, oversize, corrupt bytes) — callers fall back to text.
+     * Rewrite a stored Cloudinary original into a tiny CDN thumbnail.
+     * `.../image/upload/v123/a.jpg` → `.../image/upload/c_fill,h_100,w_100,q_auto:low,f_webp/v123/a.jpg`
+     * (works with or without the `/v123/` version segment; already-transformed
+     * and non-Cloudinary URLs pass through untouched — never stored, only fetched).
      */
-    private function fetchImageTemp(string $url): ?string
+    private function thumbnailUrl(string $url): string
     {
-        try {
-            $res = Http::timeout(self::IMAGE_TIMEOUT_S)->get($url);
-            if (! $res->successful()) {
-                return null;
-            }
-            if (! str_starts_with((string) $res->header('Content-Type'), 'image/')) {
-                return null;
-            }
-            $body = $res->body();
-            if ($body === '' || strlen($body) > self::IMAGE_MAX_BYTES) {
-                return null;
-            }
-            $tmp = tempnam(sys_get_temp_dir(), 'xlimg');
-            if ($tmp === false) {
-                return null;
-            }
-            file_put_contents($tmp, $body);
-            if (@getimagesize($tmp) === false) {
-                @unlink($tmp);
-                return null;
-            }
-            return $tmp;
-        } catch (\Throwable) {
+        $marker = '/image/upload/';
+        $pos = strpos($url, $marker);
+        if ($pos === false) {
+            return $url;
+        }
+        $transform = 'c_fill,h_100,w_100,q_auto:low,f_webp';
+        $rest = substr($url, $pos + strlen($marker));
+        if ($rest === '' || str_starts_with($rest, $transform)) {
+            return $url;
+        }
+        return substr($url, 0, $pos + strlen($marker)).$transform.'/'.$rest;
+    }
+
+    /**
+     * Persist a pooled download into a verified temp file.
+     *
+     * @return string|null temp path on success, null on ANY failure — every
+     * failure is logged with the URL + reason, callers fall back to URL text.
+     */
+    private function storeTempImage(Response $response, string $url): ?string
+    {
+        if (! $response->successful()) {
+            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'http_'.$response->status()]);
             return null;
         }
+        if (! str_starts_with((string) $response->header('Content-Type'), 'image/')) {
+            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'non_image_content']);
+            return null;
+        }
+        $body = $response->body();
+        if ($body === '' || strlen($body) > self::IMAGE_MAX_BYTES) {
+            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'empty_or_oversize']);
+            return null;
+        }
+        $tmp = tempnam(sys_get_temp_dir(), 'xlimg');
+        if ($tmp === false) {
+            return null;
+        }
+        file_put_contents($tmp, $body);
+        if (@getimagesize($tmp) === false) {
+            @unlink($tmp);
+            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'corrupt_bytes']);
+            return null;
+        }
+        return $tmp;
     }
 
     /**
@@ -329,24 +351,57 @@ class GenerateExportJob implements ShouldQueue
                         DataType::TYPE_STRING
                     );
                 }
-                $hasImage = false;
+                // Collect the row's image jobs, then fetch CONCURRENTLY: N gallery
+                // images cost ~1 slowest fetch, not N sequential timeouts.
+                $urlsByCol = [];
+                $jobs = [];
                 foreach ($imageCols as $idx => $kind) {
-                    $urls = $kind === 'gallery' && is_array($values[$idx] ?? null)
-                        ? array_values(array_filter(array_map(fn ($u) => trim((string) $u), $values[$idx]), fn ($u) => $u !== ''))
-                        : (is_string($values[$idx] ?? null) && trim($values[$idx]) !== '' ? [trim($values[$idx])] : []);
-                    if ($urls === []) {
-                        $sheet->setCellValueExplicit(Coordinate::stringFromColumnIndex($idx + 1).$rowNum, 'N/A', DataType::TYPE_STRING);
-                        continue;
-                    }
-                    $coord = Coordinate::stringFromColumnIndex($idx + 1).$rowNum;
-                    $dx = 4;
-                    $embedded = 0;
+                    $raw = $values[$idx] ?? null;
+                    $urls = $kind === 'gallery' && is_array($raw)
+                        ? array_values(array_filter(array_map(fn ($u) => trim((string) $u), $raw), fn ($u) => $u !== ''))
+                        : (is_string($raw) && trim($raw) !== '' ? [trim($raw)] : []);
+                    $urlsByCol[$idx] = $urls;
                     foreach ($urls as $url) {
-                        $tmp = $this->fetchImageTemp($url);
+                        $jobs[] = ['col' => $idx, 'url' => $url];
+                    }
+                }
+                $filesByCol = [];
+                $failedByCol = [];
+                if ($jobs !== []) {
+                    try {
+                        $responses = Http::pool(fn (Pool $pool) => array_map(
+                            fn (array $j) => $pool->timeout(self::IMAGE_TIMEOUT_S)->get($this->thumbnailUrl($j['url'])),
+                            $jobs
+                        ));
+                    } catch (\Throwable $e) {
+                        Log::warning('EXPORT IMAGE POOL FAILED', ['row' => $rowNum, 'error' => $e->getMessage()]);
+                        $responses = [];
+                    }
+                    foreach ($jobs as $i => $j) {
+                        $res = $responses[$i] ?? null;
+                        $tmp = $res instanceof Response ? $this->storeTempImage($res, $j['url']) : null;
                         if ($tmp === null) {
+                            if ($res === null) {
+                                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $j['url'], 'reason' => 'pool_error']);
+                            }
+                            $failedByCol[$j['col']][] = $j['url'];
                             continue;
                         }
                         $temps[] = $tmp;
+                        $filesByCol[$j['col']][] = $tmp;
+                    }
+                }
+                $hasImage = false;
+                foreach ($imageCols as $idx => $kind) {
+                    $coord = Coordinate::stringFromColumnIndex($idx + 1).$rowNum;
+                    $files = $filesByCol[$idx] ?? [];
+                    if ($files === []) {
+                        $fb = $failedByCol[$idx] ?? [];
+                        $sheet->setCellValueExplicit($coord, $fb !== [] ? implode('; ', $fb) : 'N/A', DataType::TYPE_STRING);
+                        continue;
+                    }
+                    $dx = 4;
+                    foreach ($files as $tmp) {
                         $size = @getimagesize($tmp);
                         $scaledW = $size !== false && $size[1] > 0 ? (int) round(self::THUMB_PX * $size[0] / $size[1]) : self::THUMB_PX;
                         $drawing = new Drawing();
@@ -358,14 +413,11 @@ class GenerateExportJob implements ShouldQueue
                         $drawing->setOffsetY(4);
                         $drawing->setWorksheet($sheet);
                         $dx += $scaledW + 6;
-                        $embedded++;
                         $hasImage = true;
                     }
-                    if ($embedded === 0) {
-                        // Every fetch failed: graceful URL fallback, export continues.
-                        $sheet->setCellValueExplicit($coord, implode('; ', $urls), DataType::TYPE_STRING);
-                    } elseif ($embedded < count($urls)) {
-                        $sheet->setCellValueExplicit($coord, '+' . (count($urls) - $embedded) . ' lainnya', DataType::TYPE_STRING);
+                    $missing = count($urlsByCol[$idx]) - count($files);
+                    if ($missing > 0) {
+                        $sheet->setCellValueExplicit($coord, '+'.$missing.' lainnya', DataType::TYPE_STRING);
                     }
                 }
                 if ($hasImage) {
@@ -373,9 +425,9 @@ class GenerateExportJob implements ShouldQueue
                     $sheet->getRowDimension($rowNum)->setRowHeight(62);
                 }
                 $written++;
-                if ($written % 100 === 0) {
-                    $this->heartbeat($written, $total);
-                }
+                // Per-row heartbeat: rows now complete in ms–s, keeping the
+                // frontend stall breaker fed and progress visibly live.
+                $this->heartbeat($written, $total);
             }
 
             (new XlsxWriter($spreadsheet))->save($path);
@@ -393,6 +445,7 @@ class GenerateExportJob implements ShouldQueue
             }
             $spreadsheet->disconnectWorksheets();
             unset($spreadsheet);
+            gc_collect_cycles();
         }
     }
 
