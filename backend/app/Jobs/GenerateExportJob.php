@@ -14,20 +14,10 @@ use App\Models\Testimoni;
 use App\Services\ExcelExportService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Http\Client\Pool;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use OpenSpout\Common\Entity\Row;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx as XlsxWriter;
 use OpenSpout\Common\Entity\Style\Border;
 use OpenSpout\Common\Entity\Style\BorderPart;
 use OpenSpout\Common\Entity\Style\CellAlignment;
@@ -135,19 +125,12 @@ class GenerateExportJob implements ShouldQueue
         }
         $this->heartbeat(0, $total);
 
-        // Small datasets with image columns take the drawing path (native
-        // thumbnails); everything else streams with URL text at O(1) memory.
-        if ($imageCols !== [] && $total <= self::IMAGE_EMBED_MAX_ROWS) {
-            $this->writeWithDrawings($path, $title, $headers, $widths, $query, $mapper, $imageCols, $total, $t0);
-            return;
-        }
-
         // cursor() streams without OFFSET pagination: constant memory and no
         // linearly-slower deep pages on remote Postgres. Heartbeat every 100
         // rows measures liveness, not chunk latency.
         $written = 0;
         foreach ($query->cursor() as $model) {
-            $values = $this->formatImageCells(($mapper)($model), $imageCols);
+            [$values, $hasImage] = $this->formatImageCells(($mapper)($model), $imageCols);
             $row = Row::fromValues($values, $dataStyle);
             $maxLines = 1;
             foreach ($values as $cell) {
@@ -155,7 +138,8 @@ class GenerateExportJob implements ShouldQueue
                     $maxLines = max($maxLines, substr_count($cell, "\n") + 1);
                 }
             }
-            $row->setHeight(max(20, $maxLines * 18));
+            // Preview rows get room to render; text rows size to content.
+            $row->setHeight($hasImage ? 62.0 : max(20, $maxLines * 18));
             $writer->addRow($row);
             $written++;
             if ($written % 100 === 0) {
@@ -192,21 +176,6 @@ class GenerateExportJob implements ShouldQueue
     /** Rows at or below this skip the queue and build inline in store(). */
     public const SYNC_ROW_THRESHOLD = 100;
 
-    /**
-     * Rows at or below this embed Cloudinary thumbnails natively via
-     * PhpSpreadsheet drawings. Above it the streaming writer keeps URL text:
-     * drawings hold the whole workbook in memory and each image costs an HTTP
-     * fetch, so large datasets stay on the O(1)-memory path.
-     */
-    public const IMAGE_EMBED_MAX_ROWS = 200;
-
-    /** Max thumbnail height in px; row height is derived from it. */
-    private const THUMB_PX = 80;
-
-    /** Per-image HTTP budget + max bytes (Cloudinary CDN is fast; slow = fallback). */
-    private const IMAGE_TIMEOUT_S = 4;
-    private const IMAGE_MAX_BYTES = 5 * 1024 * 1024;
-
     /** Cheap COUNT so the controller can fast-path tiny exports synchronously. */
     public function estimatedRows(): int
     {
@@ -219,26 +188,55 @@ class GenerateExportJob implements ShouldQueue
     }
 
     /**
-     * Format raw image payloads (string|string[]|null) into display text for
-     * the streaming writer: clickable HYPERLINK for singles, numbered list
-     * for galleries, 'N/A' when empty.
+     * Native Excel image preview with ZERO server I/O: the cell holds an
+     * =IMAGE() formula pointing at the thumbnail-rewritten Cloudinary URL and
+     * the user's Excel fetches + renders it on open — the PHP worker never
+     * downloads a byte. Multi-URL galleries stay a numbered URL list (one
+     * cell holds exactly one formula, so no data is dropped).
+     */
+    private function imageFormula(?string $url): string
+    {
+        $s = trim((string) ($url ?? ''));
+        if ($s === '') {
+            return 'N/A';
+        }
+        $escaped = str_replace('"', '""', $this->thumbnailUrl($s));
+        return '=IMAGE("'.$escaped.'","Preview")';
+    }
+
+    /**
+     * Format raw image payloads (string|string[]|null) for the streaming
+     * writer: =IMAGE() formulas for singles (and single-item galleries),
+     * numbered URL list for multi-galleries, 'N/A' when empty.
      *
      * @param list<mixed> $values
      * @param array<int, string> $imageCols
-     * @return list<string>
+     * @return array{0: list<string>, 1: bool} formatted values + preview embedded
      */
     private function formatImageCells(array $values, array $imageCols): array
     {
+        $hasImage = false;
         foreach ($imageCols as $idx => $kind) {
             if (! array_key_exists($idx, $values)) {
                 continue;
             }
             $raw = $values[$idx];
-            $values[$idx] = $kind === 'gallery' && is_array($raw)
-                ? self::galleryCell($raw)
-                : ExcelExportService::hyperlink(is_string($raw) ? $raw : null);
+            if ($kind === 'gallery' && is_array($raw)) {
+                $urls = array_values(array_filter(array_map(fn ($u) => trim((string) $u), $raw), fn ($u) => $u !== ''));
+                if (count($urls) === 1) {
+                    $values[$idx] = $this->imageFormula($urls[0]);
+                    $hasImage = true;
+                } else {
+                    $values[$idx] = self::galleryCell($raw);
+                }
+                continue;
+            }
+            $values[$idx] = $this->imageFormula(is_string($raw) ? $raw : null);
+            if (is_string($raw) && trim($raw) !== '') {
+                $hasImage = true;
+            }
         }
-        return $values;
+        return [$values, $hasImage];
     }
 
     /**
@@ -262,192 +260,7 @@ class GenerateExportJob implements ShouldQueue
         return substr($url, 0, $pos + strlen($marker)).$transform.'/'.$rest;
     }
 
-    /**
-     * Persist a pooled download into a verified temp file.
-     *
-     * @return string|null temp path on success, null on ANY failure — every
-     * failure is logged with the URL + reason, callers fall back to URL text.
-     */
-    private function storeTempImage(Response $response, string $url): ?string
-    {
-        if (! $response->successful()) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'http_'.$response->status()]);
-            return null;
-        }
-        if (! str_starts_with((string) $response->header('Content-Type'), 'image/')) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'non_image_content']);
-            return null;
-        }
-        $body = $response->body();
-        if ($body === '' || strlen($body) > self::IMAGE_MAX_BYTES) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'empty_or_oversize']);
-            return null;
-        }
-        $tmp = tempnam(sys_get_temp_dir(), 'xlimg');
-        if ($tmp === false) {
-            return null;
-        }
-        file_put_contents($tmp, $body);
-        if (@getimagesize($tmp) === false) {
-            @unlink($tmp);
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'corrupt_bytes']);
-            return null;
-        }
-        return $tmp;
-    }
 
-    /**
-     * PhpSpreadsheet path: native thumbnail drawings + sized rows/columns.
-     * Every downloaded temp is unlinked in `finally`; the spreadsheet is
-     * disconnected so the Octane worker reclaims memory immediately.
-     */
-    private function writeWithDrawings(
-        string $path,
-        string $title,
-        array $headers,
-        array $widths,
-        mixed $query,
-        callable $mapper,
-        array $imageCols,
-        int $total,
-        float $t0
-    ): void {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle(substr(preg_replace('/[\\\\\\/\\?\\*\\[\\]:]/', '-', $title) ?? $title, 0, 31) ?: 'Export');
-        $temps = [];
-        try {
-            $colCount = max(count($headers), 1);
-            $lastCol = Coordinate::stringFromColumnIndex($colCount);
-            foreach ($widths as $idx => $w) {
-                $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($idx + 1))->setWidth((float) $w);
-            }
-            $sheet->mergeCells("A1:{$lastCol}1");
-            $sheet->setCellValue('A1', $title);
-            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-            $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->getRowDimension(1)->setRowHeight(28);
-            $sheet->mergeCells("A2:{$lastCol}2");
-            $sheet->setCellValue('A2', ExcelExportService::subtitle());
-            $sheet->getStyle('A2')->getFont()->setSize(10);
-            $sheet->getRowDimension(2)->setRowHeight(18);
-            $sheet->getRowDimension(3)->setRowHeight(8);
-            $sheet->fromArray([$headers], null, 'A4');
-            $sheet->getStyle("A4:{$lastCol}4")->getFont()->setBold(true)->setSize(11)->getColor()->setARGB('FFFFFFFF');
-            $sheet->getStyle("A4:{$lastCol}4")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF0F172A');
-            $sheet->getStyle("A4:{$lastCol}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
-
-            $written = 0;
-            foreach ($query->cursor() as $model) {
-                $values = ($mapper)($model);
-                $rowNum = 5 + $written;
-                foreach ($values as $idx => $cell) {
-                    if (array_key_exists($idx, $imageCols)) {
-                        continue; // image cells are drawn below, not written as text
-                    }
-                    $sheet->setCellValueExplicit(
-                        Coordinate::stringFromColumnIndex($idx + 1).$rowNum,
-                        is_string($cell) ? $cell : (string) ($cell ?? 'N/A'),
-                        DataType::TYPE_STRING
-                    );
-                }
-                // Collect the row's image jobs, then fetch CONCURRENTLY: N gallery
-                // images cost ~1 slowest fetch, not N sequential timeouts.
-                $urlsByCol = [];
-                $jobs = [];
-                foreach ($imageCols as $idx => $kind) {
-                    $raw = $values[$idx] ?? null;
-                    $urls = $kind === 'gallery' && is_array($raw)
-                        ? array_values(array_filter(array_map(fn ($u) => trim((string) $u), $raw), fn ($u) => $u !== ''))
-                        : (is_string($raw) && trim($raw) !== '' ? [trim($raw)] : []);
-                    $urlsByCol[$idx] = $urls;
-                    foreach ($urls as $url) {
-                        $jobs[] = ['col' => $idx, 'url' => $url];
-                    }
-                }
-                $filesByCol = [];
-                $failedByCol = [];
-                if ($jobs !== []) {
-                    try {
-                        $responses = Http::pool(fn (Pool $pool) => array_map(
-                            fn (array $j) => $pool->timeout(self::IMAGE_TIMEOUT_S)->get($this->thumbnailUrl($j['url'])),
-                            $jobs
-                        ));
-                    } catch (\Throwable $e) {
-                        Log::warning('EXPORT IMAGE POOL FAILED', ['row' => $rowNum, 'error' => $e->getMessage()]);
-                        $responses = [];
-                    }
-                    foreach ($jobs as $i => $j) {
-                        $res = $responses[$i] ?? null;
-                        $tmp = $res instanceof Response ? $this->storeTempImage($res, $j['url']) : null;
-                        if ($tmp === null) {
-                            if ($res === null) {
-                                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $j['url'], 'reason' => 'pool_error']);
-                            }
-                            $failedByCol[$j['col']][] = $j['url'];
-                            continue;
-                        }
-                        $temps[] = $tmp;
-                        $filesByCol[$j['col']][] = $tmp;
-                    }
-                }
-                $hasImage = false;
-                foreach ($imageCols as $idx => $kind) {
-                    $coord = Coordinate::stringFromColumnIndex($idx + 1).$rowNum;
-                    $files = $filesByCol[$idx] ?? [];
-                    if ($files === []) {
-                        $fb = $failedByCol[$idx] ?? [];
-                        $sheet->setCellValueExplicit($coord, $fb !== [] ? implode('; ', $fb) : 'N/A', DataType::TYPE_STRING);
-                        continue;
-                    }
-                    $dx = 4;
-                    foreach ($files as $tmp) {
-                        $size = @getimagesize($tmp);
-                        $scaledW = $size !== false && $size[1] > 0 ? (int) round(self::THUMB_PX * $size[0] / $size[1]) : self::THUMB_PX;
-                        $drawing = new Drawing();
-                        $drawing->setName('img');
-                        $drawing->setPath($tmp);
-                        $drawing->setHeight(self::THUMB_PX);
-                        $drawing->setCoordinates($coord);
-                        $drawing->setOffsetX($dx);
-                        $drawing->setOffsetY(4);
-                        $drawing->setWorksheet($sheet);
-                        $dx += $scaledW + 6;
-                        $hasImage = true;
-                    }
-                    $missing = count($urlsByCol[$idx]) - count($files);
-                    if ($missing > 0) {
-                        $sheet->setCellValueExplicit($coord, '+'.$missing.' lainnya', DataType::TYPE_STRING);
-                    }
-                }
-                if ($hasImage) {
-                    // 80px thumb ≈ 60pt row; gallery shares the row via X offsets.
-                    $sheet->getRowDimension($rowNum)->setRowHeight(62);
-                }
-                $written++;
-                // Per-row heartbeat: rows now complete in ms–s, keeping the
-                // frontend stall breaker fed and progress visibly live.
-                $this->heartbeat($written, $total);
-            }
-
-            (new XlsxWriter($spreadsheet))->save($path);
-
-            Cache::put($this->statusKey(), [
-                'status' => 'ready',
-                'rows' => $written,
-                'filename' => ExcelExportService::filename($this->module),
-                'download_url' => "/api/v1/admin/exports/{$this->token}/download",
-            ], 3600);
-            Log::info('EXPORT DONE', ['module' => $this->module, 'token' => $this->token, 'rows' => $written, 'images' => true, 'ms' => (int) round((microtime(true) - $t0) * 1000)]);
-        } finally {
-            foreach ($temps as $tmp) {
-                @unlink($tmp);
-            }
-            $spreadsheet->disconnectWorksheets();
-            unset($spreadsheet);
-            gc_collect_cycles();
-        }
-    }
 
     /**
      * Element 5 maps 0-based column indexes holding image payloads

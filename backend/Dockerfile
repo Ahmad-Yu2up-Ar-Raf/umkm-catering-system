@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 3. Install ekstensi PHP (Wajib ada pcntl untuk Octane & zip untuk Composer)
-RUN install-php-extensions pdo pdo_pgsql bcmath opcache pcntl zip gd
+RUN install-php-extensions pdo pdo_pgsql bcmath opcache pcntl zip
 
 # 4. Ambil Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -17,11 +17,9 @@ WORKDIR /app
 # 5. Copy seluruh codebase
 COPY . .
 
-# 6. Install dependensi Production (targeted update: composer.json gained
-# phpoffice/phpspreadsheet after the lock was cut, so a bare `install` would
-# fail on the stale hash — this installs just the new package, rest stays pinned)
+# 6. Install dependensi Production
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer update phpoffice/phpspreadsheet --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # 7. Kunci Cache Route & View (JANGAN masukkan config:cache di sini!)
 RUN php artisan route:cache && \

@@ -15,8 +15,7 @@
         "laravel/octane": "*",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
-        "openspout/openspout": "^4",
-        "phpoffice/phpspreadsheet": "^2.0"
+        "openspout/openspout": "^4"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
