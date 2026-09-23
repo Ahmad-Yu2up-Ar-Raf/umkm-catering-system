@@ -90,6 +90,16 @@ All under `/api/v1/admin`.
 
 > Note: a `register` Bruno request exists but there is **no public register API** — account creation goes through Laravel Breeze web routes (`routes/auth.php`), not this API.
 
+### 4.3 Async exports (202 + poll — large datasets & image modules)
+
+| Method | Path (under `/api/v1`) | Purpose |
+|---|---|---|
+| `POST` | `/admin/exports/{module}` (`paket`\|`galeri`\|`pesanan`\|`testimoni`) | Queue an export → `202 { token, poll_url, download_url }` |
+| `GET` | `/admin/exports/{token}` | Poll status: `pending`\|`processing` (`rows`, `total`, `heartbeat_at`, optional `stale`) → `ready` (`filename`, `download_url`) or `failed` (`message`) |
+| `GET` | `/admin/exports/{token}/download` | Download the XLSX (deleted after send) |
+
+Behavior contract: image modules (`paket`, `galeri`) **always queue**; text-only modules (`pesanan`, `testimoni`) build inline when `rows <= 2000` (same 202 shape, first poll already `ready`/`failed`). Image rows `<= 200` embed Cloudinary micro-thumbs (`w_400,h_400,c_fit,q_auto:good,f_jpg`, per-image timeout 8s, 1MB cap, phase budget 600s with HYPERLINK-text degradation); above 200 rows images stay HYPERLINK text (O(1) memory). Job budget: `$timeout=900`, `$tries=1`; worker: `queue:work database --timeout=1000 --memory=512` (keep `DB_QUEUE_RETRY_AFTER=1100` above it); Octane HTTP cap 30s is why image fetches never run on the HTTP worker. Frontend polls with backoff 1→10s: pending budget 30s text / 120s image, stall budget 45s text / 180s image (fresh `heartbeat_at` < 60s proves liveness), absolute deadline 6min text / 12min image.
+
 ## 5. Key Payload Rules (server-enforced — do NOT skip)
 
 - **`total_harga`** is computed **server-side only** — never send it. Formula: `(jumlah_paket * harga_paket_satuan) + biaya_tambahan`.

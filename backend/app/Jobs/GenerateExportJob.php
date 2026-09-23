@@ -222,7 +222,13 @@ class GenerateExportJob implements ShouldQueue
     public const IMAGE_EMBED_MAX_ROWS = 200;
 
     /** Per-image transfer budget for sequential temp-file streaming. */
-    private const IMAGE_TIMEOUT_S = 15;
+    private const IMAGE_TIMEOUT_S = 8;
+    /**
+     * Overall drawing-phase budget: when thumbnail fetching exceeds this, the
+     * remaining rows degrade to HYPERLINK text so the job still completes
+     * inside the worker lifespan instead of brushing $timeout.
+     */
+    private const DRAWING_PHASE_BUDGET_S = 600;
     /** Micro-thumbs are KBs; anything larger is rejected, never buffered. */
     private const IMAGE_MAX_BYTES = 1024 * 1024;
 
@@ -289,9 +295,12 @@ class GenerateExportJob implements ShouldQueue
      * @return string|null temp path on success, null on ANY failure — every
      * failure is logged with URL + reason, callers write fallback text.
      */
-    private function downloadToTempFile(string $url): ?string
+    private function downloadToTempFile(string $url, int $rowNum = 0): ?string
     {
         $tmp = null;
+        // ponytail: module/token/row on every image log — HF logs are the only
+        // observability on the Space, and a bare URL never identifies the job.
+        $ctx = ['module' => $this->module, 'token' => $this->token, 'row' => $rowNum];
         try {
             // THE choke point: fetch the CDN micro-thumb, never the multi-MB
             // original (full originals caused the timeouts, 1MB rejections and
@@ -300,30 +309,29 @@ class GenerateExportJob implements ShouldQueue
             $tmp = Storage::disk('local')->path('temp/export_img_'.uniqid().'.jpg');
             $res = Http::withHeaders(['User-Agent' => 'Mozilla/5.0 (compatible; CateringApp-Export/1.0)'])->connectTimeout(2)->timeout(self::IMAGE_TIMEOUT_S)->sink($tmp)->get($url);
             if (! $res->successful()) {
-                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'http_'.$res->status()]);
+                Log::warning('EXPORT IMAGE FETCH FAILED', $ctx + ['url' => $url, 'reason' => 'http_'.$res->status()]);
                 @unlink($tmp);
                 return null;
             }
             if (! str_starts_with((string) $res->header('Content-Type'), 'image/')) {
-                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'non_image_content']);
+                Log::warning('EXPORT IMAGE FETCH FAILED', $ctx + ['url' => $url, 'reason' => 'non_image_content']);
                 @unlink($tmp);
                 return null;
             }
             $size = @filesize($tmp);
             if ($size === false || $size === 0 || $size > self::IMAGE_MAX_BYTES) {
-                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'empty_or_oversize']);
+                Log::warning('EXPORT IMAGE FETCH FAILED', $ctx + ['url' => $url, 'reason' => 'empty_or_oversize']);
                 @unlink($tmp);
                 return null;
             }
             if (@getimagesize($tmp) === false) {
-                Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'corrupt_bytes']);
+                Log::warning('EXPORT IMAGE FETCH FAILED', $ctx + ['url' => $url, 'reason' => 'corrupt_bytes']);
                 @unlink($tmp);
                 return null;
             }
-            Log::info('EXPORT IMAGE OK', ['url' => $url, 'bytes' => $size]);
             return $tmp;
         } catch (\Throwable $e) {
-            Log::warning('EXPORT IMAGE FETCH FAILED', ['url' => $url, 'reason' => 'transfer_error', 'error' => $e->getMessage()]);
+            Log::warning('EXPORT IMAGE FETCH FAILED', $ctx + ['url' => $url, 'reason' => 'transfer_error', 'error' => $e->getMessage()]);
             if (is_string($tmp) && is_file($tmp)) {
                 @unlink($tmp);
             }
@@ -377,12 +385,44 @@ class GenerateExportJob implements ShouldQueue
             $sheet->getStyle("A4:{$lastCol}4")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER)->setWrapText(true);
 
             $written = 0;
+            $degraded = false;
             $nochunks = function ($models) use (
-                $mapper, $imageCols, $sheet, $total, &$written, &$garbageFiles
+                $mapper, $imageCols, $sheet, $total, $t0, &$written, &$garbageFiles, &$degraded
             ) {
                 foreach ($models as $model) {
                     $values = ($mapper)($model);
                     $rowNum = 5 + $written;
+                    // Phase deadline: fetching already blew the budget — stop
+                    // embedding and fall back to HYPERLINK text for the rest so
+                    // the job finishes inside the worker lifespan.
+                    if (! $degraded && (microtime(true) - $t0) > self::DRAWING_PHASE_BUDGET_S) {
+                        $degraded = true;
+                        Log::warning('EXPORT IMAGE PHASE DEGRADED', ['module' => $this->module, 'token' => $this->token, 'rows_done' => $written, 'total' => $total]);
+                    }
+                    if ($degraded) {
+                        foreach ($values as $idx => $cell) {
+                            if (array_key_exists($idx, $imageCols)) {
+                                $raw = $values[$idx] ?? null;
+                                $text = $imageCols[$idx] === 'gallery' && is_array($raw)
+                                    ? self::galleryCell($raw)
+                                    : ExcelExportService::hyperlink(is_string($raw) ? $raw : null);
+                                $sheet->setCellValueExplicit(
+                                    Coordinate::stringFromColumnIndex($idx + 1).$rowNum,
+                                    $text,
+                                    DataType::TYPE_STRING
+                                );
+                                continue;
+                            }
+                            $sheet->setCellValueExplicit(
+                                Coordinate::stringFromColumnIndex($idx + 1).$rowNum,
+                                is_string($cell) ? $cell : (string) ($cell ?? 'N/A'),
+                                DataType::TYPE_STRING
+                            );
+                        }
+                        $written++;
+                        $this->heartbeat($written, $total);
+                        continue;
+                    }
                     foreach ($values as $idx => $cell) {
                         if (array_key_exists($idx, $imageCols)) {
                             continue; // image cells are drawn, not written as text
@@ -405,7 +445,7 @@ class GenerateExportJob implements ShouldQueue
                     try {
                         foreach ($urlsByCol as $idx => $urls) {
                             foreach ($urls as $url) {
-                                $tmp = $this->downloadToTempFile($url);
+                                $tmp = $this->downloadToTempFile($url, $rowNum);
                                 if ($tmp === null) {
                                     $failedByCol[$idx][] = $url;
                                     continue;
@@ -417,7 +457,7 @@ class GenerateExportJob implements ShouldQueue
                     } catch (\Throwable $e) {
                         // One poison row must not fail the other 199: fall back
                         // every image cell on this row and continue.
-                        Log::error('Export Image Error Row '.$rowNum.': '.$e->getMessage());
+                        Log::error('EXPORT IMAGE ROW FAILED', ['module' => $this->module, 'token' => $this->token, 'row' => $rowNum, 'error' => $e->getMessage()]);
                         foreach ($urlsByCol as $idx => $urls) {
                             $failedByCol[$idx] = $urls;
                         }
@@ -452,7 +492,7 @@ class GenerateExportJob implements ShouldQueue
                                 $drawing->setOffsetY(4);
                                 $drawing->setWorksheet($sheet);
                             } catch (\Throwable $e) {
-                                Log::error('Export Drawing Error '.$coord.': '.$e->getMessage());
+                                Log::error('EXPORT DRAWING FAILED', ['module' => $this->module, 'token' => $this->token, 'coord' => $coord, 'row' => $rowNum, 'error' => $e->getMessage()]);
                                 continue;
                             }
                             $dx += $scaledW + 6;

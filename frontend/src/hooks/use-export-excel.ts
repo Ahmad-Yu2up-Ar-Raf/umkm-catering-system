@@ -19,26 +19,35 @@ interface UseExportExcelOptions {
 
 /** Poll delays: exponential backoff 1s → 2s → 4s → 8s, capped at 10s. */
 const POLL_DELAYS = [1000, 2000, 4000, 8000, 10000]
+/** Modules whose exports embed Cloudinary thumbnails (slow, serial fetches). */
+const IMAGE_MODULES: ReadonlySet<AsyncExportModule> = new Set(["paket", "galeri"])
 /**
- * Fail-fast circuit breaker: `pending` with no worker pickup for >30s means
- * the queue worker is dead, idle, or never received the job — terminate now
- * instead of polling a silent queue until the absolute deadline.
+ * Fail-fast circuit breaker: `pending` with no worker pickup means the queue
+ * worker is dead, idle, or never received the job — terminate instead of
+ * polling a silent queue until the absolute deadline. Image modules get 120s
+ * (single DB worker + HF cold start + COUNT/probe on the HTTP worker); text
+ * modules keep the strict 30s budget.
  */
 const PENDING_SILENCE_MS = 30_000
+const PENDING_SILENCE_IMAGE_MS = 120_000
 /**
- * Fail-fast circuit breaker: `processing` with no row progress for >45s means
- * the job stalled (DB hang, OOM, lost heartbeat) — terminate now.
- * Heartbeats younger than HEARTBEAT_FRESH_MS prove liveness even when rows
- * advance slowly (long image rows), so a live-but-slow worker is never killed.
+ * Fail-fast circuit breaker: `processing` with no row progress means the job
+ * stalled (DB hang, OOM, lost heartbeat) — terminate now. Heartbeats younger
+ * than HEARTBEAT_FRESH_MS prove liveness even when rows advance slowly (long
+ * image rows), so a live-but-slow worker is never killed. Image modules get
+ * 180s (6 images/row × serial Cloudinary fetches); text keeps 45s.
  */
 const PROCESSING_STALL_MS = 45_000
+const PROCESSING_STALL_IMAGE_MS = 180_000
 const HEARTBEAT_FRESH_MS = 60_000
 /**
- * Absolute backstop: 6 min. Must exceed the job budget ($timeout 240s) so a
- * healthy-but-slow export is never killed client-side first. Every stuck case
- * trips the 30s/45s breaker long before this fires.
+ * Absolute backstop: 6 min text, 12 min image modules. Must exceed the job
+ * budget ($timeout 900s) so a healthy-but-slow export is never killed
+ * client-side first. Every stuck case trips the pending/stall breaker long
+ * before this fires.
  */
 const POLL_DEADLINE_MS = 6 * 60_000
+const POLL_DEADLINE_IMAGE_MS = 12 * 60_000
 
 /** Thrown the moment the circuit breaker opens — never loop silently. */
 const CIRCUIT_OPEN_MESSAGE = "Worker export tidak merespon — silakan coba lagi."
@@ -82,7 +91,7 @@ async function pollExportBlob(
   // (never a ref/state, never reset by re-renders) — all elapsed math is absolute.
   const pollStart = Date.now()
   console.log(`[ExportPoll] dispatch ok module=${module} token=${token}`)
-  const deadline = pollStart + POLL_DEADLINE_MS
+  const deadline = pollStart + (IMAGE_MODULES.has(module) ? POLL_DEADLINE_IMAGE_MS : POLL_DEADLINE_MS)
   let attempt = 0
   let networkErrors = 0
   let lastState: ExportPollState | null = null
@@ -104,6 +113,9 @@ async function pollExportBlob(
     if (Number.isNaN(beat)) return false
     return at - beat < HEARTBEAT_FRESH_MS
   }
+  const isImage = IMAGE_MODULES.has(module)
+  const pendingBudget = isImage ? PENDING_SILENCE_IMAGE_MS : PENDING_SILENCE_MS
+  const stallBudget = isImage ? PROCESSING_STALL_IMAGE_MS : PROCESSING_STALL_MS
   const breakerTripped = (state: ExportPollState | null, at: number): boolean => {
     if (state === null) return false
     if (state.status === "processing") {
@@ -111,10 +123,10 @@ async function pollExportBlob(
       if (rows > lastRows) return false
       // Slow but alive (fresh heartbeat, e.g. mid long image row) ≠ dead.
       if (heartbeatFresh(state, at)) return false
-      return at - lastProgressAt > PROCESSING_STALL_MS
+      return at - lastProgressAt > stallBudget
     }
     // `pending` (or unknown status) that never advances: worker never picked up.
-    return at - pollStart > PENDING_SILENCE_MS
+    return at - pollStart > pendingBudget
   }
   for (;;) {
     if (signal.aborted) throw new DOMException("export cancelled", "AbortError")

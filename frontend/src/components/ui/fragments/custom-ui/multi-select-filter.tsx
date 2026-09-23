@@ -13,7 +13,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import {
   ArrowDown01Icon,
   CancelCircleIcon,
-  Loading03Icon,
+  LoaderCircleIcon,
 } from "@hugeicons/core-free-icons"
 import { cn } from "@/lib/utils"
 
@@ -76,13 +76,16 @@ export function MultiSelectFilter({
           aria-label={ariaLabel}
           disabled={isLoading}
           className={cn(
-            "h-9 w-full justify-start gap-1.5 rounded-full border-border px-3 text-xs font-normal xl:w-auto xl:min-w-44 bg-transparent",
+            "h-9 w-full justify-start gap-1.5 rounded-full border-border bg-transparent px-3 text-xs font-normal xl:w-auto xl:min-w-44",
             isActive && "border-primary bg-primary/5 text-primary",
             className
           )}
         >
           {isLoading ? (
-            <HugeiconsIcon icon={Loading03Icon} className="size-3.5 animate-spin" />
+            <HugeiconsIcon
+              icon={LoaderCircleIcon}
+              className="size-3.5 animate-spin"
+            />
           ) : isActive ? (
             <>
               {selectedLabels.slice(0, MAX_VISIBLE_BADGES).map((label) => (
@@ -105,7 +108,10 @@ export function MultiSelectFilter({
           )}
           <HugeiconsIcon
             icon={ArrowDown01Icon}
-            className={cn("ml-auto size-3.5 shrink-0 opacity-60", open && "rotate-180")}
+            className={cn(
+              "ml-auto size-3.5 shrink-0 opacity-60",
+              open && "rotate-180"
+            )}
           />
         </Button>
       </PopoverTrigger>
@@ -120,20 +126,23 @@ export function MultiSelectFilter({
             const checked = value.includes(option.value)
             return (
               <Button
-              variant={"ghost"}
+                variant={"ghost"}
 
-              size={"sm"}
+                size={"sm"}
                 key={option.value}
                 type="button"
                 role="option"
                 aria-selected={checked}
                 onClick={() => toggle(option.value)}
                 className={cn(
-                  "flex w-full cursor-pointer items-center gap-2   px-2 py-1.5 text-left text-xs transition-colors hover:bg-primary/5 rounded-xl",
+                  "flex w-full cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-left text-xs transition-colors hover:bg-primary/5",
                   checked && "bg-primary/5"
                 )}
               >
-                <Checkbox checked={checked} className="pointer-events-none size-3.5" />
+                <Checkbox
+                  checked={checked}
+                  className="pointer-events-none size-3.5"
+                />
                 <span className="flex-1">{option.label}</span>
               </Button>
             )
