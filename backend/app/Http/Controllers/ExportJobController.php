@@ -70,10 +70,12 @@ class ExportJobController extends Controller
             } catch (\Throwable $e) {
                 // Broken queue (no worker, missing `jobs` table): never leave
                 // the pre-seeded `pending` to poll until the client breaker.
-                // Small datasets degrade to an inline build; large ones fail
+                // Small TEXT-ONLY datasets degrade to an inline build; image
+                // exports must NOT inline (50 paket rows = 300 sequential
+                // micro-thumb fetches ≈ 90s, triple the 30s Octane cap) — fail
                 // fast with an actionable message instead of a 120s hang.
                 Log::error('EXPORT DISPATCH FAILED', ['module' => $module, 'token' => $token, 'error' => $e->getMessage()]);
-                if ($count <= GenerateExportJob::TEXT_SYNC_THRESHOLD) {
+                if (! $images && $count <= GenerateExportJob::TEXT_SYNC_THRESHOLD) {
                     $job->total = $count;
                     try {
                         $job->handle();
