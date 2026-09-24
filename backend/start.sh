@@ -2,6 +2,11 @@
 # Hugging Face runtime: Octane (HTTP) + database queue worker (async exports)
 # in one container. The worker is supervised: if it exits, it is restarted
 # after 5s so a crashed worker can never wedge exports in `pending` forever.
+# Migrate on boot: the image ships code only, and the queue worker needs the
+# `jobs` table on Neon — without it every queued export (paket/galeri) pends
+# forever while inline text exports keep working. Non-fatal: the supervisor
+# below revives the worker once the DB is reachable.
+php artisan migrate --force || echo "[boot] migrate failed — continuing anyway"
 supervise_worker() {
     while true; do
         echo "[worker] starting: queue:work database --sleep=5 --tries=1 --timeout=1000 --memory=512 --max-jobs=50"

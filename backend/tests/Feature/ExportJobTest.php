@@ -17,7 +17,18 @@ test('export job budgets stay inside the worker lifespan', function () {
     expect($job->timeout)->toBeLessThan(1000)
         ->and($job->tries)->toBe(1)
         ->and(GenerateExportJob::TEXT_SYNC_THRESHOLD)->toBe(2000)
-        ->and(GenerateExportJob::IMAGE_EMBED_MAX_ROWS)->toBe(200);
+        // Thumbnail embedding disabled: the drawing path OOMs the 512M worker
+        // (up to 1200 Drawing/GD resources held until save()), an uncatchable
+        // SIGKILL that freezes polling at `processing`. All image exports
+        // stream HYPERLINK text instead.
+        ->and(GenerateExportJob::IMAGE_EMBED_MAX_ROWS)->toBe(0);
+});
+
+test('queue reservation outlives the longest job', function () {
+    // queue-jobs rule: retry_after must exceed worker --timeout (1000), or a
+    // still-running job gets released for double-pickup. The default protects
+    // deploys (e.g. HF Space) that omit DB_QUEUE_RETRY_AFTER.
+    expect((int) config('queue.connections.database.retry_after'))->toBeGreaterThanOrEqual(1000);
 });
 
 test('failed job surfaces a terminal failed status for polling', function () {

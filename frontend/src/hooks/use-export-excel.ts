@@ -33,18 +33,20 @@ const PENDING_SILENCE_IMAGE_MS = 120_000
 /**
  * Fail-fast circuit breaker: `processing` with no row progress means the job
  * stalled (DB hang, OOM, lost heartbeat) — terminate now. Heartbeats younger
- * than HEARTBEAT_FRESH_MS prove liveness even when rows advance slowly (long
- * image rows), so a live-but-slow worker is never killed. Image modules get
- * 180s (6 images/row × serial Cloudinary fetches); text keeps 45s.
+ * than HEARTBEAT_FRESH_MS prove liveness even when rows advance slowly, so a
+ * live-but-slow worker is never killed. Image modules get 120s (single worker
+ * + Neon WAN latency); text keeps 45s. Exports stream HYPERLINK text since
+ * thumbnail embedding was disabled server-side, so healthy jobs finish in
+ * seconds — this budget only binds genuinely dead workers.
  */
 const PROCESSING_STALL_MS = 45_000
-const PROCESSING_STALL_IMAGE_MS = 180_000
+const PROCESSING_STALL_IMAGE_MS = 120_000
 const HEARTBEAT_FRESH_MS = 60_000
 /**
- * Absolute backstop: 6 min text, 12 min image modules. Must exceed the job
- * budget ($timeout 900s) so a healthy-but-slow export is never killed
- * client-side first. Every stuck case trips the pending/stall breaker long
- * before this fires.
+ * Absolute backstop: 6 min text, 12 min image modules. Healthy exports finish
+ * in seconds (streaming, no image fetches), so this never binds a live job —
+ * it only caps the worst case below the 3600s status-cache TTL. Every stuck
+ * case trips the pending/stall breaker long before this fires.
  */
 const POLL_DEADLINE_MS = 6 * 60_000
 const POLL_DEADLINE_IMAGE_MS = 12 * 60_000

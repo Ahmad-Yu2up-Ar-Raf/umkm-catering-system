@@ -13,10 +13,11 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Async exports: POST returns 202 + poll URL immediately, the XLSX is built
  * by GenerateExportJob (chunked, off the HTTP worker), then downloaded.
- * Tiny TEXT-ONLY datasets (<= TEXT_SYNC_THRESHOLD rows) build inline in store()
- * — same 202 shape, first poll already sees ready/failed, no worker needed.
- * Image exports always queue: pooled fetching inside the HTTP worker trips the
- * 30s Octane cap even at 53 rows.
+ * Tiny datasets of ANY module (<= TEXT_SYNC_THRESHOLD rows) build inline in
+ * store() — same 202 shape, first poll already sees ready/failed, no worker
+ * needed. (Image thumbnail embedding is disabled, so their streaming build
+ * costs the same as text.) Only large datasets queue, and a dispatch failure
+ * degrades to inline/failed instead of a poisoned `pending`.
  * The existing sync export endpoints stay untouched for small datasets.
  */
 class ExportJobController extends Controller
@@ -47,14 +48,16 @@ class ExportJobController extends Controller
             'total' => $count === PHP_INT_MAX ? null : $count,
             'heartbeat_at' => now()->toIso8601String(),
         ], 3600);
-        // Images ALWAYS queue: pooled fetching inside the HTTP worker trips the
-        // 30s Octane cap even at 53 rows. Text-only exports sync up to a safe
-        // threshold (pure OpenSpout streaming, ~seconds) and queue above it.
+        // Image exports used to ALWAYS queue (pooled fetching inside the HTTP
+        // worker tripped the 30s Octane cap even at 53 rows). Since thumbnail
+        // embedding was disabled, the streaming build costs the same as text
+        // (O(1) memory, zero fetches, ~seconds), so small exports of ANY
+        // module build inline — no pickup latency, immune to dead workers.
+        // Only large datasets queue. 202 shape unchanged everywhere.
         $images = GenerateExportJob::hasImages($module);
-        $small = ! $images && $count <= GenerateExportJob::TEXT_SYNC_THRESHOLD;
+        $small = $count <= GenerateExportJob::TEXT_SYNC_THRESHOLD;
         if ($small) {
-            // ponytail: tiny text exports skip the queue — no pickup latency,
-            // immune to dead workers. 202 shape unchanged: first poll sees ready/failed.
+            // ponytail: tiny exports skip the queue — first poll sees ready/failed.
             $job->total = $count;
             try {
                 $job->handle();
@@ -62,7 +65,25 @@ class ExportJobController extends Controller
                 // handle() already logged + wrote `failed`; stay 202 so the poll surfaces it.
             }
         } else {
-            GenerateExportJob::dispatch($token, $module, $filters);
+            try {
+                GenerateExportJob::dispatch($token, $module, $filters);
+            } catch (\Throwable $e) {
+                // Broken queue (no worker, missing `jobs` table): never leave
+                // the pre-seeded `pending` to poll until the client breaker.
+                // Small datasets degrade to an inline build; large ones fail
+                // fast with an actionable message instead of a 120s hang.
+                Log::error('EXPORT DISPATCH FAILED', ['module' => $module, 'token' => $token, 'error' => $e->getMessage()]);
+                if ($count <= GenerateExportJob::TEXT_SYNC_THRESHOLD) {
+                    $job->total = $count;
+                    try {
+                        $job->handle();
+                    } catch (\Throwable $e) {
+                        // handle() already logged + wrote `failed`.
+                    }
+                } else {
+                    Cache::put("exports:{$token}", ['status' => 'failed', 'message' => 'Antrean export tidak tersedia — coba lagi'], 3600);
+                }
+            }
         }
         Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small, 'images' => $images, 'rows' => $small ? $count : null, 'count_ms' => $countMs, 'total_ms' => (int) round((microtime(true) - $t0) * 1000)]);
 

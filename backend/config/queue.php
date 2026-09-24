@@ -40,7 +40,12 @@ return [
             'connection' => env('DB_QUEUE_CONNECTION'),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
-            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
+            // Reservation must outlive the longest job (export $timeout=900 <
+            // worker --timeout=1000): an expired reservation releases a still-
+            // running job for double-pickup. Matches DB_QUEUE_RETRY_AFTER=1100
+            // in .env.example; the default protects deploys that omit the var
+            // (e.g. the Hugging Face Space, whose Dockerfile sets no queue env).
+            'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 1100),
             'after_commit' => false,
         ],
 

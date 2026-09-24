@@ -139,10 +139,10 @@ class GenerateExportJob implements ShouldQueue
         }
         $this->heartbeat(0, $total);
 
-        // Small datasets with image columns embed true thumbnails — but ONLY
-        // when the temp dir is verifiably writable. Otherwise fall through to
-        // the streaming path (HYPERLINK text) instead of dying on first write.
-        if ($imageCols !== [] && $total <= self::IMAGE_EMBED_MAX_ROWS && $this->ensureTempDir()) {
+        // Thumbnail embedding is disabled via IMAGE_EMBED_MAX_ROWS = 0 (OOM
+        // vector — see the constant). All image exports take the streaming
+        // path (HYPERLINK text): O(1) memory, zero Cloudinary fetches.
+        if ($imageCols !== [] && $total >= 1 && $total <= self::IMAGE_EMBED_MAX_ROWS && $this->ensureTempDir()) {
             $this->writeWithDrawings($path, $title, $headers, $widths, $query, $mapper, $imageCols, $total, $t0);
             return;
         }
@@ -170,6 +170,13 @@ class GenerateExportJob implements ShouldQueue
                 $writer->addRow($row);
                 $written++;
                 if ($written % $every === 0) {
+                    // Graceful OOM guard: a clear `failed` status beats a
+                    // SIGKILL that freezes polling at `processing` forever.
+                    // Streaming is O(1) so this never fires unless something
+                    // leaks — the 400M ceiling stays under worker --memory=512.
+                    if (memory_get_usage(true) > 400 * 1024 * 1024) {
+                        throw new \RuntimeException('Memori worker hampir habis saat export — persempit filter lalu ulangi');
+                    }
                     $this->heartbeat($written, $total);
                 }
             }
@@ -216,10 +223,15 @@ class GenerateExportJob implements ShouldQueue
 
     /**
      * Rows at or below this embed thumbnails as in-memory drawings.
-     * Above it the streaming writer keeps HYPERLINK text: drawings hold the
-     * workbook + GD resources in memory, so large datasets stay O(1).
+     * Set to 0 (DISABLED): writeWithDrawings() holds the whole Spreadsheet +
+     * up to 1200 Drawing/GD resources in RAM until save(), and the queue
+     * worker SIGKILLs at --memory=512 — an uncatchable kill that freezes the
+     * poll status at `processing` until the client breaker fires. Every image
+     * export therefore streams HYPERLINK text (O(1) memory, zero fetches),
+     * the same path that keeps pesanan/testimoni reliable. Raise only with a
+     * larger worker memory limit to match.
      */
-    public const IMAGE_EMBED_MAX_ROWS = 200;
+    public const IMAGE_EMBED_MAX_ROWS = 0;
 
     /** Per-image transfer budget for sequential temp-file streaming. */
     private const IMAGE_TIMEOUT_S = 8;
