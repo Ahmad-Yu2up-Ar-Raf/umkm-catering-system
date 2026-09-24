@@ -129,8 +129,7 @@ class PesananController extends Controller
         })();
 
         return ExcelExportService::stream(
-            ExcelExportService::filename('pesanan'), $headers, $rows, $widths,
-            'LAPORAN DATA PESANAN', ExcelExportService::subtitle()
+            ExcelExportService::filename('pesanan'), $headers, $rows, $widths
         );
     }
 

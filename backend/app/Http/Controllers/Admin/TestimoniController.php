@@ -91,8 +91,7 @@ class TestimoniController extends Controller
         })();
 
         return ExcelExportService::stream(
-            ExcelExportService::filename('testimoni'), $headers, $rows, $widths,
-            'LAPORAN DATA TESTIMONI', ExcelExportService::subtitle()
+            ExcelExportService::filename('testimoni'), $headers, $rows, $widths
         );
     }
 

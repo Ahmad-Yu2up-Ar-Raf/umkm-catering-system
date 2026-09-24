@@ -21,22 +21,20 @@ class ExcelExportService
 
     /**
      * Stream an XLSX download with O(1) memory via cursor.
-     * Layout: Row 1 title banner (merged), Row 2 subtitle (merged),
-     * Row 3 blank, Row 4 column headers, Row 5+ data.
+     * Layout: Row 1 column headers, Row 2+ data (no title banner — exports
+     * start directly with the data table by product decision).
      */
     public static function stream(
         string $filename,
         array $headers,
         iterable $rows,
-        ?array $columnWidths = null,
-        ?string $title = null,
-        ?string $subtitle = null
+        ?array $columnWidths = null
     ): StreamedResponse {
-        return response()->streamDownload(function () use ($headers, $rows, $columnWidths, $title, $subtitle) {
+        return response()->streamDownload(function () use ($headers, $rows, $columnWidths) {
             $options = new Options();
             // BUG-1 fix: no hardcoded DEFAULT_ROW_HEIGHT on data rows — height
             // is computed per-row from max "\n" count so orderedList() never clips.
-            // Header/title heights remain explicit via Row::setHeight(); data rows
+            // Header height remains explicit via Row::setHeight(); data rows
             // get dynamic height below. Leaving DEFAULT_ROW_HEIGHT null lets
             // Excel auto-fit wrapped text unless we set a custom height.
             if ($columnWidths !== null) {
@@ -48,13 +46,6 @@ class ExcelExportService
                 $options->DEFAULT_COLUMN_WIDTH = 18;
             }
 
-            // Merge title + subtitle across all columns (cols 0-based, rows 1-based)
-            $colCount = max(count($headers), 1);
-            if ($title !== null) {
-                $options->mergeCells(0, 1, $colCount - 1, 1);
-                $options->mergeCells(0, 2, $colCount - 1, 2);
-            }
-
             $writer = new Writer($options);
             $writer->openToFile('php://output');
 
@@ -64,28 +55,6 @@ class ExcelExportService
                 new BorderPart(Border::LEFT, self::BORDER_GRAY, Border::WIDTH_THIN, Border::STYLE_SOLID),
                 new BorderPart(Border::RIGHT, self::BORDER_GRAY, Border::WIDTH_THIN, Border::STYLE_SOLID)
             );
-
-            if ($title !== null) {
-                $titleStyle = (new Style())
-                    ->setFontBold()
-                    ->setFontSize(14)
-                    ->setCellAlignment(CellAlignment::CENTER);
-                $titleRow = Row::fromValues([$title], $titleStyle);
-                $titleRow->setHeight(28.0);
-                $writer->addRow($titleRow);
-
-                $subStyle = (new Style())
-                    ->setFontSize(10)
-                    ->setFontColor('64748B')
-                    ->setCellAlignment(CellAlignment::CENTER);
-                $subRow = Row::fromValues([$subtitle ?? ''], $subStyle);
-                $subRow->setHeight(18.0);
-                $writer->addRow($subRow);
-
-                $blank = Row::fromValues([]);
-                $blank->setHeight(8.0);
-                $writer->addRow($blank);
-            }
 
             // Header: bold white on dark slate #0F172A, centered, wrapped, bordered
             $headerStyle = (new Style())
@@ -136,11 +105,6 @@ class ExcelExportService
         return sprintf('%s-export-%s.xlsx', $module, now()->format('Ymd-His'));
     }
 
-    public static function subtitle(): string
-    {
-        return 'Tanggal Cetak: '.now()->format('d M Y H:i').' | Catering Nusantara';
-    }
-
     /** Generic "N/A" fallback for empty values. */
     public static function na(mixed $value): string
     {
@@ -179,21 +143,6 @@ class ExcelExportService
         if (count($items) === 0) return 'N/A';
         if (count($items) === 1) return $items[0];
         return implode("\n", array_map(fn ($i, $v) => ($i + 1).'. '.$v, array_keys($items), $items));
-    }
-
-    /** Clickable Excel link via HYPERLINK formula; "N/A" when missing. Label is the explicit preview text Excel shows. */
-    public static function hyperlink(mixed $value, string $label = '[ 📷 Lihat Foto Preview ]'): string
-    {
-        $s = trim((string) ($value ?? ''));
-        if ($s === '') return 'N/A';
-        $escaped = str_replace('"', '""', $s);
-        return '=HYPERLINK("'.$escaped.'","'.$label.'")';
-    }
-
-    /** Legacy alias kept for clarity in controllers. */
-    public static function url(mixed $value): string
-    {
-        return self::hyperlink($value);
     }
 
     public static function boolLabel(mixed $value): string

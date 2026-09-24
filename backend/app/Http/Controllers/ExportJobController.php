@@ -13,11 +13,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 /**
  * Async exports: POST returns 202 + poll URL immediately, the XLSX is built
  * by GenerateExportJob (chunked, off the HTTP worker), then downloaded.
- * Tiny TEXT-ONLY datasets (<= TEXT_SYNC_THRESHOLD rows) build inline in
- * store() — same 202 shape, first poll already sees ready/failed, no worker
- * needed. Image exports always queue: embedding micro-thumbnails takes
- * minutes and would trip the 30s Octane cap on the HTTP worker. A dispatch
- * failure degrades to inline/failed instead of a poisoned `pending`.
+ * Every export is text-only (no image columns anywhere), so small datasets
+ * (<= TEXT_SYNC_THRESHOLD rows) build inline in store() — same 202 shape,
+ * first poll already sees ready/failed, no worker needed. A dispatch failure
+ * degrades to inline/failed instead of a poisoned `pending`.
  * The existing sync export endpoints stay untouched for small datasets.
  */
 class ExportJobController extends Controller
@@ -48,14 +47,11 @@ class ExportJobController extends Controller
             'total' => $count === PHP_INT_MAX ? null : $count,
             'heartbeat_at' => now()->toIso8601String(),
         ], 3600);
-        // Image exports ALWAYS queue: fetching + embedding up to 1200
-        // micro-thumbnails takes minutes, which would trip the 30s Octane cap
-        // on the HTTP worker. Text-only exports build inline up to the
-        // threshold (pure OpenSpout streaming, ~seconds) and queue above it.
-        // 202 shape unchanged everywhere; dispatch failures degrade instead
-        // of hanging (see below).
-        $images = GenerateExportJob::hasImages($module);
-        $small = ! $images && $count <= GenerateExportJob::TEXT_SYNC_THRESHOLD;
+        // All exports are text-only (pure OpenSpout streaming, ~seconds), so
+        // small datasets of any module build inline and only large ones
+        // queue. 202 shape unchanged everywhere; dispatch failures degrade
+        // instead of hanging (see below).
+        $small = $count <= GenerateExportJob::TEXT_SYNC_THRESHOLD;
         if ($small) {
             // ponytail: tiny exports skip the queue — first poll sees ready/failed.
             $job->total = $count;
@@ -70,12 +66,10 @@ class ExportJobController extends Controller
             } catch (\Throwable $e) {
                 // Broken queue (no worker, missing `jobs` table): never leave
                 // the pre-seeded `pending` to poll until the client breaker.
-                // Small TEXT-ONLY datasets degrade to an inline build; image
-                // exports must NOT inline (50 paket rows = 300 sequential
-                // micro-thumb fetches ≈ 90s, triple the 30s Octane cap) — fail
+                // Small datasets degrade to an inline build; large ones fail
                 // fast with an actionable message instead of a 120s hang.
                 Log::error('EXPORT DISPATCH FAILED', ['module' => $module, 'token' => $token, 'error' => $e->getMessage()]);
-                if (! $images && $count <= GenerateExportJob::TEXT_SYNC_THRESHOLD) {
+                if ($count <= GenerateExportJob::TEXT_SYNC_THRESHOLD) {
                     $job->total = $count;
                     try {
                         $job->handle();
@@ -87,7 +81,7 @@ class ExportJobController extends Controller
                 }
             }
         }
-        Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small, 'images' => $images, 'rows' => $small ? $count : null, 'count_ms' => $countMs, 'total_ms' => (int) round((microtime(true) - $t0) * 1000)]);
+        Log::info('EXPORT DISPATCH', ['module' => $module, 'token' => $token, 'sync' => $small, 'rows' => $small ? $count : null, 'count_ms' => $countMs, 'total_ms' => (int) round((microtime(true) - $t0) * 1000)]);
 
         return response()->json([
             'status' => true,

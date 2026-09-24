@@ -90,7 +90,7 @@ All under `/api/v1/admin`.
 
 > Note: a `register` Bruno request exists but there is **no public register API** — account creation goes through Laravel Breeze web routes (`routes/auth.php`), not this API.
 
-### 4.3 Async exports (202 + poll — large datasets & image modules)
+### 4.3 Async exports (202 + poll — text-only)
 
 | Method | Path (under `/api/v1`) | Purpose |
 |---|---|---|
@@ -98,7 +98,7 @@ All under `/api/v1/admin`.
 | `GET` | `/admin/exports/{token}` | Poll status: `pending`\|`processing` (`rows`, `total`, `heartbeat_at`, optional `stale`) → `ready` (`filename`, `download_url`) or `failed` (`message`) |
 | `GET` | `/admin/exports/{token}/download` | Download the XLSX (deleted after send) |
 
-Behavior contract: text-only modules (`pesanan`, `testimoni`) with `rows <= 2000` build inline in `store()` (same 202 shape, first poll already `ready`/`failed`, no worker needed); image modules (`paket`, `galeri`) **always queue** (embedding takes minutes — it would trip the 30s Octane cap inline) and embed true 80px previews for `rows <= 200` (`IMAGE_EMBED_MAX_ROWS`), HYPERLINK text above it. Thumbs are Cloudinary micro-transforms (`w_80,h_80,c_fill,g_auto,q_auto:low,f_jpg`, ~3-8KB each, 8s timeout, 1MB corruption cap, 600s phase budget with hyperlink degradation); worst case 200×6 thumbs ≈ 10MB zip on disk at ~70MB resident — far under worker `--memory=512`. Temps live until `save()` and are unlinked in `finally`; a 400M graceful guard converts any leak into terminal `failed` instead of a silent SIGKILL. A dispatch failure degrades small text exports to inline, and fails image/large exports fast with terminal `failed` (image embeds can never inline: 50 paket rows = 300 sequential fetches ≈ 90s vs the 30s Octane cap) — never a poisoned `pending`. `start.sh` runs `migrate --force` on boot so the worker always has its `jobs` table. Job budget: `$timeout=900`, `$tries=1`; `retry_after` defaults to 1100 (must exceed worker timeout; also set `DB_QUEUE_RETRY_AFTER=1100` in prod env). Frontend polls with backoff 1→10s: pending budget 30s text / 120s image, stall budget 45s text / 120s image (fresh `heartbeat_at` < 60s proves liveness), absolute deadline 6min text / 12min image.
+Behavior contract: every export is text-only — no image columns are fetched, embedded, or emitted for any module, and sheets start directly with the column header row (no title banner). Pure OpenSpout streaming (chunked at 100 rows, O(1) memory, zero external HTTP) means exports of ANY module with `rows <= 2000` build inline in `store()` (same 202 shape, first poll already `ready`/`failed`, no worker needed, well under the 30s Octane cap); only larger datasets dispatch to the queue. A dispatch failure degrades small exports to inline or terminal `failed` (large) — never a poisoned `pending`. A 400M graceful memory guard converts any leak into terminal `failed` instead of a silent SIGKILL. `start.sh` runs `migrate --force` on boot so the worker always has its `jobs` table. Job budget: `$timeout=900`, `$tries=1`; `retry_after` defaults to 1100 (must exceed worker timeout; also set `DB_QUEUE_RETRY_AFTER=1100` in prod env). Frontend polls with backoff 1→10s: pending budget 30s text / 120s image, stall budget 45s text / 120s image (fresh `heartbeat_at` < 60s proves liveness), absolute deadline 6min text / 12min image.
 
 ## 5. Key Payload Rules (server-enforced — do NOT skip)
 

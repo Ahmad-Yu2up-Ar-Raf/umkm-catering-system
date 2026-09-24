@@ -92,8 +92,8 @@ class PaketController extends Controller
     {
         [$query] = $this->buildListQuery($request);
 
-        $headers = ['Nama Paket', 'Kategori Paket', 'Kategori Acara', 'Harga / Porsi', 'Min. Order', 'Kapasitas', 'Gambar Thumbnail', 'Galeri Foto', 'Menu Utama', 'Menu Tambahan', 'Fasilitas', 'Deskripsi', 'Best Seller', 'Terjual', 'Dibuat'];
-        $widths = [24, 14, 14, 14, 12, 12, 32, 40, 28, 28, 28, 32, 11, 10, 18];
+        $headers = ['Nama Paket', 'Kategori Paket', 'Kategori Acara', 'Harga / Porsi', 'Min. Order', 'Kapasitas', 'Menu Utama', 'Menu Tambahan', 'Fasilitas', 'Deskripsi', 'Best Seller', 'Terjual', 'Dibuat'];
+        $widths = [24, 14, 14, 14, 12, 12, 28, 28, 28, 32, 11, 10, 18];
 
         $rows = (function () use ($query) {
             foreach ($query->cursor() as $p) {
@@ -104,8 +104,6 @@ class PaketController extends Controller
                     ExcelExportService::idr($p->harga_per_porsi),
                     ExcelExportService::text($p->min_order),
                     ExcelExportService::text($p->kapasitas_produksi),
-                    ExcelExportService::hyperlink($p->thumbnail),
-                    self::galleryCell($p->images->pluck('image_url')->all()),
                     ExcelExportService::orderedList($p->menu_utama),
                     ExcelExportService::orderedList($p->menu_tambahan),
                     ExcelExportService::orderedList($p->fasilitas_termasuk),
@@ -118,21 +116,8 @@ class PaketController extends Controller
         })();
 
         return ExcelExportService::stream(
-            ExcelExportService::filename('paket'), $headers, $rows, $widths,
-            'LAPORAN DATA PAKET', ExcelExportService::subtitle()
+            ExcelExportService::filename('paket'), $headers, $rows, $widths
         );
-    }
-
-    /**
-     * Single image → clickable HYPERLINK; multiple → numbered URL list;
-     * empty → "N/A". One cell holds one formula, so multi-URL stays text.
-     */
-    private static function galleryCell(array $urls): string
-    {
-        $urls = array_values(array_filter(array_map(fn ($u) => trim((string) $u), $urls), fn ($u) => $u !== ''));
-        if (count($urls) === 0) return 'N/A';
-        if (count($urls) === 1) return ExcelExportService::hyperlink($urls[0]);
-        return ExcelExportService::orderedList($urls);
     }
 
     /**

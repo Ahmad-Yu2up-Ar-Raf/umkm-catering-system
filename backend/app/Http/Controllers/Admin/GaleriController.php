@@ -88,8 +88,8 @@ class GaleriController extends Controller
     {
         [$query] = $this->buildListQuery($request);
 
-        $headers = ['Nama Acara', 'Kategori Acara', 'Deskripsi', 'Foto Acara', 'Tanggal Acara', 'Lokasi', 'Jumlah Tamu', 'Unggulan', 'Dibuat'];
-        $widths = [24, 16, 32, 40, 14, 18, 13, 11, 18];
+        $headers = ['Nama Acara', 'Kategori Acara', 'Deskripsi', 'Tanggal Acara', 'Lokasi', 'Jumlah Tamu', 'Unggulan', 'Dibuat'];
+        $widths = [24, 16, 32, 14, 18, 13, 11, 18];
 
         $rows = (function () use ($query) {
             foreach ($query->cursor() as $g) {
@@ -97,7 +97,6 @@ class GaleriController extends Controller
                     ExcelExportService::text($g->nama_acara),
                     ExcelExportService::text($g->kategori_acara instanceof \BackedEnum ? $g->kategori_acara->value : $g->kategori_acara),
                     ExcelExportService::text($g->deskripsi_acara),
-                    ExcelExportService::hyperlink($g->gambar_acara),
                     ExcelExportService::date($g->tanggal_acara),
                     ExcelExportService::text($g->lokasi),
                     ExcelExportService::text($g->jumlah_tamu !== null ? $g->jumlah_tamu.' tamu' : null),
@@ -108,8 +107,7 @@ class GaleriController extends Controller
         })();
 
         return ExcelExportService::stream(
-            ExcelExportService::filename('galeri'), $headers, $rows, $widths,
-            'LAPORAN DATA GALERI', ExcelExportService::subtitle()
+            ExcelExportService::filename('galeri'), $headers, $rows, $widths
         );
     }
 
