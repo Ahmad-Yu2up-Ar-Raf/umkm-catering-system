@@ -17,11 +17,11 @@ test('export job budgets stay inside the worker lifespan', function () {
     expect($job->timeout)->toBeLessThan(1000)
         ->and($job->tries)->toBe(1)
         ->and(GenerateExportJob::TEXT_SYNC_THRESHOLD)->toBe(2000)
-        // Thumbnail embedding disabled: the drawing path OOMs the 512M worker
-        // (up to 1200 Drawing/GD resources held until save()), an uncatchable
-        // SIGKILL that freezes polling at `processing`. All image exports
-        // stream HYPERLINK text instead.
-        ->and(GenerateExportJob::IMAGE_EMBED_MAX_ROWS)->toBe(0);
+        // Visual embeds restored with 80px micro-thumbs: worst case 200 rows
+        // × 6 thumbs ≈ 10MB zip on disk, ~70MB resident — far under the 512M
+        // worker limit (see the constant's memory math). Above the cap the
+        // streaming HYPERLINK path keeps large datasets O(1).
+        ->and(GenerateExportJob::IMAGE_EMBED_MAX_ROWS)->toBe(200);
 });
 
 test('queue reservation outlives the longest job', function () {
@@ -44,7 +44,7 @@ test('thumbnail rewrite targets micro-thumbs and passes the rest through', funct
     $method = new \ReflectionMethod(GenerateExportJob::class, 'thumbnailUrl');
 
     $rewritten = $method->invoke($job, 'https://res.cloudinary.com/demo/image/upload/v123/a.jpg');
-    expect($rewritten)->toContain('w_400,h_400,c_fit,q_auto:good,f_jpg');
+    expect($rewritten)->toContain('w_80,h_80,c_fill,g_auto,q_auto:low,f_jpg');
 
     // Already-transformed and non-Cloudinary URLs pass through untouched.
     expect($method->invoke($job, $rewritten))->toBe($rewritten)

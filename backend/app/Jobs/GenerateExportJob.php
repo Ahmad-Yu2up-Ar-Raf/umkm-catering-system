@@ -139,9 +139,9 @@ class GenerateExportJob implements ShouldQueue
         }
         $this->heartbeat(0, $total);
 
-        // Thumbnail embedding is disabled via IMAGE_EMBED_MAX_ROWS = 0 (OOM
-        // vector — see the constant). All image exports take the streaming
-        // path (HYPERLINK text): O(1) memory, zero Cloudinary fetches.
+        // Small image datasets embed true 80px micro-thumbnails (see the
+        // constant for the memory math). Larger ones fall through to the
+        // streaming path (HYPERLINK text) instead of risking the worker.
         if ($imageCols !== [] && $total >= 1 && $total <= self::IMAGE_EMBED_MAX_ROWS && $this->ensureTempDir()) {
             $this->writeWithDrawings($path, $title, $headers, $widths, $query, $mapper, $imageCols, $total, $t0);
             return;
@@ -222,16 +222,17 @@ class GenerateExportJob implements ShouldQueue
     }
 
     /**
-     * Rows at or below this embed thumbnails as in-memory drawings.
-     * Set to 0 (DISABLED): writeWithDrawings() holds the whole Spreadsheet +
-     * up to 1200 Drawing/GD resources in RAM until save(), and the queue
-     * worker SIGKILLs at --memory=512 — an uncatchable kill that freezes the
-     * poll status at `processing` until the client breaker fires. Every image
-     * export therefore streams HYPERLINK text (O(1) memory, zero fetches),
-     * the same path that keeps pesanan/testimoni reliable. Raise only with a
-     * larger worker memory limit to match.
+     * Rows at or below this embed true 80px micro-thumbnails as drawings.
+     * Memory math (worst case: 200 paket rows × 6 thumbs): each thumb is
+     * ~3-8KB (`w_80,h_80,c_fill,g_auto,q_auto:low,f_jpg`), so the zip holds
+     * ~10MB on DISK while RAM stays flat — Drawing objects store paths, and
+     * image bytes are transient (read → deflate → release) at save(). Total
+     * resident ≈ objects (~3MB) + cells (~4MB) + chunk window (~10MB) +
+     * baseline (~50MB) ≈ 70MB, far under worker --memory=512. Above this cap
+     * the streaming writer keeps HYPERLINK text. Never raise without
+     * re-checking this math against the worker limit.
      */
-    public const IMAGE_EMBED_MAX_ROWS = 0;
+    public const IMAGE_EMBED_MAX_ROWS = 200;
 
     /** Per-image transfer budget for sequential temp-file streaming. */
     private const IMAGE_TIMEOUT_S = 8;
@@ -313,6 +314,12 @@ class GenerateExportJob implements ShouldQueue
         // ponytail: module/token/row on every image log — HF logs are the only
         // observability on the Space, and a bare URL never identifies the job.
         $ctx = ['module' => $this->module, 'token' => $this->token, 'row' => $rowNum];
+        // Sanitize: only fetch remote http(s) URLs — never file://, phar://,
+        // or other wrappers a hostile DB string could smuggle in.
+        if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+            Log::warning('EXPORT IMAGE FETCH FAILED', $ctx + ['url' => substr($url, 0, 120), 'reason' => 'invalid_url']);
+            return null;
+        }
         try {
             // THE choke point: fetch the CDN micro-thumb, never the multi-MB
             // original (full originals caused the timeouts, 1MB rejections and
@@ -521,6 +528,17 @@ class GenerateExportJob implements ShouldQueue
                         $sheet->getRowDimension($rowNum)->setRowHeight(62);
                     }
                     $written++;
+                    // Graceful OOM guard (same 400M ceiling as the streaming
+                    // path): a clean `failed` beats a SIGKILL that freezes
+                    // polling at `processing`. Temps must live until save()
+                    // (the writer needs the files), so only PHP cycle garbage
+                    // is swept here — every temp is unlinked in `finally`.
+                    if (memory_get_usage(true) > 400 * 1024 * 1024) {
+                        throw new \RuntimeException('Memori worker hampir habis saat export — persempit filter lalu ulangi');
+                    }
+                    if ($written % 25 === 0) {
+                        gc_collect_cycles();
+                    }
                     $this->heartbeat($written, $total);
                 }
             };
@@ -549,8 +567,8 @@ class GenerateExportJob implements ShouldQueue
     }
 
     /**
-     * Rewrite a stored Cloudinary original into a tiny CDN thumbnail.
-     * `.../image/upload/v123/a.jpg` → `.../image/upload/w_400,h_400,c_fit,q_auto:good,f_jpg/v123/a.jpg`
+     * Rewrite a stored Cloudinary original into an 80px micro-thumbnail.
+     * `.../image/upload/v123/a.jpg` → `.../image/upload/w_80,h_80,c_fill,g_auto,q_auto:low,f_jpg/v123/a.jpg`
      * (works with or without the `/v123/` version segment; already-transformed
      * and non-Cloudinary URLs pass through untouched — never stored, only fetched).
      */
@@ -561,12 +579,13 @@ class GenerateExportJob implements ShouldQueue
         if ($pos === false) {
             return $url;
         }
-        // 400px fit + good quality (not 100px low): the 80px drawing downscales
-        // from a crisp source instead of upscaling a pixelated one. f_jpg (not
-        // f_webp): GD decodes JPEG universally; WebP needs a specially-compiled
-        // GD that the production image does not guarantee. h_400 bounds portrait
-        // heights (c_fit requires both axes).
-        $transform = 'w_400,h_400,c_fit,q_auto:good,f_jpg';
+        // 80px fill + low quality, smart-cropped: the drawing displays at 80px
+        // height, so an 80px source is 1:1 (no upscale blur, no wasted bytes).
+        // ~3-8KB per thumb keeps the worst case (1200 thumbs) at ~10MB zip on
+        // disk with flat RAM. f_jpg (not f_webp): GD decodes JPEG universally;
+        // WebP needs a specially-compiled GD the production image does not
+        // guarantee. g_auto keeps faces/subjects centered in the square crop.
+        $transform = 'w_80,h_80,c_fill,g_auto,q_auto:low,f_jpg';
         $rest = substr($url, $pos + strlen($marker));
         if ($rest === '' || str_starts_with($rest, $transform)) {
             return $url;
